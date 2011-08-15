@@ -2,6 +2,7 @@
 -- PostgreSQL database dump
 --
 
+SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = off;
 SET check_function_bodies = false;
@@ -43,6 +44,7 @@ ALTER TABLE public.country OWNER TO jean;
 --
 
 CREATE SEQUENCE country_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -94,10 +96,34 @@ CREATE TABLE fighters (
 ALTER TABLE public.fighters OWNER TO jean;
 
 --
+-- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE weightclass (
+    id integer NOT NULL,
+    name character varying,
+    lbs integer
+);
+
+
+ALTER TABLE public.weightclass OWNER TO jean;
+
+--
+-- Name: fighter_view; Type: VIEW; Schema: public; Owner: jean
+--
+
+CREATE VIEW fighter_view AS
+    SELECT fighters.name, fighters.record, fighters.nickname, camps.name AS camp, country.name AS country, weightclass.name AS weightclass, weightclass.lbs AS weight FROM ((((fighters LEFT JOIN fighter_camps ON ((fighters.id = fighter_camps.fighter_id))) LEFT JOIN camps ON ((camps.id = fighter_camps.camp_id))) LEFT JOIN country ON ((fighters.country = country.id))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) ORDER BY weightclass.id, camps.id;
+
+
+ALTER TABLE public.fighter_view OWNER TO jean;
+
+--
 -- Name: fighters_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
 CREATE SEQUENCE fighters_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -149,6 +175,7 @@ ALTER TABLE public.fightersource_fighters OWNER TO jean;
 --
 
 CREATE SEQUENCE fightersource_id_seq
+    START WITH 1
     INCREMENT BY 1
     NO MAXVALUE
     NO MINVALUE
@@ -217,24 +244,22 @@ ALTER TABLE public.positions OWNER TO jean;
 
 CREATE TABLE positions_moves (
     position_id integer NOT NULL,
-    move_id integer NOT NULL
+    move_id integer NOT NULL,
+    end_position_id integer
 );
 
 
 ALTER TABLE public.positions_moves OWNER TO jean;
 
 --
--- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: position_move_camp_view; Type: VIEW; Schema: public; Owner: jean
 --
 
-CREATE TABLE weightclass (
-    id integer NOT NULL,
-    name character varying,
-    lbs integer
-);
+CREATE VIEW position_move_camp_view AS
+    WITH RECURSIVE x(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT x._move, (x._length + 1), x._count, x._number, (((x.camp)::text || ', '::text) || (y.camp)::text) FROM (x JOIN y ON (((y._move = x._move) AND (x._length = y._number))))) SELECT positions.name, moves.name AS move, x.camp, x._length AS camp_count, moves.reqskill, moves.reqskilllevel, moves.reqmove, moves.reqstring FROM (((positions_moves JOIN positions ON ((positions_moves.position_id = positions.id))) JOIN moves ON ((positions_moves.move_id = moves.id))) LEFT JOIN x ON ((moves.id = x._move))) WHERE ((x._count = x._length) AND (x._count = x._number)) ORDER BY positions.id, moves.id, x._length;
 
 
-ALTER TABLE public.weightclass OWNER TO jean;
+ALTER TABLE public.position_move_camp_view OWNER TO jean;
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: jean
@@ -1100,7 +1125,6 @@ COPY moves (id, name, reqskill, reqskilllevel, reqmove, reqstring) FROM stdin;
 194	Hammer Fist	\N	\N	\N	None
 195	Kimura from Half Guard Top	\N	\N	\N	None
 196	Kneebar from Half Guard Top	\N	\N	\N	None
-197	Kneebar from Half Guard Top	\N	\N	\N	None
 198	Strong Hook	\N	\N	\N	None
 199	Toe Hold from Half Guard Top	\N	\N	\N	None
 200	Transition to Mount Down Top	\N	\N	\N	None
@@ -2392,324 +2416,323 @@ COPY positions (id, name) FROM stdin;
 -- Data for Name: positions_moves; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
-COPY positions_moves (position_id, move_id) FROM stdin;
-1	1
-1	2
-2	3
-2	4
-3	5
-3	6
-3	7
-4	8
-5	9
-5	10
-5	11
-5	12
-5	13
-5	14
-6	15
-7	16
-7	17
-7	18
-7	19
-8	20
-8	21
-9	22
-9	23
-10	24
-10	25
-10	26
-10	27
-10	28
-10	29
-10	30
-10	31
-11	32
-11	33
-12	34
-13	35
-13	36
-13	37
-14	38
-14	39
-14	40
-14	41
-14	42
-14	43
-14	44
-14	45
-14	46
-14	47
-14	48
-14	49
-15	50
-15	51
-15	52
-15	53
-15	54
-15	55
-15	56
-15	57
-15	58
-15	59
-15	60
-15	61
-15	62
-15	63
-15	64
-15	65
-15	66
-15	67
-15	68
-15	69
-15	70
-15	71
-15	72
-15	73
-15	74
-15	75
-15	76
-15	77
-15	78
-15	79
-15	80
-15	81
-15	82
-15	83
-15	84
-15	85
-15	86
-15	87
-15	88
-15	89
-15	90
-15	91
-15	92
-15	93
-15	94
-15	95
-15	96
-15	97
-15	98
-15	99
-15	100
-15	101
-15	102
-15	103
-15	104
-15	105
-15	106
-15	107
-15	108
-15	109
-15	110
-15	111
-15	112
-15	113
-15	114
-15	115
-15	116
-15	117
-15	118
-15	119
-15	120
-15	121
-15	122
-15	123
-15	124
-15	125
-15	126
-15	127
-15	128
-15	129
-15	130
-15	131
-15	132
-15	133
-15	134
-15	135
-15	136
-15	137
-15	138
-15	139
-15	140
-15	141
-15	142
-15	143
-15	144
-15	145
-15	146
-15	147
-15	148
-15	149
-15	150
-15	151
-15	152
-15	153
-15	154
-15	155
-15	156
-16	157
-16	158
-16	159
-16	160
-17	161
-17	162
-17	163
-18	164
-19	165
-20	166
-20	167
-20	168
-21	169
-21	170
-21	171
-22	172
-22	173
-22	174
-23	175
-23	176
-23	177
-23	178
-23	179
-24	180
-24	181
-24	182
-24	183
-24	184
-25	185
-25	186
-25	187
-25	188
-26	189
-26	190
-26	191
-27	192
-27	193
-27	194
-27	195
-27	196
-27	197
-27	198
-27	199
-27	200
-27	201
-27	202
-28	203
-28	204
-29	205
-29	206
-29	207
-30	208
-30	209
-30	210
-31	211
-32	212
-32	213
-32	214
-32	215
-33	216
-33	217
-34	218
-34	219
-35	220
-35	221
-35	222
-35	223
-35	224
-35	225
-35	226
-36	227
-36	228
-36	229
-37	230
-37	231
-37	232
-37	233
-37	234
-37	235
-38	236
-38	237
-38	238
-38	239
-38	240
-39	241
-39	242
-40	243
-40	244
-40	245
-40	246
-41	247
-41	248
-41	249
-41	250
-41	251
-41	252
-41	253
-41	254
-41	255
-42	256
-42	257
-42	258
-43	259
-43	260
-43	261
-44	262
-44	263
-44	264
-45	265
-45	266
-46	267
-46	268
-47	269
-47	270
-47	271
-48	272
-48	273
-48	274
-48	275
-48	276
-49	277
-49	278
-50	279
-50	280
-50	281
-50	282
-50	283
-50	284
-50	285
-50	286
-50	287
-51	288
-51	289
-51	290
-51	291
-51	292
-51	293
-52	294
-52	295
-52	296
-53	297
-53	298
-54	299
-54	300
-55	301
-56	302
-56	303
-56	304
-56	305
-56	306
-57	307
-57	308
-58	309
-58	310
-59	311
-59	312
-59	313
-59	314
-59	315
-59	316
-59	317
+COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
+1	1	10
+1	2	50
+2	4	15
+3	5	50
+3	6	10
+4	8	15
+5	13	5
+5	14	32
+8	21	38
+10	30	5
+11	32	38
+11	33	50
+12	34	50
+13	36	25
+13	37	50
+15	144	39
+16	159	58
+17	161	25
+17	163	50
+18	164	39
+19	165	21
+20	167	38
+20	168	50
+21	169	50
+21	171	52
+22	172	13
+22	174	50
+23	177	24
+23	178	37
+24	180	24
+24	182	16
+24	183	38
+25	187	30
+25	188	50
+27	201	32
+27	202	50
+28	203	23
+29	205	30
+29	206	24
+29	207	39
+34	218	35
+34	219	43
+5	10	5
+5	9	5
+5	11	5
+6	15	6
+7	17	7
+7	16	7
+7	19	7
+9	22	9
+10	25	10
+10	24	10
+10	26	10
+10	28	10
+10	29	10
+14	38	14
+14	40	14
+14	41	14
+14	43	14
+14	44	14
+14	45	14
+14	47	14
+14	48	14
+14	49	14
+15	50	15
+2	3	21
+3	7	50
+8	20	15
+10	31	7
+13	35	38
+16	158	38
+17	162	41
+20	166	11
+21	170	22
+22	173	38
+23	179	58
+24	184	58
+27	200	30
+28	204	29
+30	210	39
+35	223	38
+36	229	30
+37	234	38
+37	235	58
+38	238	44
+38	239	58
+39	241	25
+39	242	50
+41	253	25
+41	254	27
+41	255	50
+42	256	39
+42	257	20
+42	258	25
+43	259	50
+43	260	38
+43	261	22
+45	265	25
+45	266	41
+46	268	15
+47	271	32
+48	272	50
+48	273	15
+48	274	16
+48	275	24
+48	276	38
+50	285	30
+50	286	32
+50	287	47
+52	294	38
+53	297	39
+53	298	50
+54	299	15
+54	300	38
+56	306	7
+5	12	5
+7	18	7
+9	23	9
+10	27	10
+14	39	14
+14	42	14
+14	46	14
+15	51	15
+15	52	15
+15	53	15
+15	54	15
+15	55	15
+15	56	15
+15	57	15
+15	58	15
+15	59	15
+15	60	15
+15	61	15
+15	62	15
+15	63	15
+15	64	15
+15	65	15
+15	66	15
+15	67	15
+15	69	15
+15	68	15
+15	70	15
+15	71	15
+15	72	15
+15	73	15
+15	74	15
+15	75	15
+15	76	15
+15	77	15
+15	78	15
+15	79	15
+15	80	15
+15	81	15
+15	82	15
+15	83	15
+15	84	15
+15	85	15
+15	86	15
+15	87	15
+15	88	15
+15	89	15
+15	90	15
+15	91	15
+15	92	15
+15	93	15
+15	95	15
+15	94	15
+15	96	15
+15	97	15
+15	98	15
+15	99	15
+15	100	15
+15	101	15
+15	102	15
+15	103	15
+15	104	15
+15	105	15
+15	106	15
+15	107	15
+15	108	15
+15	109	15
+15	110	15
+15	111	15
+15	112	15
+15	113	15
+15	114	15
+15	115	15
+15	116	15
+15	117	15
+15	118	15
+15	119	15
+15	120	15
+15	121	15
+15	122	15
+15	123	15
+15	124	15
+15	125	15
+15	126	15
+15	127	15
+15	128	15
+36	228	36
+37	230	37
+37	231	37
+37	233	37
+38	236	38
+38	237	38
+40	243	40
+40	244	40
+40	246	40
+41	247	41
+41	248	41
+41	250	41
+41	251	41
+41	252	41
+44	263	44
+44	264	44
+47	269	47
+47	270	47
+49	277	49
+50	279	50
+50	280	50
+50	281	50
+50	283	50
+50	284	50
+51	289	51
+51	290	51
+51	291	51
+51	293	51
+52	295	52
+52	296	52
+56	302	56
+56	303	56
+56	305	56
+57	307	57
+57	308	57
+58	310	58
+59	311	59
+59	312	59
+59	314	59
+59	315	59
+59	317	59
+15	130	15
+15	131	15
+15	132	15
+15	133	15
+15	134	15
+15	129	15
+15	135	15
+15	136	15
+15	137	15
+15	138	15
+15	139	15
+15	140	15
+15	141	15
+15	142	15
+15	143	15
+15	146	15
+15	147	15
+15	148	15
+15	149	15
+15	145	15
+15	150	15
+15	151	15
+15	152	15
+15	153	15
+15	154	15
+15	155	15
+15	156	15
+16	157	16
+16	160	16
+23	175	23
+23	176	23
+24	181	24
+25	185	25
+25	186	25
+26	189	26
+26	190	26
+26	191	26
+27	192	27
+27	193	27
+27	194	27
+27	195	27
+27	196	27
+27	198	27
+27	199	27
+30	208	30
+30	209	30
+31	211	31
+32	213	32
+32	212	32
+32	214	32
+32	215	32
+33	216	33
+33	217	33
+35	220	35
+35	221	35
+35	222	35
+35	224	35
+35	225	35
+35	226	35
+36	227	36
+37	232	37
+38	240	38
+40	245	40
+41	249	41
+44	262	44
+46	267	46
+49	278	49
+50	282	50
+51	288	51
+51	292	51
+55	301	55
+56	304	56
+58	309	58
+59	313	59
+59	316	59
 \.
 
 
