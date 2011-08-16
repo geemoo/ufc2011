@@ -262,6 +262,36 @@ CREATE VIEW position_move_camp_view AS
 ALTER TABLE public.position_move_camp_view OWNER TO jean;
 
 --
+-- Name: position_moves_view; Type: VIEW; Schema: public; Owner: jean
+--
+
+CREATE VIEW position_moves_view AS
+    WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length AS move_count, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number)) ORDER BY x."position", x._length;
+
+
+ALTER TABLE public.position_moves_view OWNER TO jean;
+
+--
+-- Name: reverse_position_moves_view; Type: VIEW; Schema: public; Owner: jean
+--
+
+CREATE VIEW reverse_position_moves_view AS
+    WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.end_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length AS move_count, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number)) ORDER BY x."position", x._length;
+
+
+ALTER TABLE public.reverse_position_moves_view OWNER TO jean;
+
+--
+-- Name: transition_moves_view; Type: VIEW; Schema: public; Owner: jean
+--
+
+CREATE VIEW transition_moves_view AS
+    WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text <> (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))), a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text = (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT x.start_position, x.end_position, x._length AS move_count, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number)) UNION SELECT a.start_position, a.end_position, a._length AS move_count, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number)) ORDER BY 1, 2, 3;
+
+
+ALTER TABLE public.transition_moves_view OWNER TO jean;
+
+--
 -- Name: id; Type: DEFAULT; Schema: public; Owner: jean
 --
 
@@ -936,6 +966,7 @@ COPY moves (id, name, reqskill, reqskilllevel, reqmove, reqstring) FROM stdin;
 5	Back Throw to Side Control Right Offense	\N	\N	\N	None
 6	German Suplex to Back Side Control Offense	\N	\N	\N	Suplex to Side Control Offense
 7	Pull to Side Control	\N	\N	\N	None
+122	Right Hook From Sway Right	\N	\N	\N	None
 8	Transition to Both Standing	\N	\N	\N	None
 9	Arm Trap Rear Naked Choke	\N	\N	\N	Submission Offense of 60
 10	Armbar from Back Mount Face Up Top	\N	\N	\N	None
@@ -960,12 +991,6 @@ COPY moves (id, name, reqskill, reqskilllevel, reqmove, reqstring) FROM stdin;
 29	Strong Knee to Abdomen	\N	\N	\N	None
 30	Transition to Back Mount Face Up Top	\N	\N	\N	None
 31	Transition to Back Mount Top	\N	\N	\N	None
-32	Pull Guard to Open Guard Down Defense	\N	\N	\N	Clinch to Body Lock Offense
-33	Suplex to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
-34	Judo Hip Throw to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
-35	Pull Guard to Open Guard Down Defense	\N	\N	\N	Clinch to Body Lock Offense
-36	Suplex to Half Guard Down Offense	\N	\N	\N	Clinch to Body Lock Offense
-37	Suplex to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
 38	Inside Left Uppercut	\N	\N	\N	None
 39	Inside Right Uppercut	\N	\N	\N	None
 40	Left Leg Kick	\N	\N	\N	None
@@ -1050,7 +1075,6 @@ COPY moves (id, name, reqskill, reqskilllevel, reqmove, reqstring) FROM stdin;
 119	Right High Kick	\N	\N	\N	None
 120	Right Hook from Sway Back	\N	\N	\N	None
 121	Right Hook from Sway Left	\N	\N	\N	None
-122	Right Hook From Sway Right	\N	\N	\N	None
 123	Right Karate Back Spin Kick	\N	\N	\N	None
 124	Right Karate Front Kick	\N	\N	\N	None
 125	Right Karate Straight	\N	\N	\N	None
@@ -1245,6 +1269,12 @@ COPY moves (id, name, reqskill, reqskilllevel, reqmove, reqstring) FROM stdin;
 315	Left Superman Punch	\N	\N	\N	None
 316	Right Superman Punch	\N	\N	\N	None
 317	Toe Hold from Up/Down Near Top	\N	\N	\N	None
+32	Pull Guard to Open Guard Down Defense	\N	\N	\N	Clinch to Body Lock Offense
+33	Suplex to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
+34	Judo Hip Throw to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
+35	Pull Guard to Open Guard Down Defense	\N	\N	\N	Clinch to Body Lock Offense
+36	Suplex to Half Guard Down Offense	\N	\N	\N	Clinch to Body Lock Offense
+37	Suplex to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
 \.
 
 
