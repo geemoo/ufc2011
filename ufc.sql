@@ -11,6 +11,21 @@ SET escape_string_warning = off;
 
 SET search_path = public, pg_catalog;
 
+--
+-- Name: focusgroup; Type: TYPE; Schema: public; Owner: jean
+--
+
+CREATE TYPE focusgroup AS ENUM (
+    'Standup',
+    'Takedown',
+    'Clinch',
+    'Ground and Pound',
+    'Grappling/Submission'
+);
+
+
+ALTER TYPE public.focusgroup OWNER TO jean;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -271,6 +286,58 @@ CREATE VIEW reverse_position_moves_view AS
 ALTER TABLE public.reverse_position_moves_view OWNER TO jean;
 
 --
+-- Name: skills; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE skills (
+    id integer NOT NULL,
+    name character varying
+);
+
+
+ALTER TABLE public.skills OWNER TO jean;
+
+--
+-- Name: skill_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
+--
+
+CREATE SEQUENCE skill_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.skill_id_seq OWNER TO jean;
+
+--
+-- Name: skill_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+--
+
+ALTER SEQUENCE skill_id_seq OWNED BY skills.id;
+
+
+--
+-- Name: skill_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+--
+
+SELECT pg_catalog.setval('skill_id_seq', 16, true);
+
+
+--
+-- Name: skillfocii; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE skillfocii (
+    skill_id integer NOT NULL,
+    focus focusgroup NOT NULL
+);
+
+
+ALTER TABLE public.skillfocii OWNER TO jean;
+
+--
 -- Name: transition_moves_view; Type: VIEW; Schema: public; Owner: jean
 --
 
@@ -299,6 +366,13 @@ ALTER TABLE fighters ALTER COLUMN id SET DEFAULT nextval('fighters_id_seq'::regc
 --
 
 ALTER TABLE fightersource ALTER COLUMN id SET DEFAULT nextval('fightersource_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: jean
+--
+
+ALTER TABLE skills ALTER COLUMN id SET DEFAULT nextval('skill_id_seq'::regclass);
 
 
 --
@@ -2812,6 +2886,56 @@ COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
 
 
 --
+-- Data for Name: skillfocii; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY skillfocii (skill_id, focus) FROM stdin;
+1	Standup
+2	Standup
+3	Standup
+4	Standup
+11	Takedown
+12	Takedown
+13	Grappling/Submission
+14	Grappling/Submission
+15	Grappling/Submission
+16	Grappling/Submission
+5	Clinch
+6	Clinch
+9	Clinch
+10	Clinch
+7	Ground and Pound
+8	Ground and Pound
+13	Ground and Pound
+14	Ground and Pound
+\.
+
+
+--
+-- Data for Name: skills; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY skills (id, name) FROM stdin;
+5	Clinch Striking Offense
+6	Clinch Striking Defense
+7	Ground Striking Offense
+8	Ground Striking Defense
+9	Clinch Grapple Offense
+10	Clinch Grapple Defense
+1	Standing Strikes Offense
+2	Standing Strikes Defense
+3	Standing Kicks Offense
+4	Standing Kicks Defense
+11	Takedown Offense
+12	Takedown Defense
+13	Ground Grapple Offense
+14	Ground Grapple Defense
+15	Submission Offense
+16	Submission Defense
+\.
+
+
+--
 -- Data for Name: weightclass; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
@@ -2888,6 +3012,14 @@ ALTER TABLE ONLY positions
 
 ALTER TABLE ONLY positions
     ADD CONSTRAINT positions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: skillfocii_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY skillfocii
+    ADD CONSTRAINT skillfocii_pkey PRIMARY KEY (skill_id, focus);
 
 
 --
