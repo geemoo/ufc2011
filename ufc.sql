@@ -26,6 +26,20 @@ CREATE TYPE focusgroup AS ENUM (
 
 ALTER TYPE public.focusgroup OWNER TO jean;
 
+--
+-- Name: move_type; Type: TYPE; Schema: public; Owner: jean
+--
+
+CREATE TYPE move_type AS ENUM (
+    'Strike',
+    'Kick',
+    'Transition',
+    'Submission'
+);
+
+
+ALTER TYPE public.move_type OWNER TO jean;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -98,6 +112,16 @@ CREATE TABLE fighters (
 
 
 ALTER TABLE public.fighters OWNER TO jean;
+
+--
+-- Name: fighter_camp_view; Type: VIEW; Schema: public; Owner: jean
+--
+
+CREATE VIEW fighter_camp_view AS
+    SELECT f.name AS fighter, c.name AS camp FROM (fighters f LEFT JOIN camps c ON ((f.camp_id = c.id)));
+
+
+ALTER TABLE public.fighter_camp_view OWNER TO jean;
 
 --
 -- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
@@ -203,6 +227,31 @@ SELECT pg_catalog.setval('fightersource_id_seq', 4, true);
 
 
 --
+-- Name: move_move_requirements; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE move_move_requirements (
+    move_id integer NOT NULL,
+    req_move_id integer NOT NULL
+);
+
+
+ALTER TABLE public.move_move_requirements OWNER TO jean;
+
+--
+-- Name: move_skill_requirements; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE move_skill_requirements (
+    move_id integer NOT NULL,
+    skill_id integer NOT NULL,
+    level integer NOT NULL
+);
+
+
+ALTER TABLE public.move_skill_requirements OWNER TO jean;
+
+--
 -- Name: moves; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
@@ -212,7 +261,8 @@ CREATE TABLE moves (
     reqskill character varying,
     reqskilllevel integer,
     reqmove integer,
-    reqstring character varying
+    reqstring character varying,
+    type move_type
 );
 
 
@@ -1077,326 +1127,398 @@ COPY fightersource_fighters (fightersource_id, fighter_id) FROM stdin;
 
 
 --
+-- Data for Name: move_move_requirements; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY move_move_requirements (move_id, req_move_id) FROM stdin;
+159	182
+159	274
+161	182
+161	274
+163	182
+163	274
+158	182
+158	274
+162	182
+162	274
+157	182
+157	274
+160	182
+160	274
+32	166
+33	166
+34	172
+35	172
+36	172
+37	172
+1	33
+1	168
+256	33
+256	168
+258	33
+258	168
+6	37
+6	174
+259	37
+259	174
+260	37
+260	174
+265	238
+266	238
+263	238
+264	238
+262	238
+268	287
+271	287
+269	287
+270	287
+267	287
+\.
+
+
+--
+-- Data for Name: move_skill_requirements; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
+207	13	60
+210	13	60
+287	13	60
+157	15	70
+232	15	60
+237	15	60
+26	15	60
+262	15	70
+263	15	60
+9	15	60
+16	15	60
+22	15	60
+24	15	60
+304	15	60
+\.
+
+
+--
 -- Data for Name: moves; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
-COPY moves (id, name, reqskill, reqskilllevel, reqmove, reqstring) FROM stdin;
-1	German Suplex to Back Side Control Offense	\N	\N	\N	Suplex to Side Control Offense
-2	Lift Up Slam to Side Control Offense	\N	\N	\N	None
-3	Pummel to Double Underhook Defense	\N	\N	\N	None
-4	Transition to Both Standing	\N	\N	\N	None
-5	Back Throw to Side Control Right Offense	\N	\N	\N	None
-6	German Suplex to Back Side Control Offense	\N	\N	\N	Suplex to Side Control Offense
-7	Pull to Side Control	\N	\N	\N	None
-122	Right Hook From Sway Right	\N	\N	\N	None
-8	Transition to Both Standing	\N	\N	\N	None
-9	Arm Trap Rear Naked Choke	\N	\N	\N	Submission Offense of 60
-10	Armbar from Back Mount Face Up Top	\N	\N	\N	None
-11	Rear Naked Choke	\N	\N	\N	None
-12	Strong Right Hook	\N	\N	\N	None
-13	Transition to Back Mount Face Up Body Triangle Top	\N	\N	\N	None
-14	Transition to Mount Top	\N	\N	\N	None
-15	Rear Naked Choke from Back Mount Rocked	\N	\N	\N	None
-16	Arm Trap Rear Naked Choke	\N	\N	\N	Submission Offense of 60
-17	Armbar from Back Mount Top	\N	\N	\N	None
-18	Rear Naked Choke Facing Downward	\N	\N	\N	None
-19	Strong Hook	\N	\N	\N	None
-20	Transition to Both Standing	\N	\N	\N	None
-21	Transition to Open Guard Bottom	\N	\N	\N	None
-22	Arm Trap Rear Naked Choke	\N	\N	\N	Submission Offense of 60
-23	Rear Naked Choke	\N	\N	\N	None
-24	Arm Trap Rear Naked Choke	\N	\N	\N	Submission Offense of 60
-25	Armbar from Back Side Control Top	\N	\N	\N	None
-26	Peruvian Neck Tie	\N	\N	\N	Submission Offense of 60
-27	Rear Naked Choke	\N	\N	\N	None
-28	Strong Hook	\N	\N	\N	None
-29	Strong Knee to Abdomen	\N	\N	\N	None
-30	Transition to Back Mount Face Up Top	\N	\N	\N	None
-31	Transition to Back Mount Top	\N	\N	\N	None
-38	Inside Left Uppercut	\N	\N	\N	None
-39	Inside Right Uppercut	\N	\N	\N	None
-40	Left Leg Kick	\N	\N	\N	None
-41	Left Muay Thai Elbow	\N	\N	\N	None
-42	Left Short Uppercut From Sway Forward	\N	\N	\N	None
-43	Right Chopping Hook	\N	\N	\N	None
-44	Right Dodge Knee to the Body	\N	\N	\N	None
-45	Right Leg Kick	\N	\N	\N	None
-46	Right Muay Thai Elbow	\N	\N	\N	None
-47	Right Short Uppercut from Sway Forward	\N	\N	\N	None
-48	Strong Left Leg Kick	\N	\N	\N	None
-49	Strong Right Leg Kick	\N	\N	\N	None
-50	Backstep Right Hook from Switch Stance	\N	\N	\N	None
-51	Backstepping Right Straight	\N	\N	\N	None
-52	Brock's Right Straight	\N	\N	\N	None
-53	Caol's Back Spin Kick	\N	\N	\N	None
-54	Caol's Left Side Kick	\N	\N	\N	None
-55	Check Head Kick	\N	\N	\N	None
-56	Chuck's Right Straight	\N	\N	\N	None
-57	Ducking Left Hook	\N	\N	\N	None
-58	Ducking Right Hook	\N	\N	\N	None
-59	Forrest's Left Front Kick	\N	\N	\N	None
-60	Forrest's Left Head Kick	\N	\N	\N	None
-61	GSP's Head Kick	\N	\N	\N	None
-62	Hendo's Right Back Fist	\N	\N	\N	None
-63	Hendo's Right Strong Straight	\N	\N	\N	None
-64	Jardine's Right Superman Punch	\N	\N	\N	None
-65	Jon Jones' Right Back Fist	\N	\N	\N	None
-66	Left Axe Kick	\N	\N	\N	None
-67	Left Back Fist	\N	\N	\N	None
-68	Left Front Upward Kick	\N	\N	\N	None
-69	Left Flicking Jab	\N	\N	\N	None
-70	Left Guarded Hook	\N	\N	\N	None
-71	Left Head Kick	\N	\N	\N	None
-72	Left High Front Kick	\N	\N	\N	None
-73	Left Hook from Sway Back	\N	\N	\N	None
-74	Left Hook from Sway Forward	\N	\N	\N	None
-75	Left Hook from Sway Left	\N	\N	\N	None
-76	Left Hook from Sway Right	\N	\N	\N	None
-77	Left Jab to Sway Back	\N	\N	\N	None
-78	Left Jumping Front Kick	\N	\N	\N	None
-79	Left Long Superman Punch	\N	\N	\N	None
-80	Left Muay Thai Head Kick	\N	\N	\N	None
-81	Left Muay Thai Leg Kick	\N	\N	\N	None
-82	Left Muay Thai Push Kick	\N	\N	\N	None
-83	Left Over Hook	\N	\N	\N	None
-84	Left Over Strong Hook	\N	\N	\N	None
-85	Left Punch from Kick Catch	\N	\N	\N	None
-86	Left Quick Superman Punch	\N	\N	\N	None
-87	Left Side Kick	\N	\N	\N	None
-88	Left Side Kick to Body	\N	\N	\N	None
-89	Left Sidestepping Upper Jab	\N	\N	\N	None
-90	Left Spinning Back Fist	\N	\N	\N	None
-91	Left Spinning Back Kick	\N	\N	\N	None
-92	Left Strong Uppercut	\N	\N	\N	None
-93	Left Undercut	\N	\N	\N	None
-94	Left Upper Jab	\N	\N	\N	None
-95	Left Uppercut	\N	\N	\N	None
-96	Lunging Left Hook	\N	\N	\N	None
-97	Lunging Right Hook	\N	\N	\N	None
-98	Lyoto's Left Head Kick	\N	\N	\N	None
-99	Lyoto's Right Straight	\N	\N	\N	None
-100	Lyoto's Stepping Straight	\N	\N	\N	None
-101	Napao's Right Head Kick	\N	\N	\N	None
-102	One Feint Head Kick	\N	\N	\N	None
-103	Overhand Left from Sway Forward	\N	\N	\N	None
-104	Overhand Right	\N	\N	\N	None
-105	Overhand Right from Sway Forward	\N	\N	\N	None
-106	Overhand Right Hook from Sway Forward	\N	\N	\N	None
-107	Quick Head Kick	\N	\N	\N	None
-108	Right Axe Kick	\N	\N	\N	None
-109	Right Back Fist	\N	\N	\N	None
-110	Right Back Kick	\N	\N	\N	None
-111	Right Brazilian Head Kick	\N	\N	\N	None
-112	Right Ducking Uppercut to Head	\N	\N	\N	None
-113	Right Flying Head Kick	\N	\N	\N	None
-114	Right Flying Knee	\N	\N	\N	None
-115	Right Front Upper Kick	\N	\N	\N	None
-116	Right Guarded Hook	\N	\N	\N	None
-117	Right Head Kick	\N	\N	\N	None
-118	Right High Front Kick	\N	\N	\N	None
-119	Right High Kick	\N	\N	\N	None
-120	Right Hook from Sway Back	\N	\N	\N	None
-121	Right Hook from Sway Left	\N	\N	\N	None
-123	Right Karate Back Spin Kick	\N	\N	\N	None
-124	Right Karate Front Kick	\N	\N	\N	None
-125	Right Karate Straight	\N	\N	\N	None
-126	Right Long Straight	\N	\N	\N	None
-127	Right Long Superman Punch	\N	\N	\N	None
-128	Right Long Uppercut	\N	\N	\N	None
-129	Right Over Hook	\N	\N	\N	None
-130	Right MMA Back Spin Kick	\N	\N	\N	None
-131	Right Muay Thai Head Kick	\N	\N	\N	None
-132	Right Muay Thai Leg Kick	\N	\N	\N	None
-133	Right Muay Thai Push Kick	\N	\N	\N	None
-134	Right Muay Thai Snap Kick	\N	\N	\N	None
-135	Right Punch from Kick Catch	\N	\N	\N	None
-136	Right Spinning Back Elbow	\N	\N	\N	None
-137	Right Spinning Back Fist	\N	\N	\N	None
-138	Right Spinning Back Kick	\N	\N	\N	None
-139	Right Strong Straight	\N	\N	\N	None
-140	Right Strong Uppercut	\N	\N	\N	None
-141	Right Superman Punch	\N	\N	\N	None
-142	Right Uppercut	\N	\N	\N	None
-143	Shogun's Stepping Left Hook	\N	\N	\N	None
-144	Shoot to Double Leg Takedown	\N	\N	\N	None
-145	Step Right Knee	\N	\N	\N	None
-146	Stepping Heavy Jab	\N	\N	\N	None
-147	Stepping Over Left Hook	\N	\N	\N	None
-148	Stepping Right Undercut	\N	\N	\N	None
-149	Stepping Right Uppercut	\N	\N	\N	None
-150	Strong Left Leg Kick	\N	\N	\N	None
-151	Strong Right Leg Kick	\N	\N	\N	None
-152	Switch Left Head Kick	\N	\N	\N	None
-153	Two Step Left Flying Knee	\N	\N	\N	None
-154	Two Step Right Flying Knee	\N	\N	\N	None
-155	Two Step Right Middle Kick	\N	\N	\N	None
-156	Weaving Overhand Right	\N	\N	\N	None
-157	Gogoplata from Butterfly Guard	\N	\N	\N	Transition to Butterfly Guard Bottom and Submission Offense 70
-158	Transition to Open Guard Down Bottom	\N	\N	\N	Transition to Butterfly Guard Bottom
-159	Transition to Up/Down Bottom	\N	\N	\N	Transition to Butterfly Guard Bottom
-160	Triangle Choke from Butterfly Guard	\N	\N	\N	Transition to Butterfly Guard Bottom
-161	Transition to Half Guard Down Top	\N	\N	\N	Transition to Butterfly Guard Bottom
-162	Transition to Open Guard Top	\N	\N	\N	Transition to Butterfly Guard Bottom
-163	Transition to Side Control Top	\N	\N	\N	Transition to Butterfly Guard Bottom
-164	Slam to Open Guard Down Offense	\N	\N	\N	None
-165	Left Turn Off to Double Underhook Defense	\N	\N	\N	None
-166	Clinch to Body Lock Cage Offense	\N	\N	\N	None
-167	Pull Guard to Open Guard Down Defense	\N	\N	\N	None
-168	Suplex to Side Control Offense	\N	\N	\N	None
-169	Judo Hip Throw to Side Control Offense	\N	\N	\N	None
-170	Pummel to Double Underhook Offense	\N	\N	\N	None
-171	Pummel to Single Collar Tie	\N	\N	\N	None
-172	Clinch to Body Lock Offense	\N	\N	\N	None
-173	Pull Guard to Open Guard Down Defense	\N	\N	\N	None
-174	Suplex to Side Control Offense	\N	\N	\N	None
-175	Strike Catch to Armbar	\N	\N	\N	None
-176	Strike Catch to Kimura	\N	\N	\N	None
-177	Transition to Half Guard Down Bottom	\N	\N	\N	None
-178	Transition to Open Guard Bottom	\N	\N	\N	None
-179	Transition to Up/Down Bottom	\N	\N	\N	None
-180	Cage Transition to Half Guard Down Bottom	\N	\N	\N	None
-181	Kimura	\N	\N	\N	None
-182	Transition to Butterfly Guard Bottom	\N	\N	\N	None
-183	Transition to Open Guard Down Bottom	\N	\N	\N	None
-184	Transition to Up/Down Bottom	\N	\N	\N	None
-185	Americana from Half Guard Top	\N	\N	\N	None
-186	Kimura from Half Guard Top	\N	\N	\N	None
-187	Transition to Mount Down Top	\N	\N	\N	None
-188	Transition to Side Control Top	\N	\N	\N	None
-189	Americana from Half Guard Rocked Top	\N	\N	\N	None
-190	D'arce Choke	\N	\N	\N	None
-191	Kimura from Half Guard Top	\N	\N	\N	None
-192	Americana from Half Guard Top	\N	\N	\N	None
-193	Elbow	\N	\N	\N	None
-194	Hammer Fist	\N	\N	\N	None
-195	Kimura from Half Guard Top	\N	\N	\N	None
-196	Kneebar from Half Guard Top	\N	\N	\N	None
-198	Strong Hook	\N	\N	\N	None
-199	Toe Hold from Half Guard Top	\N	\N	\N	None
-200	Transition to Mount Down Top	\N	\N	\N	None
-201	Transition to Mount Top	\N	\N	\N	None
-202	Transition to Side Control Top	\N	\N	\N	None
-203	Transition to Half Guard Bottom	\N	\N	\N	None
-204	Transition to Mount Down Bottom	\N	\N	\N	None
-205	Cage Transition to Mount Down Top	\N	\N	\N	None
-206	Transition to Half Guard Down Bottom	\N	\N	\N	None
-207	Transition to Open Guard Down Top	\N	\N	\N	Ground Grapple Offense 60
-208	Arm Triangle Choke from Mount Top	\N	\N	\N	None
-209	Ground Buster from Mount Down Top	\N	\N	\N	None
-210	Transition to Open Guard Down Top	\N	\N	\N	Ground Grapple Offense 60
-211	Armbar from Mount Rocked Top	\N	\N	\N	None
-212	Arm Triangle Choke from Mount Top	\N	\N	\N	None
-213	Armbar from Mount Top	\N	\N	\N	None
-214	Elbow	\N	\N	\N	None
-215	Strong Hook	\N	\N	\N	None
-216	Rear Leg Knee	\N	\N	\N	None
-217	Strong Knee	\N	\N	\N	None
-218	Pummel to Muay Thai Clinch Offense	\N	\N	\N	None
-219	Pummel to Over/Under Hook	\N	\N	\N	None
-220	Arcing Elbow	\N	\N	\N	None
-221	Knee	\N	\N	\N	None
-222	Knee to Body	\N	\N	\N	None
-223	Pull Guard to Open Guard Down Defense	\N	\N	\N	None
-224	Rear Leg Knee	\N	\N	\N	None
-225	Strong Knee	\N	\N	\N	None
-226	Uppercut	\N	\N	\N	None
-227	Armbar from North/South Top	\N	\N	\N	None
-228	North/South Choke from North/South Top	\N	\N	\N	None
-229	Transition to Mount Down Top	\N	\N	\N	None
-230	Strike Catch to Armbar	\N	\N	\N	None
-231	Strike Catch to Kimura	\N	\N	\N	None
-232	Strike Catch to Omoplata	\N	\N	\N	Submission Offense 60
-233	Strike Catch to Triangle Choke	\N	\N	\N	None
-234	Transition to Open Guard Down Bottom	\N	\N	\N	None
-235	Transition to Up/Down Bottom	\N	\N	\N	None
-236	Kimura	\N	\N	\N	None
-237	Omoplata	\N	\N	\N	Submission Offense 60
-238	Transition to Rubber Guard Down Bottom	\N	\N	\N	None
-239	Transition to Up/Down Bottom	\N	\N	\N	None
-240	Triangle Choke	\N	\N	\N	None
-241	Transition to Half Guard Down Top	\N	\N	\N	None
-242	Transition to Side Control Top	\N	\N	\N	None
-243	Achilles Lock	\N	\N	\N	None
-244	Heel Hook	\N	\N	\N	None
-245	Kneebar	\N	\N	\N	None
-246	Toe Hold	\N	\N	\N	None
-247	Achilles Lock from Open Guard Top	\N	\N	\N	None
-248	Elbow	\N	\N	\N	None
-249	Heel Hook from Open Guard Top	\N	\N	\N	None
-250	Kneebar from Open Guard Top	\N	\N	\N	None
-251	Strong Hook	\N	\N	\N	None
-252	Toe Hold from Open Guard Top	\N	\N	\N	None
-253	Transition to Half Guard Down Top	\N	\N	\N	None
-254	Transition to Half Guard Top	\N	\N	\N	None
-255	Transition to Side Control Top	\N	\N	\N	None
-256	Ouchi Gari to Open Guard Down Offense	\N	\N	\N	Suplex to Side Control Offense
-257	Pummel to Double Underhook Cage Offense	\N	\N	\N	None
-258	Takedown to Half Guard Down Offense	\N	\N	\N	Suplex to Side Control Offense
-259	Hip Throw to Side Control Offense	\N	\N	\N	Suplex to Side Control Offense
-260	Pull Guard to Open Guard Down Defense	\N	\N	\N	Suplex to Side Control Offense
-261	Pummel to Double Underhook Offense	\N	\N	\N	None
-262	Gogoplata from Rubber Guard Bottom	\N	\N	\N	Transition to Rubber Guard Down Bottom and Submission Offense 70
-263	Omoplata from Rubber Guard Bottom	\N	\N	\N	Transition to Rubber Guard Down Bottom and Submission Offense 60
-264	Triangle Choke from Rubber Guard Bottom	\N	\N	\N	Transition to Rubber Guard Down Bottom
-265	Transition to Half Guard Down Top	\N	\N	\N	Transition to Rubber Guard Down Bottom
-266	Transition to Open Guard Top	\N	\N	\N	Transition to Rubber Guard Down Bottom
-267	Armbar from Salaverry Top	\N	\N	\N	Transition to Salaverry Top
-268	Transition to Both Standing	\N	\N	\N	Transition to Salaverry Top
-269	Americana from Side Control Top	\N	\N	\N	Transition to Salaverry Top
-270	Elbow	\N	\N	\N	Transition to Salaverry Top
-271	Transition to Mount Top	\N	\N	\N	Transition to Salaverry Top
-272	Cage Transition to Side Control Top	\N	\N	\N	None
-273	Transition to Both Standing	\N	\N	\N	None
-274	Transition to Butterfly Guard Bottom	\N	\N	\N	None
-275	Transition to Half Guard Down Bottom	\N	\N	\N	None
-276	Transition to Open Guard Down Bottom	\N	\N	\N	None
-277	Americana from Side Control Top	\N	\N	\N	None
-278	Armbar from Side Control Rocked Top	\N	\N	\N	None
-279	Americana from Side Control Top	\N	\N	\N	None
-280	Arm Triangle Choke	\N	\N	\N	None
-281	Elbow	\N	\N	\N	None
-282	Kimura from Side Control Top	\N	\N	\N	None
-283	Strong Left Knee to Abdomen	\N	\N	\N	None
-284	Strong Right Knee to Abdomen	\N	\N	\N	None
-285	Transition to Mount Down Top	\N	\N	\N	None
-286	Transition to Mount Top	\N	\N	\N	None
-287	Transition to Salaverry Top	\N	\N	\N	Ground Grapple Offense of 60
-288	Crushing Knee	\N	\N	\N	None
-289	Downward Arcing Elbow	\N	\N	\N	None
-290	Strong Hook	\N	\N	\N	None
-291	Strong Knee to Abdomen	\N	\N	\N	None
-292	Strong Uppercut	\N	\N	\N	None
-293	Uppercut to Body	\N	\N	\N	None
-294	Pull Guard to Open Guard Down Defense	\N	\N	\N	None
-295	Strong Hook	\N	\N	\N	None
-296	Uppercut	\N	\N	\N	None
-297	Slam to Open Guard Down Offense	\N	\N	\N	None
-298	Slam to Side Control Offense	\N	\N	\N	None
-299	Transition to Both Standing	\N	\N	\N	None
-300	Transition to Open Guard Down Bottom	\N	\N	\N	None
-301	Guillotine Choke from Sprawl Rocked	\N	\N	\N	None
-302	Anaconda Choke from Sprawl Top	\N	\N	\N	None
-303	Guillotine Choke from Sprawl Top	\N	\N	\N	None
-304	Peruvian Neck Tie from Sprawl Top	\N	\N	\N	Submission Offense of 60
-305	Strong Hook	\N	\N	\N	None
-306	Transition to Back Mount Top	\N	\N	\N	None
-307	Left Superman Punch	\N	\N	\N	None
-308	Right Superman Punch	\N	\N	\N	None
-309	Kneebar from Up/Down Near Bottom	\N	\N	\N	None
-310	Up-Kick	\N	\N	\N	None
-311	Achilles Lock from Up/Down Near Top	\N	\N	\N	None
-312	Heel Hook from Up/Down Near Top	\N	\N	\N	None
-313	Kneebar from Up/Down Near Top	\N	\N	\N	None
-314	Left Axe Kick to Body	\N	\N	\N	None
-315	Left Superman Punch	\N	\N	\N	None
-316	Right Superman Punch	\N	\N	\N	None
-317	Toe Hold from Up/Down Near Top	\N	\N	\N	None
-32	Pull Guard to Open Guard Down Defense	\N	\N	\N	Clinch to Body Lock Offense
-33	Suplex to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
-34	Judo Hip Throw to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
-35	Pull Guard to Open Guard Down Defense	\N	\N	\N	Clinch to Body Lock Offense
-36	Suplex to Half Guard Down Offense	\N	\N	\N	Clinch to Body Lock Offense
-37	Suplex to Side Control Offense	\N	\N	\N	Clinch to Body Lock Offense
+COPY moves (id, name, reqskill, reqskilllevel, reqmove, reqstring, type) FROM stdin;
+207	Transition to Open Guard Down Top	\N	\N	\N	\N	Transition
+210	Transition to Open Guard Down Top	\N	\N	\N	\N	Transition
+158	Transition to Open Guard Down Bottom	\N	\N	\N	\N	Transition
+159	Transition to Up/Down Bottom	\N	\N	\N	\N	Transition
+161	Transition to Half Guard Down Top	\N	\N	\N	\N	Transition
+162	Transition to Open Guard Top	\N	\N	\N	\N	Transition
+163	Transition to Side Control Top	\N	\N	\N	\N	Transition
+160	Triangle Choke from Butterfly Guard	\N	\N	\N	\N	Submission
+264	Triangle Choke from Rubber Guard Bottom	\N	\N	\N	\N	Submission
+4	Transition to Both Standing	\N	\N	\N	\N	Transition
+184	Transition to Up/Down Bottom	\N	\N	\N	\N	Transition
+187	Transition to Mount Down Top	\N	\N	\N	\N	Transition
+188	Transition to Side Control Top	\N	\N	\N	\N	Transition
+200	Transition to Mount Down Top	\N	\N	\N	\N	Transition
+201	Transition to Mount Top	\N	\N	\N	\N	Transition
+202	Transition to Side Control Top	\N	\N	\N	\N	Transition
+203	Transition to Half Guard Bottom	\N	\N	\N	\N	Transition
+204	Transition to Mount Down Bottom	\N	\N	\N	\N	Transition
+205	Cage Transition to Mount Down Top	\N	\N	\N	\N	Transition
+206	Transition to Half Guard Down Bottom	\N	\N	\N	\N	Transition
+229	Transition to Mount Down Top	\N	\N	\N	\N	Transition
+234	Transition to Open Guard Down Bottom	\N	\N	\N	\N	Transition
+235	Transition to Up/Down Bottom	\N	\N	\N	\N	Transition
+238	Transition to Rubber Guard Down Bottom	\N	\N	\N	\N	Transition
+239	Transition to Up/Down Bottom	\N	\N	\N	\N	Transition
+241	Transition to Half Guard Down Top	\N	\N	\N	\N	Transition
+242	Transition to Side Control Top	\N	\N	\N	\N	Transition
+253	Transition to Half Guard Down Top	\N	\N	\N	\N	Transition
+254	Transition to Half Guard Top	\N	\N	\N	\N	Transition
+255	Transition to Side Control Top	\N	\N	\N	\N	Transition
+272	Cage Transition to Side Control Top	\N	\N	\N	\N	Transition
+190	D'arce Choke	\N	\N	\N	\N	Submission
+208	Arm Triangle Choke from Mount Top	\N	\N	\N	\N	Submission
+212	Arm Triangle Choke from Mount Top	\N	\N	\N	\N	Submission
+228	North/South Choke from North/South Top	\N	\N	\N	\N	Submission
+233	Strike Catch to Triangle Choke	\N	\N	\N	\N	Submission
+240	Triangle Choke	\N	\N	\N	\N	Submission
+47	Right Short Uppercut from Sway Forward	\N	\N	\N	\N	Strike
+92	Left Strong Uppercut	\N	\N	\N	\N	Strike
+95	Left Uppercut	\N	\N	\N	\N	Strike
+112	Right Ducking Uppercut to Head	\N	\N	\N	\N	Strike
+128	Right Long Uppercut	\N	\N	\N	\N	Strike
+140	Right Strong Uppercut	\N	\N	\N	\N	Strike
+142	Right Uppercut	\N	\N	\N	\N	Strike
+149	Stepping Right Uppercut	\N	\N	\N	\N	Strike
+76	Left Hook from Sway Right	\N	\N	\N	\N	Strike
+83	Left Over Hook	\N	\N	\N	\N	Strike
+84	Left Over Strong Hook	\N	\N	\N	\N	Strike
+96	Lunging Left Hook	\N	\N	\N	\N	Strike
+97	Lunging Right Hook	\N	\N	\N	\N	Strike
+106	Overhand Right Hook from Sway Forward	\N	\N	\N	\N	Strike
+116	Right Guarded Hook	\N	\N	\N	\N	Strike
+120	Right Hook from Sway Back	\N	\N	\N	\N	Strike
+121	Right Hook from Sway Left	\N	\N	\N	\N	Strike
+129	Right Over Hook	\N	\N	\N	\N	Strike
+143	Shogun's Stepping Left Hook	\N	\N	\N	\N	Strike
+147	Stepping Over Left Hook	\N	\N	\N	\N	Strike
+122	Right Hook From Sway Right	\N	\N	\N	\N	Strike
+43	Right Chopping Hook	\N	\N	\N	\N	Strike
+50	Backstep Right Hook from Switch Stance	\N	\N	\N	\N	Strike
+57	Ducking Left Hook	\N	\N	\N	\N	Strike
+58	Ducking Right Hook	\N	\N	\N	\N	Strike
+70	Left Guarded Hook	\N	\N	\N	\N	Strike
+73	Left Hook from Sway Back	\N	\N	\N	\N	Strike
+74	Left Hook from Sway Forward	\N	\N	\N	\N	Strike
+89	Left Sidestepping Upper Jab	\N	\N	\N	\N	Strike
+94	Left Upper Jab	\N	\N	\N	\N	Strike
+146	Stepping Heavy Jab	\N	\N	\N	\N	Strike
+103	Overhand Left from Sway Forward	\N	\N	\N	\N	Strike
+104	Overhand Right	\N	\N	\N	\N	Strike
+105	Overhand Right from Sway Forward	\N	\N	\N	\N	Strike
+156	Weaving Overhand Right	\N	\N	\N	\N	Strike
+93	Left Undercut	\N	\N	\N	\N	Strike
+148	Stepping Right Undercut	\N	\N	\N	\N	Strike
+41	Left Muay Thai Elbow	\N	\N	\N	\N	Strike
+46	Right Muay Thai Elbow	\N	\N	\N	\N	Strike
+136	Right Spinning Back Elbow	\N	\N	\N	\N	Strike
+243	Achilles Lock	\N	\N	\N	\N	Submission
+231	Strike Catch to Kimura	\N	\N	\N	\N	Submission
+236	Kimura	\N	\N	\N	\N	Submission
+3	Pummel to Double Underhook Defense	\N	\N	\N	\N	Transition
+273	Transition to Both Standing	\N	\N	\N	\N	Transition
+274	Transition to Butterfly Guard Bottom	\N	\N	\N	\N	Transition
+275	Transition to Half Guard Down Bottom	\N	\N	\N	\N	Transition
+232	Strike Catch to Omoplata	\N	\N	\N	\N	Submission
+237	Omoplata	\N	\N	\N	\N	Submission
+157	Gogoplata from Butterfly Guard	\N	\N	\N	\N	Submission
+1	German Suplex to Back Side Control Offense	\N	\N	\N	\N	Transition
+6	German Suplex to Back Side Control Offense	\N	\N	\N	\N	Transition
+265	Transition to Half Guard Down Top	\N	\N	\N	\N	Transition
+266	Transition to Open Guard Top	\N	\N	\N	\N	Transition
+268	Transition to Both Standing	\N	\N	\N	\N	Transition
+271	Transition to Mount Top	\N	\N	\N	\N	Transition
+64	Jardine's Right Superman Punch	\N	\N	\N	\N	Strike
+2	Lift Up Slam to Side Control Offense	\N	\N	\N	\N	Transition
+164	Slam to Open Guard Down Offense	\N	\N	\N	\N	Transition
+77	Left Jab to Sway Back	\N	\N	\N	\N	Strike
+7	Pull to Side Control	\N	\N	\N	\N	Transition
+5	Back Throw to Side Control Right Offense	\N	\N	\N	\N	Transition
+114	Right Flying Knee	\N	\N	\N	\N	Kick
+145	Step Right Knee	\N	\N	\N	\N	Kick
+153	Two Step Left Flying Knee	\N	\N	\N	\N	Kick
+154	Two Step Right Flying Knee	\N	\N	\N	\N	Kick
+144	Shoot to Double Leg Takedown	\N	\N	\N	\N	Transition
+99	Lyoto's Right Straight	\N	\N	\N	\N	Strike
+100	Lyoto's Stepping Straight	\N	\N	\N	\N	Strike
+125	Right Karate Straight	\N	\N	\N	\N	Strike
+126	Right Long Straight	\N	\N	\N	\N	Strike
+139	Right Strong Straight	\N	\N	\N	\N	Strike
+71	Left Head Kick	\N	\N	\N	\N	Kick
+72	Left High Front Kick	\N	\N	\N	\N	Kick
+62	Hendo's Right Back Fist	\N	\N	\N	\N	Strike
+65	Jon Jones' Right Back Fist	\N	\N	\N	\N	Strike
+245	Kneebar	\N	\N	\N	\N	Submission
+26	Peruvian Neck Tie	\N	\N	\N	\N	Submission
+9	Arm Trap Rear Naked Choke	\N	\N	\N	\N	Submission
+16	Arm Trap Rear Naked Choke	\N	\N	\N	\N	Submission
+22	Arm Trap Rear Naked Choke	\N	\N	\N	\N	Submission
+24	Arm Trap Rear Naked Choke	\N	\N	\N	\N	Submission
+258	Takedown to Half Guard Down Offense	\N	\N	\N	\N	Transition
+259	Hip Throw to Side Control Offense	\N	\N	\N	\N	Transition
+260	Pull Guard to Open Guard Down Defense	\N	\N	\N	\N	Transition
+256	Ouchi Gari to Open Guard Down Offense	\N	\N	\N	\N	Transition
+262	Gogoplata from Rubber Guard Bottom	\N	\N	\N	\N	Submission
+263	Omoplata from Rubber Guard Bottom	\N	\N	\N	\N	Submission
+269	Americana from Side Control Top	\N	\N	\N	\N	Submission
+267	Armbar from Salaverry Top	\N	\N	\N	\N	Submission
+67	Left Back Fist	\N	\N	\N	\N	Strike
+90	Left Spinning Back Fist	\N	\N	\N	\N	Strike
+109	Right Back Fist	\N	\N	\N	\N	Strike
+137	Right Spinning Back Fist	\N	\N	\N	\N	Strike
+78	Left Jumping Front Kick	\N	\N	\N	\N	Kick
+80	Left Muay Thai Head Kick	\N	\N	\N	\N	Kick
+81	Left Muay Thai Leg Kick	\N	\N	\N	\N	Kick
+82	Left Muay Thai Push Kick	\N	\N	\N	\N	Kick
+87	Left Side Kick	\N	\N	\N	\N	Kick
+88	Left Side Kick to Body	\N	\N	\N	\N	Kick
+91	Left Spinning Back Kick	\N	\N	\N	\N	Kick
+98	Lyoto's Left Head Kick	\N	\N	\N	\N	Kick
+42	Left Short Uppercut From Sway Forward	\N	\N	\N	\N	Strike
+276	Transition to Open Guard Down Bottom	\N	\N	\N	\N	Transition
+8	Transition to Both Standing	\N	\N	\N	\N	Transition
+13	Transition to Back Mount Face Up Body Triangle Top	\N	\N	\N	\N	Transition
+14	Transition to Mount Top	\N	\N	\N	\N	Transition
+20	Transition to Both Standing	\N	\N	\N	\N	Transition
+21	Transition to Open Guard Bottom	\N	\N	\N	\N	Transition
+30	Transition to Back Mount Face Up Top	\N	\N	\N	\N	Transition
+31	Transition to Back Mount Top	\N	\N	\N	\N	Transition
+177	Transition to Half Guard Down Bottom	\N	\N	\N	\N	Transition
+178	Transition to Open Guard Bottom	\N	\N	\N	\N	Transition
+179	Transition to Up/Down Bottom	\N	\N	\N	\N	Transition
+180	Cage Transition to Half Guard Down Bottom	\N	\N	\N	\N	Transition
+182	Transition to Butterfly Guard Bottom	\N	\N	\N	\N	Transition
+183	Transition to Open Guard Down Bottom	\N	\N	\N	\N	Transition
+101	Napao's Right Head Kick	\N	\N	\N	\N	Kick
+102	One Feint Head Kick	\N	\N	\N	\N	Kick
+107	Quick Head Kick	\N	\N	\N	\N	Kick
+108	Right Axe Kick	\N	\N	\N	\N	Kick
+110	Right Back Kick	\N	\N	\N	\N	Kick
+111	Right Brazilian Head Kick	\N	\N	\N	\N	Kick
+113	Right Flying Head Kick	\N	\N	\N	\N	Kick
+115	Right Front Upper Kick	\N	\N	\N	\N	Kick
+117	Right Head Kick	\N	\N	\N	\N	Kick
+118	Right High Front Kick	\N	\N	\N	\N	Kick
+119	Right High Kick	\N	\N	\N	\N	Kick
+123	Right Karate Back Spin Kick	\N	\N	\N	\N	Kick
+124	Right Karate Front Kick	\N	\N	\N	\N	Kick
+130	Right MMA Back Spin Kick	\N	\N	\N	\N	Kick
+131	Right Muay Thai Head Kick	\N	\N	\N	\N	Kick
+132	Right Muay Thai Leg Kick	\N	\N	\N	\N	Kick
+133	Right Muay Thai Push Kick	\N	\N	\N	\N	Kick
+38	Inside Left Uppercut	\N	\N	\N	\N	Strike
+39	Inside Right Uppercut	\N	\N	\N	\N	Strike
+75	Left Hook from Sway Left	\N	\N	\N	\N	Strike
+12	Strong Right Hook	\N	\N	\N	\N	Strike
+19	Strong Hook	\N	\N	\N	\N	Strike
+28	Strong Hook	\N	\N	\N	\N	Strike
+198	Strong Hook	\N	\N	\N	\N	Strike
+247	Achilles Lock from Open Guard Top	\N	\N	\N	\N	Submission
+250	Kneebar from Open Guard Top	\N	\N	\N	\N	Submission
+10	Armbar from Back Mount Face Up Top	\N	\N	\N	\N	Submission
+17	Armbar from Back Mount Top	\N	\N	\N	\N	Submission
+25	Armbar from Back Side Control Top	\N	\N	\N	\N	Submission
+79	Left Long Superman Punch	\N	\N	\N	\N	Strike
+85	Left Punch from Kick Catch	\N	\N	\N	\N	Strike
+86	Left Quick Superman Punch	\N	\N	\N	\N	Strike
+127	Right Long Superman Punch	\N	\N	\N	\N	Strike
+135	Right Punch from Kick Catch	\N	\N	\N	\N	Strike
+141	Right Superman Punch	\N	\N	\N	\N	Strike
+11	Rear Naked Choke	\N	\N	\N	\N	Submission
+15	Rear Naked Choke from Back Mount Rocked	\N	\N	\N	\N	Submission
+18	Rear Naked Choke Facing Downward	\N	\N	\N	\N	Submission
+23	Rear Naked Choke	\N	\N	\N	\N	Submission
+27	Rear Naked Choke	\N	\N	\N	\N	Submission
+134	Right Muay Thai Snap Kick	\N	\N	\N	\N	Kick
+138	Right Spinning Back Kick	\N	\N	\N	\N	Kick
+150	Strong Left Leg Kick	\N	\N	\N	\N	Kick
+151	Strong Right Leg Kick	\N	\N	\N	\N	Kick
+152	Switch Left Head Kick	\N	\N	\N	\N	Kick
+155	Two Step Right Middle Kick	\N	\N	\N	\N	Kick
+215	Strong Hook	\N	\N	\N	\N	Strike
+219	Pummel to Over/Under Hook	\N	\N	\N	\N	Strike
+244	Heel Hook	\N	\N	\N	\N	Strike
+249	Heel Hook from Open Guard Top	\N	\N	\N	\N	Strike
+251	Strong Hook	\N	\N	\N	\N	Strike
+175	Strike Catch to Armbar	\N	\N	\N	\N	Submission
+211	Armbar from Mount Rocked Top	\N	\N	\N	\N	Submission
+213	Armbar from Mount Top	\N	\N	\N	\N	Submission
+227	Armbar from North/South Top	\N	\N	\N	\N	Submission
+230	Strike Catch to Armbar	\N	\N	\N	\N	Submission
+278	Armbar from Side Control Rocked Top	\N	\N	\N	\N	Submission
+277	Americana from Side Control Top	\N	\N	\N	\N	Submission
+279	Americana from Side Control Top	\N	\N	\N	\N	Submission
+246	Toe Hold	\N	\N	\N	\N	Submission
+252	Toe Hold from Open Guard Top	\N	\N	\N	\N	Submission
+257	Pummel to Double Underhook Cage Offense	\N	\N	\N	\N	Transition
+261	Pummel to Double Underhook Offense	\N	\N	\N	\N	Transition
+29	Strong Knee to Abdomen	\N	\N	\N	\N	Kick
+40	Left Leg Kick	\N	\N	\N	\N	Kick
+45	Right Leg Kick	\N	\N	\N	\N	Kick
+48	Strong Left Leg Kick	\N	\N	\N	\N	Kick
+49	Strong Right Leg Kick	\N	\N	\N	\N	Kick
+53	Caol's Back Spin Kick	\N	\N	\N	\N	Kick
+54	Caol's Left Side Kick	\N	\N	\N	\N	Kick
+55	Check Head Kick	\N	\N	\N	\N	Kick
+59	Forrest's Left Front Kick	\N	\N	\N	\N	Kick
+60	Forrest's Left Head Kick	\N	\N	\N	\N	Kick
+61	GSP's Head Kick	\N	\N	\N	\N	Kick
+66	Left Axe Kick	\N	\N	\N	\N	Kick
+68	Left Front Upward Kick	\N	\N	\N	\N	Kick
+69	Left Flicking Jab	\N	\N	\N	\N	Strike
+44	Right Dodge Knee to the Body	\N	\N	\N	\N	Kick
+51	Backstepping Right Straight	\N	\N	\N	\N	Strike
+52	Brock's Right Straight	\N	\N	\N	\N	Strike
+56	Chuck's Right Straight	\N	\N	\N	\N	Strike
+63	Hendo's Right Strong Straight	\N	\N	\N	\N	Strike
+270	Elbow	\N	\N	\N	\N	Strike
+226	Uppercut	\N	\N	\N	\N	Strike
+193	Elbow	\N	\N	\N	\N	Strike
+214	Elbow	\N	\N	\N	\N	Strike
+220	Arcing Elbow	\N	\N	\N	\N	Strike
+248	Elbow	\N	\N	\N	\N	Strike
+166	Clinch to Body Lock Cage Offense	\N	\N	\N	\N	Submission
+194	Hammer Fist	\N	\N	\N	\N	Strike
+172	Clinch to Body Lock Offense	\N	\N	\N	\N	Submission
+196	Kneebar from Half Guard Top	\N	\N	\N	\N	Submission
+185	Americana from Half Guard Top	\N	\N	\N	\N	Submission
+189	Americana from Half Guard Rocked Top	\N	\N	\N	\N	Submission
+192	Americana from Half Guard Top	\N	\N	\N	\N	Submission
+199	Toe Hold from Half Guard Top	\N	\N	\N	\N	Submission
+176	Strike Catch to Kimura	\N	\N	\N	\N	Submission
+168	Suplex to Side Control Offense	\N	\N	\N	\N	Transition
+174	Suplex to Side Control Offense	\N	\N	\N	\N	Transition
+169	Judo Hip Throw to Side Control Offense	\N	\N	\N	\N	Transition
+181	Kimura	\N	\N	\N	\N	Submission
+167	Pull Guard to Open Guard Down Defense	\N	\N	\N	\N	Transition
+186	Kimura from Half Guard Top	\N	\N	\N	\N	Submission
+191	Kimura from Half Guard Top	\N	\N	\N	\N	Submission
+195	Kimura from Half Guard Top	\N	\N	\N	\N	Submission
+170	Pummel to Double Underhook Offense	\N	\N	\N	\N	Transition
+171	Pummel to Single Collar Tie	\N	\N	\N	\N	Transition
+218	Pummel to Muay Thai Clinch Offense	\N	\N	\N	\N	Transition
+173	Pull Guard to Open Guard Down Defense	\N	\N	\N	\N	Transition
+223	Pull Guard to Open Guard Down Defense	\N	\N	\N	\N	Transition
+216	Rear Leg Knee	\N	\N	\N	\N	Kick
+217	Strong Knee	\N	\N	\N	\N	Kick
+221	Knee	\N	\N	\N	\N	Kick
+222	Knee to Body	\N	\N	\N	\N	Kick
+224	Rear Leg Knee	\N	\N	\N	\N	Kick
+225	Strong Knee	\N	\N	\N	\N	Kick
+165	Left Turn Off to Double Underhook Defense	\N	\N	\N	\N	Transition
+209	Ground Buster from Mount Down Top	\N	\N	\N	\N	Strike
+287	Transition to Salaverry Top	\N	\N	\N	\N	Transition
+304	Peruvian Neck Tie from Sprawl Top	\N	\N	\N	\N	Submission
+33	Suplex to Side Control Offense	\N	\N	\N	\N	Transition
+36	Suplex to Half Guard Down Offense	\N	\N	\N	\N	Transition
+37	Suplex to Side Control Offense	\N	\N	\N	\N	Transition
+34	Judo Hip Throw to Side Control Offense	\N	\N	\N	\N	Transition
+32	Pull Guard to Open Guard Down Defense	\N	\N	\N	\N	Transition
+35	Pull Guard to Open Guard Down Defense	\N	\N	\N	\N	Transition
+280	Arm Triangle Choke	\N	\N	\N	\N	Submission
+301	Guillotine Choke from Sprawl Rocked	\N	\N	\N	\N	Submission
+302	Anaconda Choke from Sprawl Top	\N	\N	\N	\N	Submission
+303	Guillotine Choke from Sprawl Top	\N	\N	\N	\N	Submission
+285	Transition to Mount Down Top	\N	\N	\N	\N	Transition
+286	Transition to Mount Top	\N	\N	\N	\N	Transition
+299	Transition to Both Standing	\N	\N	\N	\N	Transition
+300	Transition to Open Guard Down Bottom	\N	\N	\N	\N	Transition
+306	Transition to Back Mount Top	\N	\N	\N	\N	Transition
+310	Up-Kick	\N	\N	\N	\N	Kick
+314	Left Axe Kick to Body	\N	\N	\N	\N	Kick
+292	Strong Uppercut	\N	\N	\N	\N	Strike
+293	Uppercut to Body	\N	\N	\N	\N	Strike
+296	Uppercut	\N	\N	\N	\N	Strike
+290	Strong Hook	\N	\N	\N	\N	Strike
+295	Strong Hook	\N	\N	\N	\N	Strike
+305	Strong Hook	\N	\N	\N	\N	Strike
+312	Heel Hook from Up/Down Near Top	\N	\N	\N	\N	Strike
+281	Elbow	\N	\N	\N	\N	Strike
+289	Downward Arcing Elbow	\N	\N	\N	\N	Strike
+311	Achilles Lock from Up/Down Near Top	\N	\N	\N	\N	Submission
+309	Kneebar from Up/Down Near Bottom	\N	\N	\N	\N	Submission
+313	Kneebar from Up/Down Near Top	\N	\N	\N	\N	Submission
+317	Toe Hold from Up/Down Near Top	\N	\N	\N	\N	Submission
+282	Kimura from Side Control Top	\N	\N	\N	\N	Submission
+297	Slam to Open Guard Down Offense	\N	\N	\N	\N	Transition
+298	Slam to Side Control Offense	\N	\N	\N	\N	Transition
+294	Pull Guard to Open Guard Down Defense	\N	\N	\N	\N	Transition
+283	Strong Left Knee to Abdomen	\N	\N	\N	\N	Kick
+284	Strong Right Knee to Abdomen	\N	\N	\N	\N	Kick
+288	Crushing Knee	\N	\N	\N	\N	Kick
+291	Strong Knee to Abdomen	\N	\N	\N	\N	Kick
+307	Left Superman Punch	\N	\N	\N	\N	Strike
+308	Right Superman Punch	\N	\N	\N	\N	Strike
+315	Left Superman Punch	\N	\N	\N	\N	Strike
+316	Right Superman Punch	\N	\N	\N	\N	Strike
 \.
 
 
@@ -2972,6 +3094,14 @@ ALTER TABLE ONLY camps
 
 ALTER TABLE ONLY fightersource_fighters
     ADD CONSTRAINT fightersource_fighters_pkey PRIMARY KEY (fightersource_id, fighter_id);
+
+
+--
+-- Name: move_move_requirements_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY move_move_requirements
+    ADD CONSTRAINT move_move_requirements_pkey PRIMARY KEY (move_id, req_move_id);
 
 
 --
