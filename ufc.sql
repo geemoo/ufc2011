@@ -12,6 +12,20 @@ SET escape_string_warning = off;
 SET search_path = public, pg_catalog;
 
 --
+-- Name: contract; Type: TYPE; Schema: public; Owner: jean
+--
+
+CREATE TYPE contract AS ENUM (
+    'AMA',
+    'WFA',
+    'UFN',
+    'UFC'
+);
+
+
+ALTER TYPE public.contract OWNER TO jean;
+
+--
 -- Name: focusgroup; Type: TYPE; Schema: public; Owner: jean
 --
 
@@ -39,6 +53,17 @@ CREATE TYPE move_type AS ENUM (
 
 
 ALTER TYPE public.move_type OWNER TO jean;
+
+--
+-- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: jean
+--
+
+CREATE FUNCTION move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) RETURNS record
+    LANGUAGE sql
+    AS $_$ select start_position, move, camp from position_move_camp_view where move like $1 $_$;
+
+
+ALTER FUNCTION public.move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) OWNER TO jean;
 
 SET default_tablespace = '';
 
@@ -102,12 +127,13 @@ SELECT pg_catalog.setval('country_id_seq', 29, true);
 
 CREATE TABLE fighters (
     id integer NOT NULL,
-    name character varying,
+    name character varying NOT NULL,
     record character varying,
     nickname character varying,
     weightclass integer,
     country integer,
-    camp_id integer
+    camp_id integer,
+    contract contract
 );
 
 
@@ -122,6 +148,32 @@ CREATE VIEW fighter_camp_view AS
 
 
 ALTER TABLE public.fighter_camp_view OWNER TO jean;
+
+--
+-- Name: fighter_camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fighter_camps (
+    fighter_id integer NOT NULL,
+    camp_id integer NOT NULL
+);
+
+
+ALTER TABLE public.fighter_camps OWNER TO jean;
+
+--
+-- Name: fighter_moves; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fighter_moves (
+    fighter_id integer NOT NULL,
+    move_id integer NOT NULL,
+    level integer NOT NULL,
+    CONSTRAINT valid_level CHECK (((level >= 1) AND (level <= 3)))
+);
+
+
+ALTER TABLE public.fighter_moves OWNER TO jean;
 
 --
 -- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
@@ -171,7 +223,7 @@ ALTER SEQUENCE fighters_id_seq OWNED BY fighters.id;
 -- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
-SELECT pg_catalog.setval('fighters_id_seq', 335, true);
+SELECT pg_catalog.setval('fighters_id_seq', 336, true);
 
 
 --
@@ -245,7 +297,8 @@ ALTER TABLE public.move_move_requirements OWNER TO jean;
 CREATE TABLE move_skill_requirements (
     move_id integer NOT NULL,
     skill_id integer NOT NULL,
-    level integer NOT NULL
+    level integer NOT NULL,
+    CONSTRAINT level_range CHECK (((level >= 0) AND (level <= 100)))
 );
 
 
@@ -306,11 +359,23 @@ CREATE TABLE positions_moves (
 ALTER TABLE public.positions_moves OWNER TO jean;
 
 --
+-- Name: skills; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE skills (
+    id integer NOT NULL,
+    name character varying
+);
+
+
+ALTER TABLE public.skills OWNER TO jean;
+
+--
 -- Name: position_move_camp_view; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW position_move_camp_view AS
-    WITH RECURSIVE x(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT x._move, (x._length + 1), x._count, x._number, (((x.camp)::text || ', '::text) || (y.camp)::text) FROM (x JOIN y ON (((y._move = x._move) AND (x._length = y._number))))) SELECT a.name AS start_position, moves.name AS move, b.name AS end_position, x.camp, x._length AS camp_count, moves.reqskill, moves.reqskilllevel, moves.reqmove, moves.reqstring FROM ((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) WHERE ((x._count = x._length) AND (x._count = x._number)) ORDER BY a.id, moves.id, x._length;
+    WITH x(_move, _length, _count, _number, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z._count, z._number, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, _length, _count, _number, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k._length, k._count, k._number, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, _length, _count, _number, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k._length, k._count, k._number, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT a.name AS start_position, moves.name AS move, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisite_moves, i.datum AS prerequisite_skills FROM ((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) ORDER BY a.id, moves.id, x._length;
 
 
 ALTER TABLE public.position_move_camp_view OWNER TO jean;
@@ -334,18 +399,6 @@ CREATE VIEW reverse_position_moves_view AS
 
 
 ALTER TABLE public.reverse_position_moves_view OWNER TO jean;
-
---
--- Name: skills; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
---
-
-CREATE TABLE skills (
-    id integer NOT NULL,
-    name character varying
-);
-
-
-ALTER TABLE public.skills OWNER TO jean;
 
 --
 -- Name: skill_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
@@ -498,345 +551,479 @@ COPY country (id, name) FROM stdin;
 
 
 --
+-- Data for Name: fighter_camps; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY fighter_camps (fighter_id, camp_id) FROM stdin;
+27	16
+2	26
+55	9
+49	11
+47	18
+168	15
+95	10
+5	15
+178	26
+63	5
+113	12
+181	15
+157	21
+153	15
+102	9
+99	4
+3	9
+93	19
+103	10
+1	21
+97	23
+190	9
+98	4
+96	4
+92	24
+100	13
+101	4
+183	10
+147	20
+149	10
+148	3
+159	6
+152	14
+155	26
+112	9
+151	2
+184	11
+182	4
+13	21
+150	9
+177	14
+156	10
+234	27
+45	8
+158	5
+235	9
+269	26
+270	10
+271	4
+272	2
+273	6
+274	16
+275	17
+276	10
+277	13
+278	25
+279	27
+280	1
+281	16
+282	6
+283	21
+284	24
+285	26
+286	5
+287	12
+288	14
+289	18
+290	20
+291	2
+292	23
+293	25
+294	9
+295	17
+296	11
+297	21
+298	20
+299	26
+300	11
+301	10
+302	10
+303	3
+304	20
+305	24
+306	10
+307	25
+308	10
+309	19
+310	5
+311	22
+312	7
+313	4
+314	7
+315	14
+316	6
+317	20
+318	11
+319	12
+320	16
+321	7
+322	10
+323	8
+324	17
+325	14
+326	15
+327	1
+328	1
+329	8
+330	16
+331	6
+332	16
+333	5
+334	21
+335	5
+336	9
+336	6
+336	16
+336	1
+\.
+
+
+--
+-- Data for Name: fighter_moves; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY fighter_moves (fighter_id, move_id, level) FROM stdin;
+\.
+
+
+--
 -- Data for Name: fighters; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
-COPY fighters (id, name, record, nickname, weightclass, country, camp_id) FROM stdin;
-30	Kyle Noke	3–0	KO	5	2	\N
-46	Yves Edwards	8–5	Thugjitsu Master	3	3	\N
-18	Wanderlei Silva	3–6	The Axe Murderer	5	5	\N
-22	Rousimar Palhares	5–2	Toquinho	5	5	\N
-29	Jorge Santiago	1–3	The Sandman	5	5	\N
-32	Rafael Natal	1–1–1	Sapo	5	5	\N
-44	Gleison Tibau	9–5	Tibau	3	5	\N
-79	Rafaello Oliveira	1–3	Tractor	3	5	\N
-82	Edson Barboza	2–0	Junior	3	5	\N
-10	Jason MacDonald	6–6	The Athlete	5	7	\N
-35	Nick Ring	2–0	The Promise	5	7	\N
-53	Sam Stout	6–5	Hands of Stone	3	7	\N
-38	Constantinos Philippou	1–1	Costa	5	11	\N
-66	Paul Taylor	4–5	Relentless	3	15	\N
-88	Paul Sass	1–0	Sassangle	3	15	\N
-76	Kamal Shalorus	3–1–1	Prince of Persia	3	19	\N
-9	Alessio Sakara	6–5 (1 NC)	Legionarius	5	20	\N
-7	Yushin Okami	10–2	Thunder	5	21	\N
-41	Riki Fukuda	0–1	Killer Bee	5	21	\N
-39	Dongi Yang	1–1	The Ox	5	27	\N
-20	C.B. Dollaway	5–3	The Doberman	5	29	\N
-21	Steve Cantwell	4–4	The Robot	5	29	\N
-23	Tim Boetsch	4–3	The Barbarian	5	29	\N
-24	Nick Catone	3–2	The Jersey Devil	5	29	\N
-25	Tim Credeur	3–2	Crazy	5	29	\N
-26	Tom Lawlor	3–2	Filthy	5	29	\N
-28	Mike Massenzio	1–3	The Master of Disaster	5	29	\N
-33	Jared Hamman	1–2	The Messenger	5	29	\N
-34	Court McGee	2–0	The Crusher	5	29	\N
-36	Chris Weidman	2–0	The All-American	5	29	\N
-37	Jason Miller	1–1	Mayhem	5	29	\N
-40	Paul Bradley	0–1	The Gentleman	5	29	\N
-51	Jeremy Stephens	7–5	Lil' Heathen	3	29	\N
-52	Matt Wiman	7–4	Handsome	3	29	\N
-146	Erick Silva	0–0	Indio	4	5	\N
-160	Luiz Cane	4–3	Banha	6	5	\N
-162	Mauricio Rua	3–3	Shogun	6	5	\N
-175	Ronny Markes	0–0	Markes	6	5	\N
-176	Stanislav Nedkov	0–0	Staki	6	6	\N
-125	Rory MacDonald	3–1	Ares	4	7	\N
-129	Sean Pierson	1–1	Pimp Daddy	4	7	\N
-179	Mirko Cro Cop	4–5	Cro Cop	7	9	\N
-126	James Wilks	2–2	Lightning	4	15	\N
-140	Mark Scanlon	0–1	Scanno	4	15	\N
-136	Pascal Krauss	1–0	Panzer	4	17	\N
-180	Stefan Struve	5–3	Skyscraper	7	22	\N
-110	Dong Hyun Kim	5–1 (1 NC)	Stun Gun	4	27	\N
-141	Papy Abedi	0–0	Makambo	4	28	\N
-94	Chris Lytle	9–10	Lights Out	4	29	\N
-57	Joe Lauzon	7–3	J-Lau	3	29	\N
-62	Danny Castillo	6–3	Last Call	3	29	\N
-68	Ben Henderson	6–1	Smooth	3	29	\N
-78	Charles Oliveira	2–1 (1 NC)	do Bronx	3	5	\N
-83	John Makdessi	2–0	The Bull	3	7	\N
-75	Ross Pearson	4–1	The Real Deal	3	15	\N
-81	Takanori Gomi	1–2	The Fireball Kid	3	21	\N
-59	Anthony Njokuani	6–4	The Assassin	3	24	\N
-42	Melvin Guillard	10–4	The Young Assassin	3	29	\N
-43	Clay Guida	9–5	The Carpenter	3	29	\N
-27	Yoshihiro Akiyama	1–3	Sexyama	5	21	16
-48	Donald Cerrone	8–3 (1 NC)	The Cowboy	3	29	\N
-169	Anthony Perosh	1–3	The Hippo	6	2	\N
-154	Vladimir Matyushenko	7–3	The Janitor	6	4	\N
-130	Carlos Eduardo Rocha	1–1	Ta Danado	4	5	\N
-2	Michael Bisping	11–3	The Count	5	15	26
-127	Claude Patrick	3–0	The Prince	4	7	\N
-167	Igor Pokrajac	2–3	The Duke	6	9	\N
-174	Karlos Vemola	1–1	The Terminator	6	12	\N
-55	Gray Maynard	8–0–1 (1 NC)	The Bully	3	29	9
-115	John Hathaway	5–1	The Hitman	4	15	\N
-170	Cyrille Diabate	2–1	The Snake	6	16	\N
-49	Sean Sherk	8–4	The Muscle Shark	3	29	11
-164	Alexander Gustafsson	4–1	The Mauler	6	28	\N
-47	Spencer Fisher	7–6	The King	3	29	18
-69	Nik Lentz	5–0–1 (1 NC)	The Carny	3	29	\N
-61	George Sotiropoulos	7–2	\N	3	2	\N
-6	Royce Gracie	11–1–1	\N	5	5	\N
-11	Demian Maia	8–3	\N	5	5	\N
-168	Antonio Nogueira	2–2	Little Nog	7	5	15
-95	Georges St.-Pierre	16–2	Rush	4	7	10
-5	Anderson Silva	13–0	The Spider	5	5	15
-178	Cheick Kongo	9–4–1	Kongo	7	16	26
-63	Cole Miller	6–3	Magrinho	3	29	5
-113	Dan Hardy	4–3	The Outlaw	4	15	12
-181	Junior Dos Santos	7–0	Cigano	7	5	15
-157	Krzysztof Soszynski	6–2	The Polish Experiment	6	25	21
-153	Lyoto Machida	9–2	The Dragon	6	5	15
-102	Martin Kampmann	8–4	Hitman	4	13	9
-99	Thiago Alves	10–5	Pitbull	4	5	4
-3	Vitor Belfort	9–5	The Phenom	5	5	9
-70	Anthony Pettis	5–2	Showtime	3	29	\N
-77	Jacob Volkmann	3–2	Christmas	3	29	\N
-80	Dan Downes	1–2	Danny Boy	3	29	\N
-85	Cody McKenzie	1–1	Big Time	3	29	\N
-86	Edward Faaloloto	0–2	FaloFalo	3	29	\N
-239	José Aldo	9–0	Junior	2	5	\N
-189	Minotauro Nogueira	3–2	Minotauro	7	5	\N
-219	Renan Barão	3–0	Barão	1	5	\N
-261	Yuri Alcantara	1–0	Marajó	2	5	\N
-265	Felipe Arantes	0–0	Sertanejo	2	5	\N
-145	Luis Ramos	0–0	Beicao	4	5	\N
-266	Antonio Carvalho	0–0	Pato	2	7	\N
-249	Javier Vazquez	3–3	Showtime	2	10	\N
-217	Ivan Menjivar	2–2	Pride of El Salvador	1	14	\N
-215	Brad Pickett	3–1	One-Punch	1	15	\N
-264	Jason Young	0–1	Shotgun	2	15	\N
-218	Yves Jabouin	1–3	Tiger	1	18	\N
-230	Norifumi Yamamoto	0–1	Kid	1	21	\N
-268	Hatsu Hioki	0–0	Iron Broom	2	21	\N
-195	Mark Hunt	1–1	Super Samoan	7	23	\N
-246	Bart Palaszewski	4–3	Bartimus	2	25	\N
-4	Jorge Rivera	7–7	El Conquistador	5	29	\N
-8	Brian Stann	9–3	All American	5	29	\N
-106	Anthony Johnson	6–3	Rumble	4	29	\N
-109	Dennis Hallman	3–5	Superman	4	29	\N
-114	Mike Pyle	4–3	Quicksand	4	29	\N
-117	DaMarques Johnson	3–3	Darkness	4	29	\N
-118	Daniel Roberts	3–3	Ninja	4	29	\N
-122	Duane Ludwig	3–2	Bang	4	29	\N
-128	Brian Ebersole	2–0	Bad Boy	4	29	\N
-132	TJ Waldburger	1–1	TJ	4	29	\N
-134	Chris Cope	1–0	C-Murder	4	29	\N
-135	Clay Harvison	1–0	Heavy Metal	4	29	\N
-137	Justin Edwards	0–1	Fast Eddie	4	29	\N
-139	David Mitchell	0–1	Daudi	4	29	\N
-143	Jorge Lopez	0–0	Lil' Monster	4	29	\N
-185	Pat Barry	3–3	HD	7	29	\N
-186	Matt Mitrione	5–0	Meathead	7	29	\N
-191	Roy Nelson	2–2	Big Country	7	29	\N
-193	Travis Browne	2–0–1	Hapa	7	29	\N
-196	Ben Rothwell	1–1	Big	7	29	\N
-198	Dave Herman	1–0	Pee-Wee	7	29	\N
-199	Aaron Rosa	0–1	Big Red	7	29	\N
-204	Scott Jorgensen	8–3	Young Guns	1	29	\N
-208	Joseph Benavidez	6–2	Joe-B-Wan Kenobi	1	29	\N
-213	Jeff Curran	1–5	Big Frog	1	29	\N
-214	Demetrious Johnson	4–1	Mighty Mouse	1	29	\N
-216	Chris Cariaso	2–2	Kamikaze	1	29	\N
-87	Tony Ferguson	1–0	El Cucuy	3	29	\N
-90	T.J. O'Brien	0–1	The Spider	3	29	\N
-238	Manny Gamburyan	5–5	The Anvil	2	1	\N
-245	Diego Nunes	5–2	The Gun	2	5	\N
-240	Mark Hominick	6–3	The Machine	2	7	\N
-257	Tiequan Zhang	2–1	The Mongolian Wolf	2	8	\N
-197	Rob Broughton	1–0	The Bear	7	15	\N
-258	Chan Sung Jung	1–2	The Korean Zombie	2	27	\N
-107	Matt Brown	5–4	The Immortal	4	29	\N
-108	Rick Story	6–2	The Horror	4	29	\N
-120	Jake Ellenberger	4–1	The Juggernaut	4	29	\N
-121	Brian Foster	3–2	The Foster Boy	4	29	\N
-123	Rich Attonito	3–1	The Raging Bull	4	29	\N
-124	Charlie Brenneman	3–1	The Spaniard	4	29	\N
-187	Brendan Schaub	4–1	The Hybrid	7	29	\N
-188	Joey Beltran	3–2	The Mexicutioner	7	29	\N
-203	Urijah Faber	9–4	The California Kid	1	29	\N
-212	Damacio Page	3–3	The Angel of Death	1	29	\N
-72	Aaron Riley	3–4	\N	3	29	\N
-89	Ramsey Nijem	0–1	\N	3	29	\N
-200	Philip De Fries	0–0	\N	7	15	\N
-73	Evan Dunham	4–2	3D	3	29	\N
-93	BJ Penn	12–6–2	The Prodigy	3	29	19
-103	Carlos Condit	9–1	The Natural Born Killer	4	29	10
-1	Chris Leben	12–6	The Crippler	5	29	21
-97	Diego Sanchez	12–4	The Dream	3	29	23
-190	Heath Herring	2–3	The Texas Crazy Horse	7	29	9
-98	Jon Fitch	13–1–1	\N	4	29	4
-96	Josh Koscheck	13–5	Kos	4	29	4
-92	Matt Hughes	18–6	\N	4	29	24
-100	Matt Serra	7–7	The Terror	4	29	13
-101	Mike Swick	9–3	Quick	4	29	4
-183	Shane Carwin	4–2	The Engineer	7	29	10
-147	Tito Ortiz	15–9–1	The Huntington Beach Bad Boy	6	29	20
-220	Michael McDonald	3–0	Mayday	1	29	\N
-222	Reuben Duran	1–1	Hurricane	1	29	\N
-226	Jeff Hougland	1–0	Hellbound	1	29	\N
-227	Cole Escovedo	0–1	Apache Kid	1	29	\N
-229	Donny Walker	0–1	Eagle Eye	1	29	\N
-236	Leonard Garcia	6–6–1	Bad Boy	2	29	\N
-242	Cub Swanson	5–3	Cub	2	29	\N
-247	Chad Mendes	6–0	Money	2	29	\N
-250	Erik Koch	4–1	New Breed	2	29	\N
-262	Alex Caceres	0–1	Bruce Leroy	2	29	\N
-267	Jimy Hettes	0–0	The Kid	2	29	\N
-206	Dominick Cruz	8–1	Dominator	1	29	\N
-12	Alan Belcher	7–4	The Talent	5	29	\N
-14	Mark Muñoz	8–2	The Filipino Wrecking Machine	5	29	\N
-15	Nate Quarry	7–3	Rock	5	29	\N
-16	Ed Herman	5–5	Short Fuse	5	29	\N
-19	Aaron Simpson	6–2	A-Train	5	29	\N
-163	Phil Davis	5–0	Mr. Wonderful	6	29	\N
-165	Kyle Kingsbury	4–1	Kingsbu	6	29	\N
-56	Frankie Edgar	8–1–1	The Answer	3	29	\N
-84	Michael Johnson	1–1	The Menace	3	29	\N
-223	Ian Loveland	1–1	The Barn Owl	1	29	\N
-228	Edwin Figueroa	0–1	El Feroz	1	29	\N
-231	Mike Easton	0–0	The Hulk	1	29	\N
-244	Ricardo Lamas	5–2	The Bully	2	29	\N
-248	Josh Grispi	4–2	The Fluke	2	29	\N
-251	Mackens Semerzier	2–3	da Menace	2	29	\N
-252	Matt Grice	1–4	The Real One	2	29	\N
-253	Dustin Poirier	3–1	The Diamond	2	29	\N
-255	Darren Elkins	2–1	The Damage	2	29	\N
-256	Pablo Garza	2–1	The Scarecrow	2	29	\N
-149	Rashad Evans	11–1–1	Suga	6	29	10
-161	Jason Brilz	3–3	The Hitman	6	29	\N
-166	Eliot Marshall	3–2	The Fire	6	29	\N
-60	Thiago Tavares	5–4–1	\N	3	5	\N
-71	Rafael Dos Anjos	4–3	\N	3	5	\N
-91	Vagner Rocha	0–1	\N	3	5	\N
-64	Mark Bocek	5–4	\N	3	7	\N
-74	TJ Grant	3–3	\N	3	7	\N
-67	Terry Etim	5–3	\N	3	15	\N
-50	Dennis Siver	8–4	\N	3	26	\N
-31	Brad Tavares	2–1	\N	5	29	\N
-54	Jim Miller	9–1	\N	3	29	\N
-119	Paulo Thiago	3–3	\N	4	5	\N
-171	Fabio Maldonado	1–1	\N	6	5	\N
-144	Che Mills	0–0	\N	4	15	\N
-173	James Te Huna	1–1	\N	6	23	\N
-58	Shane Roller	7–3	\N	3	29	\N
-65	Mac Danzig	4–5	\N	3	29	\N
-202	Oli Thompson	0–0	\N	7	15	\N
-211	Raphael Assunção	3–3	\N	1	5	\N
-232	Johnny Eduardo	0–0	\N	1	5	\N
-241	Rani Yahya	5–4	\N	2	5	\N
-233	Vaughan Lee	0–0	\N	1	15	\N
-210	Takeya Mizugaki	3–4	\N	1	21	\N
-254	Michihiro Omigawa	0–4	\N	2	21	\N
-104	Nick Diaz	6–4	\N	4	29	\N
-105	Johny Hendricks	8–1	\N	4	29	\N
-111	Matthew Riddle	5–2	\N	4	29	\N
-116	Mike Pierce	4–2	\N	4	29	\N
-131	Jake Shields	1–1	\N	4	29	\N
-133	Shamar Bailey	1–0	\N	4	29	\N
-138	James Head	0–1	\N	4	29	\N
-142	Lance Benoist	0–0	\N	4	29	\N
-172	Ricardo Romero	1–1	\N	6	29	\N
-192	Mike Russow	3–0	\N	7	29	\N
-194	Christian Morecraft	1–2	\N	7	29	\N
-201	Stipe Miocic	0–0	\N	7	29	\N
-205	Miguel Angel Torres	7–3	\N	1	29	\N
-207	Brian Bowles	7–1	\N	1	29	\N
-209	Eddie Wineland	5–3	\N	1	29	\N
-221	Nick Pace	1–2	\N	1	29	\N
-224	Jason Reinhardt	0–2	\N	1	29	\N
-225	Ken Stone	0–2	\N	1	29	\N
-237	Mike Brown	7–5	\N	2	29	\N
-243	George Roop	3–4–1	\N	2	29	\N
-259	Jonathan Brookins	1–1	\N	2	29	\N
-260	Nam Phan	0–2	\N	2	29	\N
-263	Mike Lullo	0–1	\N	2	29	\N
-148	Rich Franklin	13–5	Ace	6	29	3
-159	Ryan Bader	5–2	Darth	6	29	6
-17	Dan Miller	5–4	\N	5	29	\N
-152	Stephan Bonnar	7–6	The American Psycho	6	29	14
-155	Quinton Jackson	7–2	Rampage	6	29	26
-112	Amir Sadollah	5–2	\N	4	29	9
-151	Brandon Vera	7–5 (1 NC)	The Truth	6	29	2
-184	Brock Lesnar	4–2	\N	7	29	11
-182	Cain Velasquez	7–0	\N	7	29	4
-13	Chael Sonnen	6–5	\N	5	29	21
-150	Forrest Griffin	9–4	\N	6	29	9
-177	Frank Mir	13–5	\N	7	29	14
-156	Jon Jones	7–1	Bones	6	29	10
-234	Kenny Florian	12–4	KenFlo	3	29	27
-45	Nate Diaz	8–5	\N	3	29	8
-158	Thiago Silva	5–2 (1 NC)	\N	6	5	5
-235	Tyson Griffin	8–5	\N	3	29	9
-269	Adam Gunn	\N	\N	4	\N	26
-270	Andrei Arlovski	\N	\N	7	\N	10
-271	Andrei Radaza	\N	\N	6	\N	4
-272	Anthony Plascencia	\N	\N	7	\N	2
-273	Brian Evans	\N	\N	5	\N	6
-274	Caol Uno	\N	\N	3	\N	16
-275	Carmelo Melendez	\N	\N	3	\N	17
-276	Cesar Perez Jr.	\N	\N	7	\N	10
-277	Chris Price	\N	\N	5	\N	13
-278	Chuck Liddell	\N	\N	6	\N	25
-279	Cole Gotti	\N	\N	7	\N	27
-280	Cory Williams	\N	\N	3	\N	1
-281	Daisuke Hironaka	\N	\N	3	\N	16
-282	Damon Blaine	\N	\N	7	\N	6
-283	Dan Henderson	\N	\N	5	\N	21
-284	Dan Larson	\N	\N	5	\N	24
-285	David Moore	\N	\N	6	\N	26
-286	Denis Kang	\N	\N	5	\N	5
-287	Derrick Mitchell	\N	\N	6	\N	12
-288	Drew Chambers	\N	\N	6	\N	14
-289	Drew McFedries	\N	\N	5	\N	18
-290	Dwayne Williams	\N	\N	4	\N	20
-291	Ed Duran	\N	\N	4	\N	2
-292	Ed Hamlin	\N	\N	6	\N	23
-293	Frank Hill	\N	\N	5	\N	25
-294	Frank Trigg	\N	\N	4	\N	9
-295	Gabriel Gonzaga	\N	\N	7	\N	17
-296	Garrison Brooks	\N	\N	4	\N	11
-297	George Goodridge	\N	\N	3	\N	21
-298	Jake Carter	\N	\N	5	\N	20
-299	James King	\N	\N	3	\N	26
-300	Jeff Clayton	\N	\N	5	\N	11
-301	Jessie James	\N	\N	3	\N	10
-302	Joe Stevenson	\N	\N	3	\N	10
-303	Josh Freeman	\N	\N	5	\N	3
-304	Justin McCully	\N	\N	7	\N	20
-305	Karl Thomas	\N	\N	6	\N	24
-306	Karo Parisyan	\N	\N	4	\N	10
-307	Keith Gilmore	\N	\N	7	\N	25
-308	Keith Jardine	\N	\N	6	\N	10
-309	Kendall Grove	\N	\N	5	\N	19
-310	Kimbo Slice	\N	\N	7	\N	5
-311	Kris Graham	\N	\N	7	\N	22
-312	Luiz Cardoza	\N	\N	6	\N	7
-313	Manny Dos Santos Jr.	\N	\N	3	\N	4
-314	Marcello Cruz	\N	\N	5	\N	7
-315	Marcus Davis	\N	\N	4	\N	14
-316	Marcus Ferreira	\N	\N	4	\N	6
-317	Matt Hamill	\N	\N	6	\N	20
-318	Matt Williams	\N	\N	6	\N	11
-319	Mike Barns	\N	\N	7	\N	12
-320	Mitsuhiro Yoshida	\N	\N	4	\N	16
-321	Murilo De Souza	\N	\N	4	\N	7
-322	Nate Marquardt	\N	\N	5	\N	10
-323	Noah Brown	\N	\N	6	\N	8
-324	Pablo Casillas	\N	\N	5	\N	17
-325	Patrick Cote	\N	\N	5	\N	14
-326	Paulo Duarte	\N	\N	3	\N	15
-327	PJ Bradley	\N	\N	4	\N	1
-328	Rich Caldwell	\N	\N	7	\N	1
-329	Roberto Martinez	\N	\N	5	\N	8
-330	Ryo Matsui	\N	\N	7	\N	16
-331	Sam Boberg	\N	\N	3	\N	6
-332	Sato Matsui	\N	\N	6	\N	16
-333	Todd Duffee	\N	\N	7	\N	5
-334	Travis Rothwell	\N	\N	7	\N	21
-335	Wilson Gouveia	\N	\N	5	\N	5
+COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contract) FROM stdin;
+30	Kyle Noke	3–0	KO	5	2	\N	\N
+46	Yves Edwards	8–5	Thugjitsu Master	3	3	\N	\N
+18	Wanderlei Silva	3–6	The Axe Murderer	5	5	\N	\N
+22	Rousimar Palhares	5–2	Toquinho	5	5	\N	\N
+29	Jorge Santiago	1–3	The Sandman	5	5	\N	\N
+32	Rafael Natal	1–1–1	Sapo	5	5	\N	\N
+44	Gleison Tibau	9–5	Tibau	3	5	\N	\N
+79	Rafaello Oliveira	1–3	Tractor	3	5	\N	\N
+82	Edson Barboza	2–0	Junior	3	5	\N	\N
+10	Jason MacDonald	6–6	The Athlete	5	7	\N	\N
+35	Nick Ring	2–0	The Promise	5	7	\N	\N
+53	Sam Stout	6–5	Hands of Stone	3	7	\N	\N
+38	Constantinos Philippou	1–1	Costa	5	11	\N	\N
+66	Paul Taylor	4–5	Relentless	3	15	\N	\N
+88	Paul Sass	1–0	Sassangle	3	15	\N	\N
+76	Kamal Shalorus	3–1–1	Prince of Persia	3	19	\N	\N
+9	Alessio Sakara	6–5 (1 NC)	Legionarius	5	20	\N	\N
+7	Yushin Okami	10–2	Thunder	5	21	\N	\N
+41	Riki Fukuda	0–1	Killer Bee	5	21	\N	\N
+39	Dongi Yang	1–1	The Ox	5	27	\N	\N
+20	C.B. Dollaway	5–3	The Doberman	5	29	\N	\N
+21	Steve Cantwell	4–4	The Robot	5	29	\N	\N
+23	Tim Boetsch	4–3	The Barbarian	5	29	\N	\N
+24	Nick Catone	3–2	The Jersey Devil	5	29	\N	\N
+25	Tim Credeur	3–2	Crazy	5	29	\N	\N
+26	Tom Lawlor	3–2	Filthy	5	29	\N	\N
+28	Mike Massenzio	1–3	The Master of Disaster	5	29	\N	\N
+33	Jared Hamman	1–2	The Messenger	5	29	\N	\N
+34	Court McGee	2–0	The Crusher	5	29	\N	\N
+36	Chris Weidman	2–0	The All-American	5	29	\N	\N
+37	Jason Miller	1–1	Mayhem	5	29	\N	\N
+40	Paul Bradley	0–1	The Gentleman	5	29	\N	\N
+51	Jeremy Stephens	7–5	Lil' Heathen	3	29	\N	\N
+52	Matt Wiman	7–4	Handsome	3	29	\N	\N
+146	Erick Silva	0–0	Indio	4	5	\N	\N
+160	Luiz Cane	4–3	Banha	6	5	\N	\N
+162	Mauricio Rua	3–3	Shogun	6	5	\N	\N
+175	Ronny Markes	0–0	Markes	6	5	\N	\N
+176	Stanislav Nedkov	0–0	Staki	6	6	\N	\N
+125	Rory MacDonald	3–1	Ares	4	7	\N	\N
+129	Sean Pierson	1–1	Pimp Daddy	4	7	\N	\N
+179	Mirko Cro Cop	4–5	Cro Cop	7	9	\N	\N
+126	James Wilks	2–2	Lightning	4	15	\N	\N
+140	Mark Scanlon	0–1	Scanno	4	15	\N	\N
+136	Pascal Krauss	1–0	Panzer	4	17	\N	\N
+180	Stefan Struve	5–3	Skyscraper	7	22	\N	\N
+110	Dong Hyun Kim	5–1 (1 NC)	Stun Gun	4	27	\N	\N
+141	Papy Abedi	0–0	Makambo	4	28	\N	\N
+94	Chris Lytle	9–10	Lights Out	4	29	\N	\N
+57	Joe Lauzon	7–3	J-Lau	3	29	\N	\N
+62	Danny Castillo	6–3	Last Call	3	29	\N	\N
+68	Ben Henderson	6–1	Smooth	3	29	\N	\N
+78	Charles Oliveira	2–1 (1 NC)	do Bronx	3	5	\N	\N
+83	John Makdessi	2–0	The Bull	3	7	\N	\N
+75	Ross Pearson	4–1	The Real Deal	3	15	\N	\N
+81	Takanori Gomi	1–2	The Fireball Kid	3	21	\N	\N
+59	Anthony Njokuani	6–4	The Assassin	3	24	\N	\N
+42	Melvin Guillard	10–4	The Young Assassin	3	29	\N	\N
+43	Clay Guida	9–5	The Carpenter	3	29	\N	\N
+27	Yoshihiro Akiyama	1–3	Sexyama	5	21	16	\N
+48	Donald Cerrone	8–3 (1 NC)	The Cowboy	3	29	\N	\N
+169	Anthony Perosh	1–3	The Hippo	6	2	\N	\N
+154	Vladimir Matyushenko	7–3	The Janitor	6	4	\N	\N
+130	Carlos Eduardo Rocha	1–1	Ta Danado	4	5	\N	\N
+2	Michael Bisping	11–3	The Count	5	15	26	\N
+127	Claude Patrick	3–0	The Prince	4	7	\N	\N
+167	Igor Pokrajac	2–3	The Duke	6	9	\N	\N
+174	Karlos Vemola	1–1	The Terminator	6	12	\N	\N
+55	Gray Maynard	8–0–1 (1 NC)	The Bully	3	29	9	\N
+115	John Hathaway	5–1	The Hitman	4	15	\N	\N
+170	Cyrille Diabate	2–1	The Snake	6	16	\N	\N
+49	Sean Sherk	8–4	The Muscle Shark	3	29	11	\N
+164	Alexander Gustafsson	4–1	The Mauler	6	28	\N	\N
+47	Spencer Fisher	7–6	The King	3	29	18	\N
+69	Nik Lentz	5–0–1 (1 NC)	The Carny	3	29	\N	\N
+61	George Sotiropoulos	7–2	\N	3	2	\N	\N
+6	Royce Gracie	11–1–1	\N	5	5	\N	\N
+11	Demian Maia	8–3	\N	5	5	\N	\N
+168	Antonio Nogueira	2–2	Little Nog	7	5	15	\N
+95	Georges St.-Pierre	16–2	Rush	4	7	10	\N
+5	Anderson Silva	13–0	The Spider	5	5	15	\N
+178	Cheick Kongo	9–4–1	Kongo	7	16	26	\N
+63	Cole Miller	6–3	Magrinho	3	29	5	\N
+113	Dan Hardy	4–3	The Outlaw	4	15	12	\N
+181	Junior Dos Santos	7–0	Cigano	7	5	15	\N
+157	Krzysztof Soszynski	6–2	The Polish Experiment	6	25	21	\N
+153	Lyoto Machida	9–2	The Dragon	6	5	15	\N
+102	Martin Kampmann	8–4	Hitman	4	13	9	\N
+99	Thiago Alves	10–5	Pitbull	4	5	4	\N
+3	Vitor Belfort	9–5	The Phenom	5	5	9	\N
+70	Anthony Pettis	5–2	Showtime	3	29	\N	\N
+77	Jacob Volkmann	3–2	Christmas	3	29	\N	\N
+80	Dan Downes	1–2	Danny Boy	3	29	\N	\N
+85	Cody McKenzie	1–1	Big Time	3	29	\N	\N
+86	Edward Faaloloto	0–2	FaloFalo	3	29	\N	\N
+239	José Aldo	9–0	Junior	2	5	\N	\N
+189	Minotauro Nogueira	3–2	Minotauro	7	5	\N	\N
+219	Renan Barão	3–0	Barão	1	5	\N	\N
+261	Yuri Alcantara	1–0	Marajó	2	5	\N	\N
+265	Felipe Arantes	0–0	Sertanejo	2	5	\N	\N
+145	Luis Ramos	0–0	Beicao	4	5	\N	\N
+266	Antonio Carvalho	0–0	Pato	2	7	\N	\N
+249	Javier Vazquez	3–3	Showtime	2	10	\N	\N
+217	Ivan Menjivar	2–2	Pride of El Salvador	1	14	\N	\N
+215	Brad Pickett	3–1	One-Punch	1	15	\N	\N
+264	Jason Young	0–1	Shotgun	2	15	\N	\N
+218	Yves Jabouin	1–3	Tiger	1	18	\N	\N
+230	Norifumi Yamamoto	0–1	Kid	1	21	\N	\N
+268	Hatsu Hioki	0–0	Iron Broom	2	21	\N	\N
+195	Mark Hunt	1–1	Super Samoan	7	23	\N	\N
+246	Bart Palaszewski	4–3	Bartimus	2	25	\N	\N
+4	Jorge Rivera	7–7	El Conquistador	5	29	\N	\N
+8	Brian Stann	9–3	All American	5	29	\N	\N
+106	Anthony Johnson	6–3	Rumble	4	29	\N	\N
+109	Dennis Hallman	3–5	Superman	4	29	\N	\N
+114	Mike Pyle	4–3	Quicksand	4	29	\N	\N
+117	DaMarques Johnson	3–3	Darkness	4	29	\N	\N
+118	Daniel Roberts	3–3	Ninja	4	29	\N	\N
+122	Duane Ludwig	3–2	Bang	4	29	\N	\N
+128	Brian Ebersole	2–0	Bad Boy	4	29	\N	\N
+132	TJ Waldburger	1–1	TJ	4	29	\N	\N
+134	Chris Cope	1–0	C-Murder	4	29	\N	\N
+135	Clay Harvison	1–0	Heavy Metal	4	29	\N	\N
+137	Justin Edwards	0–1	Fast Eddie	4	29	\N	\N
+139	David Mitchell	0–1	Daudi	4	29	\N	\N
+143	Jorge Lopez	0–0	Lil' Monster	4	29	\N	\N
+185	Pat Barry	3–3	HD	7	29	\N	\N
+186	Matt Mitrione	5–0	Meathead	7	29	\N	\N
+191	Roy Nelson	2–2	Big Country	7	29	\N	\N
+193	Travis Browne	2–0–1	Hapa	7	29	\N	\N
+196	Ben Rothwell	1–1	Big	7	29	\N	\N
+198	Dave Herman	1–0	Pee-Wee	7	29	\N	\N
+199	Aaron Rosa	0–1	Big Red	7	29	\N	\N
+204	Scott Jorgensen	8–3	Young Guns	1	29	\N	\N
+208	Joseph Benavidez	6–2	Joe-B-Wan Kenobi	1	29	\N	\N
+213	Jeff Curran	1–5	Big Frog	1	29	\N	\N
+214	Demetrious Johnson	4–1	Mighty Mouse	1	29	\N	\N
+216	Chris Cariaso	2–2	Kamikaze	1	29	\N	\N
+87	Tony Ferguson	1–0	El Cucuy	3	29	\N	\N
+90	T.J. O'Brien	0–1	The Spider	3	29	\N	\N
+238	Manny Gamburyan	5–5	The Anvil	2	1	\N	\N
+245	Diego Nunes	5–2	The Gun	2	5	\N	\N
+240	Mark Hominick	6–3	The Machine	2	7	\N	\N
+257	Tiequan Zhang	2–1	The Mongolian Wolf	2	8	\N	\N
+197	Rob Broughton	1–0	The Bear	7	15	\N	\N
+258	Chan Sung Jung	1–2	The Korean Zombie	2	27	\N	\N
+107	Matt Brown	5–4	The Immortal	4	29	\N	\N
+108	Rick Story	6–2	The Horror	4	29	\N	\N
+120	Jake Ellenberger	4–1	The Juggernaut	4	29	\N	\N
+121	Brian Foster	3–2	The Foster Boy	4	29	\N	\N
+123	Rich Attonito	3–1	The Raging Bull	4	29	\N	\N
+124	Charlie Brenneman	3–1	The Spaniard	4	29	\N	\N
+187	Brendan Schaub	4–1	The Hybrid	7	29	\N	\N
+188	Joey Beltran	3–2	The Mexicutioner	7	29	\N	\N
+203	Urijah Faber	9–4	The California Kid	1	29	\N	\N
+212	Damacio Page	3–3	The Angel of Death	1	29	\N	\N
+72	Aaron Riley	3–4	\N	3	29	\N	\N
+89	Ramsey Nijem	0–1	\N	3	29	\N	\N
+200	Philip De Fries	0–0	\N	7	15	\N	\N
+73	Evan Dunham	4–2	3D	3	29	\N	\N
+93	BJ Penn	12–6–2	The Prodigy	3	29	19	\N
+103	Carlos Condit	9–1	The Natural Born Killer	4	29	10	\N
+1	Chris Leben	12–6	The Crippler	5	29	21	\N
+97	Diego Sanchez	12–4	The Dream	3	29	23	\N
+190	Heath Herring	2–3	The Texas Crazy Horse	7	29	9	\N
+98	Jon Fitch	13–1–1	\N	4	29	4	\N
+96	Josh Koscheck	13–5	Kos	4	29	4	\N
+92	Matt Hughes	18–6	\N	4	29	24	\N
+100	Matt Serra	7–7	The Terror	4	29	13	\N
+101	Mike Swick	9–3	Quick	4	29	4	\N
+183	Shane Carwin	4–2	The Engineer	7	29	10	\N
+147	Tito Ortiz	15–9–1	The Huntington Beach Bad Boy	6	29	20	\N
+220	Michael McDonald	3–0	Mayday	1	29	\N	\N
+222	Reuben Duran	1–1	Hurricane	1	29	\N	\N
+226	Jeff Hougland	1–0	Hellbound	1	29	\N	\N
+227	Cole Escovedo	0–1	Apache Kid	1	29	\N	\N
+229	Donny Walker	0–1	Eagle Eye	1	29	\N	\N
+236	Leonard Garcia	6–6–1	Bad Boy	2	29	\N	\N
+242	Cub Swanson	5–3	Cub	2	29	\N	\N
+247	Chad Mendes	6–0	Money	2	29	\N	\N
+250	Erik Koch	4–1	New Breed	2	29	\N	\N
+262	Alex Caceres	0–1	Bruce Leroy	2	29	\N	\N
+267	Jimy Hettes	0–0	The Kid	2	29	\N	\N
+206	Dominick Cruz	8–1	Dominator	1	29	\N	\N
+12	Alan Belcher	7–4	The Talent	5	29	\N	\N
+14	Mark Muñoz	8–2	The Filipino Wrecking Machine	5	29	\N	\N
+15	Nate Quarry	7–3	Rock	5	29	\N	\N
+16	Ed Herman	5–5	Short Fuse	5	29	\N	\N
+19	Aaron Simpson	6–2	A-Train	5	29	\N	\N
+163	Phil Davis	5–0	Mr. Wonderful	6	29	\N	\N
+165	Kyle Kingsbury	4–1	Kingsbu	6	29	\N	\N
+56	Frankie Edgar	8–1–1	The Answer	3	29	\N	\N
+84	Michael Johnson	1–1	The Menace	3	29	\N	\N
+223	Ian Loveland	1–1	The Barn Owl	1	29	\N	\N
+228	Edwin Figueroa	0–1	El Feroz	1	29	\N	\N
+231	Mike Easton	0–0	The Hulk	1	29	\N	\N
+244	Ricardo Lamas	5–2	The Bully	2	29	\N	\N
+248	Josh Grispi	4–2	The Fluke	2	29	\N	\N
+251	Mackens Semerzier	2–3	da Menace	2	29	\N	\N
+252	Matt Grice	1–4	The Real One	2	29	\N	\N
+253	Dustin Poirier	3–1	The Diamond	2	29	\N	\N
+255	Darren Elkins	2–1	The Damage	2	29	\N	\N
+256	Pablo Garza	2–1	The Scarecrow	2	29	\N	\N
+149	Rashad Evans	11–1–1	Suga	6	29	10	\N
+161	Jason Brilz	3–3	The Hitman	6	29	\N	\N
+166	Eliot Marshall	3–2	The Fire	6	29	\N	\N
+60	Thiago Tavares	5–4–1	\N	3	5	\N	\N
+71	Rafael Dos Anjos	4–3	\N	3	5	\N	\N
+91	Vagner Rocha	0–1	\N	3	5	\N	\N
+64	Mark Bocek	5–4	\N	3	7	\N	\N
+74	TJ Grant	3–3	\N	3	7	\N	\N
+67	Terry Etim	5–3	\N	3	15	\N	\N
+50	Dennis Siver	8–4	\N	3	26	\N	\N
+31	Brad Tavares	2–1	\N	5	29	\N	\N
+54	Jim Miller	9–1	\N	3	29	\N	\N
+119	Paulo Thiago	3–3	\N	4	5	\N	\N
+171	Fabio Maldonado	1–1	\N	6	5	\N	\N
+144	Che Mills	0–0	\N	4	15	\N	\N
+173	James Te Huna	1–1	\N	6	23	\N	\N
+58	Shane Roller	7–3	\N	3	29	\N	\N
+65	Mac Danzig	4–5	\N	3	29	\N	\N
+202	Oli Thompson	0–0	\N	7	15	\N	\N
+211	Raphael Assunção	3–3	\N	1	5	\N	\N
+232	Johnny Eduardo	0–0	\N	1	5	\N	\N
+241	Rani Yahya	5–4	\N	2	5	\N	\N
+233	Vaughan Lee	0–0	\N	1	15	\N	\N
+210	Takeya Mizugaki	3–4	\N	1	21	\N	\N
+254	Michihiro Omigawa	0–4	\N	2	21	\N	\N
+104	Nick Diaz	6–4	\N	4	29	\N	\N
+105	Johny Hendricks	8–1	\N	4	29	\N	\N
+111	Matthew Riddle	5–2	\N	4	29	\N	\N
+116	Mike Pierce	4–2	\N	4	29	\N	\N
+131	Jake Shields	1–1	\N	4	29	\N	\N
+133	Shamar Bailey	1–0	\N	4	29	\N	\N
+138	James Head	0–1	\N	4	29	\N	\N
+142	Lance Benoist	0–0	\N	4	29	\N	\N
+172	Ricardo Romero	1–1	\N	6	29	\N	\N
+192	Mike Russow	3–0	\N	7	29	\N	\N
+194	Christian Morecraft	1–2	\N	7	29	\N	\N
+201	Stipe Miocic	0–0	\N	7	29	\N	\N
+205	Miguel Angel Torres	7–3	\N	1	29	\N	\N
+207	Brian Bowles	7–1	\N	1	29	\N	\N
+209	Eddie Wineland	5–3	\N	1	29	\N	\N
+221	Nick Pace	1–2	\N	1	29	\N	\N
+224	Jason Reinhardt	0–2	\N	1	29	\N	\N
+225	Ken Stone	0–2	\N	1	29	\N	\N
+237	Mike Brown	7–5	\N	2	29	\N	\N
+243	George Roop	3–4–1	\N	2	29	\N	\N
+259	Jonathan Brookins	1–1	\N	2	29	\N	\N
+260	Nam Phan	0–2	\N	2	29	\N	\N
+263	Mike Lullo	0–1	\N	2	29	\N	\N
+148	Rich Franklin	13–5	Ace	6	29	3	\N
+159	Ryan Bader	5–2	Darth	6	29	6	\N
+17	Dan Miller	5–4	\N	5	29	\N	\N
+152	Stephan Bonnar	7–6	The American Psycho	6	29	14	\N
+155	Quinton Jackson	7–2	Rampage	6	29	26	\N
+112	Amir Sadollah	5–2	\N	4	29	9	\N
+151	Brandon Vera	7–5 (1 NC)	The Truth	6	29	2	\N
+184	Brock Lesnar	4–2	\N	7	29	11	\N
+182	Cain Velasquez	7–0	\N	7	29	4	\N
+13	Chael Sonnen	6–5	\N	5	29	21	\N
+150	Forrest Griffin	9–4	\N	6	29	9	\N
+177	Frank Mir	13–5	\N	7	29	14	\N
+156	Jon Jones	7–1	Bones	6	29	10	\N
+234	Kenny Florian	12–4	KenFlo	3	29	27	\N
+45	Nate Diaz	8–5	\N	3	29	8	\N
+158	Thiago Silva	5–2 (1 NC)	\N	6	5	5	\N
+235	Tyson Griffin	8–5	\N	3	29	9	\N
+269	Adam Gunn	\N	\N	4	\N	26	\N
+270	Andrei Arlovski	\N	\N	7	\N	10	\N
+271	Andrei Radaza	\N	\N	6	\N	4	\N
+272	Anthony Plascencia	\N	\N	7	\N	2	\N
+273	Brian Evans	\N	\N	5	\N	6	\N
+274	Caol Uno	\N	\N	3	\N	16	\N
+275	Carmelo Melendez	\N	\N	3	\N	17	\N
+276	Cesar Perez Jr.	\N	\N	7	\N	10	\N
+277	Chris Price	\N	\N	5	\N	13	\N
+278	Chuck Liddell	\N	\N	6	\N	25	\N
+279	Cole Gotti	\N	\N	7	\N	27	\N
+280	Cory Williams	\N	\N	3	\N	1	\N
+281	Daisuke Hironaka	\N	\N	3	\N	16	\N
+282	Damon Blaine	\N	\N	7	\N	6	\N
+283	Dan Henderson	\N	\N	5	\N	21	\N
+284	Dan Larson	\N	\N	5	\N	24	\N
+285	David Moore	\N	\N	6	\N	26	\N
+286	Denis Kang	\N	\N	5	\N	5	\N
+287	Derrick Mitchell	\N	\N	6	\N	12	\N
+288	Drew Chambers	\N	\N	6	\N	14	\N
+289	Drew McFedries	\N	\N	5	\N	18	\N
+290	Dwayne Williams	\N	\N	4	\N	20	\N
+291	Ed Duran	\N	\N	4	\N	2	\N
+292	Ed Hamlin	\N	\N	6	\N	23	\N
+293	Frank Hill	\N	\N	5	\N	25	\N
+294	Frank Trigg	\N	\N	4	\N	9	\N
+295	Gabriel Gonzaga	\N	\N	7	\N	17	\N
+296	Garrison Brooks	\N	\N	4	\N	11	\N
+297	George Goodridge	\N	\N	3	\N	21	\N
+298	Jake Carter	\N	\N	5	\N	20	\N
+299	James King	\N	\N	3	\N	26	\N
+300	Jeff Clayton	\N	\N	5	\N	11	\N
+301	Jessie James	\N	\N	3	\N	10	\N
+302	Joe Stevenson	\N	\N	3	\N	10	\N
+303	Josh Freeman	\N	\N	5	\N	3	\N
+304	Justin McCully	\N	\N	7	\N	20	\N
+305	Karl Thomas	\N	\N	6	\N	24	\N
+306	Karo Parisyan	\N	\N	4	\N	10	\N
+307	Keith Gilmore	\N	\N	7	\N	25	\N
+308	Keith Jardine	\N	\N	6	\N	10	\N
+309	Kendall Grove	\N	\N	5	\N	19	\N
+310	Kimbo Slice	\N	\N	7	\N	5	\N
+311	Kris Graham	\N	\N	7	\N	22	\N
+312	Luiz Cardoza	\N	\N	6	\N	7	\N
+313	Manny Dos Santos Jr.	\N	\N	3	\N	4	\N
+314	Marcello Cruz	\N	\N	5	\N	7	\N
+315	Marcus Davis	\N	\N	4	\N	14	\N
+316	Marcus Ferreira	\N	\N	4	\N	6	\N
+317	Matt Hamill	\N	\N	6	\N	20	\N
+318	Matt Williams	\N	\N	6	\N	11	\N
+319	Mike Barns	\N	\N	7	\N	12	\N
+320	Mitsuhiro Yoshida	\N	\N	4	\N	16	\N
+321	Murilo De Souza	\N	\N	4	\N	7	\N
+322	Nate Marquardt	\N	\N	5	\N	10	\N
+323	Noah Brown	\N	\N	6	\N	8	\N
+324	Pablo Casillas	\N	\N	5	\N	17	\N
+325	Patrick Cote	\N	\N	5	\N	14	\N
+326	Paulo Duarte	\N	\N	3	\N	15	\N
+327	PJ Bradley	\N	\N	4	\N	1	\N
+328	Rich Caldwell	\N	\N	7	\N	1	\N
+329	Roberto Martinez	\N	\N	5	\N	8	\N
+330	Ryo Matsui	\N	\N	7	\N	16	\N
+331	Sam Boberg	\N	\N	3	\N	6	\N
+332	Sato Matsui	\N	\N	6	\N	16	\N
+333	Todd Duffee	\N	\N	7	\N	5	\N
+334	Travis Rothwell	\N	\N	7	\N	21	\N
+335	Wilson Gouveia	\N	\N	5	\N	5	\N
+336	Randy Johnson	\N	The Monster	3	7	16	\N
 \.
 
 
@@ -1123,6 +1310,7 @@ COPY fightersource_fighters (fightersource_id, fighter_id) FROM stdin;
 3	262
 3	263
 3	267
+4	336
 \.
 
 
@@ -3089,11 +3277,51 @@ ALTER TABLE ONLY camps
 
 
 --
+-- Name: country_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY country
+    ADD CONSTRAINT country_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fighter_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fighter_camps
+    ADD CONSTRAINT fighter_camps_pkey PRIMARY KEY (fighter_id, camp_id);
+
+
+--
+-- Name: fighter_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fighter_moves
+    ADD CONSTRAINT fighter_moves_pkey PRIMARY KEY (fighter_id, move_id);
+
+
+--
+-- Name: fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fighters
+    ADD CONSTRAINT fighters_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: fightersource_fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fightersource_fighters
     ADD CONSTRAINT fightersource_fighters_pkey PRIMARY KEY (fightersource_id, fighter_id);
+
+
+--
+-- Name: fightersource_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fightersource
+    ADD CONSTRAINT fightersource_pkey PRIMARY KEY (id);
 
 
 --
@@ -3121,6 +3349,14 @@ ALTER TABLE ONLY moves
 
 
 --
+-- Name: name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY country
+    ADD CONSTRAINT name_unique UNIQUE (name);
+
+
+--
 -- Name: positions_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
@@ -3134,6 +3370,14 @@ ALTER TABLE ONLY positions_moves
 
 ALTER TABLE ONLY positions
     ADD CONSTRAINT positions_name_key UNIQUE (name);
+
+
+--
+-- Name: positions_name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY positions
+    ADD CONSTRAINT positions_name_unique UNIQUE (name);
 
 
 --
@@ -3153,11 +3397,43 @@ ALTER TABLE ONLY skillfocii
 
 
 --
+-- Name: skills_name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY skills
+    ADD CONSTRAINT skills_name_unique UNIQUE (name);
+
+
+--
+-- Name: skills_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY skills
+    ADD CONSTRAINT skills_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: source_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fightersource
+    ADD CONSTRAINT source_unique UNIQUE (source);
+
+
+--
 -- Name: unique_name; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighters
     ADD CONSTRAINT unique_name UNIQUE (name);
+
+
+--
+-- Name: weight_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY weightclass
+    ADD CONSTRAINT weight_unique UNIQUE (name, lbs);
 
 
 --
@@ -3177,11 +3453,99 @@ ALTER TABLE ONLY weightclass
 
 
 --
+-- Name: end_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY positions_moves
+    ADD CONSTRAINT end_position_id_fkey FOREIGN KEY (end_position_id) REFERENCES positions(id);
+
+
+--
+-- Name: fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fightersource_fighters
+    ADD CONSTRAINT fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id);
+
+
+--
+-- Name: fighter_moves_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighter_moves
+    ADD CONSTRAINT fighter_moves_fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id);
+
+
+--
 -- Name: fighters_camp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighters
     ADD CONSTRAINT fighters_camp_id_fkey FOREIGN KEY (camp_id) REFERENCES camps(id);
+
+
+--
+-- Name: fighters_country_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighters
+    ADD CONSTRAINT fighters_country_id_fkey FOREIGN KEY (country) REFERENCES country(id);
+
+
+--
+-- Name: fightersource_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fightersource_fighters
+    ADD CONSTRAINT fightersource_id_fkey FOREIGN KEY (fightersource_id) REFERENCES fightersource(id);
+
+
+--
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY move_skill_requirements
+    ADD CONSTRAINT move_id_fkey FOREIGN KEY (move_id) REFERENCES moves(id);
+
+
+--
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY move_move_requirements
+    ADD CONSTRAINT move_id_fkey FOREIGN KEY (move_id) REFERENCES moves(id);
+
+
+--
+-- Name: position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY positions_moves
+    ADD CONSTRAINT position_id_fkey FOREIGN KEY (position_id) REFERENCES positions(id);
+
+
+--
+-- Name: req_move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY move_move_requirements
+    ADD CONSTRAINT req_move_id_fkey FOREIGN KEY (req_move_id) REFERENCES moves(id);
+
+
+--
+-- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY skillfocii
+    ADD CONSTRAINT skill_id_fkey FOREIGN KEY (skill_id) REFERENCES skills(id);
+
+
+--
+-- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY move_skill_requirements
+    ADD CONSTRAINT skill_id_fkey FOREIGN KEY (skill_id) REFERENCES skills(id);
 
 
 --
