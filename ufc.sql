@@ -70,6 +70,47 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: buttons; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE buttons (
+    id integer NOT NULL,
+    abbr character varying,
+    name character varying
+);
+
+
+ALTER TABLE public.buttons OWNER TO jean;
+
+--
+-- Name: buttons_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
+--
+
+CREATE SEQUENCE buttons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.buttons_id_seq OWNER TO jean;
+
+--
+-- Name: buttons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+--
+
+ALTER SEQUENCE buttons_id_seq OWNED BY buttons.id;
+
+
+--
+-- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+--
+
+SELECT pg_catalog.setval('buttons_id_seq', 32, true);
+
+
+--
 -- Name: camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
@@ -80,6 +121,47 @@ CREATE TABLE camps (
 
 
 ALTER TABLE public.camps OWNER TO jean;
+
+--
+-- Name: combo; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE combo (
+    move_id integer NOT NULL,
+    button_id integer NOT NULL,
+    seq integer NOT NULL
+);
+
+
+ALTER TABLE public.combo OWNER TO jean;
+
+--
+-- Name: combo_seq_seq; Type: SEQUENCE; Schema: public; Owner: jean
+--
+
+CREATE SEQUENCE combo_seq_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.combo_seq_seq OWNER TO jean;
+
+--
+-- Name: combo_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+--
+
+ALTER SEQUENCE combo_seq_seq OWNED BY combo.seq;
+
+
+--
+-- Name: combo_seq_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+--
+
+SELECT pg_catalog.setval('combo_seq_seq', 1, false);
+
 
 --
 -- Name: country; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
@@ -450,6 +532,20 @@ ALTER TABLE public.transition_moves_view OWNER TO jean;
 -- Name: id; Type: DEFAULT; Schema: public; Owner: jean
 --
 
+ALTER TABLE buttons ALTER COLUMN id SET DEFAULT nextval('buttons_id_seq'::regclass);
+
+
+--
+-- Name: seq; Type: DEFAULT; Schema: public; Owner: jean
+--
+
+ALTER TABLE combo ALTER COLUMN seq SET DEFAULT nextval('combo_seq_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: jean
+--
+
 ALTER TABLE country ALTER COLUMN id SET DEFAULT nextval('country_id_seq'::regclass);
 
 
@@ -472,6 +568,46 @@ ALTER TABLE fightersource ALTER COLUMN id SET DEFAULT nextval('fightersource_id_
 --
 
 ALTER TABLE skills ALTER COLUMN id SET DEFAULT nextval('skill_id_seq'::regclass);
+
+
+--
+-- Data for Name: buttons; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY buttons (id, abbr, name) FROM stdin;
+1	sf	Step Forwards
+2	sb	Step Backwards
+3	lfu	Left Stick Flick Up
+4	lfd	Left Stick Flick Down
+5	lfl	Left Stick Flick Left
+6	lfr	Left Stick Flick Right
+7	lsu	Left Stick Up
+8	lsd	Left Stick Down
+9	lsl	Left Stick Left
+10	lsr	Left Stick Right
+11	rfu	Right Stick Flick Up
+12	rfd	Right Stick Flick Down
+13	rfl	Right Stick Flick Left
+14	rfr	Right Stick Flick Right
+15	lb	Left Bumper
+16	rb	Right Bumper
+17	lt	Left Trigger
+18	rt	Right Trigger
+19	a	A
+20	b	B
+21	x	X
+22	y	Y
+23	lsb	Left Stick Button
+24	rsb	Right Stick Button
+25	muc	Minor Transition Up and Clockwise
+26	mdcc	Minor Transition Down and Counter Clockwise
+27	mdc	Minor Transition Down and Clockwise
+28	mucc	Minor Transition Up and Counter Clockwise
+29	Muc	Major Transition Up and Clockwise
+30	Mdcc	Major Transition Down and Counter Clockwise
+31	Mdc	Major Transition Down and Clockwise
+32	Mucc	Major Transition Up and Counter Clockwise
+\.
 
 
 --
@@ -506,6 +642,14 @@ COPY camps (id, name) FROM stdin;
 25	The Pit
 26	Wolfslair MMA Academy
 27	Zahabi MMA
+\.
+
+
+--
+-- Data for Name: combo; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY combo (move_id, button_id, seq) FROM stdin;
 \.
 
 
@@ -3257,6 +3401,14 @@ COPY weightclass (id, name, lbs) FROM stdin;
 
 
 --
+-- Name: buttons_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY buttons
+    ADD CONSTRAINT buttons_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: camps_name_key; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
@@ -3270,6 +3422,14 @@ ALTER TABLE ONLY camps
 
 ALTER TABLE ONLY camps
     ADD CONSTRAINT camps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: combo_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY combo
+    ADD CONSTRAINT combo_pkey PRIMARY KEY (move_id, button_id, seq);
 
 
 --
