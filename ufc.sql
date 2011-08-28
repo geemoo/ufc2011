@@ -75,8 +75,8 @@ SET default_with_oids = false;
 
 CREATE TABLE buttons (
     id integer NOT NULL,
-    abbr character varying,
-    name character varying
+    abbr character varying NOT NULL,
+    name character varying NOT NULL
 );
 
 
@@ -116,7 +116,7 @@ SELECT pg_catalog.setval('buttons_id_seq', 32, true);
 
 CREATE TABLE camps (
     id integer NOT NULL,
-    name character varying
+    name character varying NOT NULL
 );
 
 
@@ -169,7 +169,7 @@ SELECT pg_catalog.setval('combo_seq_seq', 1, false);
 
 CREATE TABLE country (
     id integer NOT NULL,
-    name character varying
+    name character varying NOT NULL
 );
 
 
@@ -204,34 +204,6 @@ SELECT pg_catalog.setval('country_id_seq', 29, true);
 
 
 --
--- Name: fighters; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
---
-
-CREATE TABLE fighters (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    record character varying,
-    nickname character varying,
-    weightclass integer,
-    country integer,
-    camp_id integer,
-    contract contract
-);
-
-
-ALTER TABLE public.fighters OWNER TO jean;
-
---
--- Name: fighter_camp_view; Type: VIEW; Schema: public; Owner: jean
---
-
-CREATE VIEW fighter_camp_view AS
-    SELECT f.name AS fighter, c.name AS camp FROM (fighters f LEFT JOIN camps c ON ((f.camp_id = c.id)));
-
-
-ALTER TABLE public.fighter_camp_view OWNER TO jean;
-
---
 -- Name: fighter_camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
@@ -250,7 +222,8 @@ ALTER TABLE public.fighter_camps OWNER TO jean;
 CREATE TABLE fighter_moves (
     fighter_id integer NOT NULL,
     move_id integer NOT NULL,
-    level integer NOT NULL,
+    level integer DEFAULT 1 NOT NULL,
+    CONSTRAINT leve_range CHECK (((level >= 0) AND (level <= 3))),
     CONSTRAINT valid_level CHECK (((level >= 1) AND (level <= 3)))
 );
 
@@ -258,13 +231,32 @@ CREATE TABLE fighter_moves (
 ALTER TABLE public.fighter_moves OWNER TO jean;
 
 --
+-- Name: fighters; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fighters (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    record character varying,
+    nickname character varying,
+    weightclass integer,
+    country integer,
+    contract contract,
+    rating integer,
+    CONSTRAINT fighters_rating_check CHECK (((rating >= 0) AND (rating <= 100)))
+);
+
+
+ALTER TABLE public.fighters OWNER TO jean;
+
+--
 -- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE weightclass (
     id integer NOT NULL,
-    name character varying,
-    lbs integer
+    name character varying NOT NULL,
+    lbs integer NOT NULL
 );
 
 
@@ -275,7 +267,7 @@ ALTER TABLE public.weightclass OWNER TO jean;
 --
 
 CREATE VIEW fighter_view AS
-    SELECT fighters.name, fighters.record, fighters.nickname, camps.name AS camp, country.name AS country, weightclass.name AS weightclass, weightclass.lbs AS weight FROM (((fighters LEFT JOIN camps ON ((fighters.camp_id = camps.id))) LEFT JOIN country ON ((fighters.country = country.id))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) WHERE (fighters.camp_id IS NOT NULL) ORDER BY fighters.name, weightclass.id, camps.id;
+    WITH i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.name, weightclass.name AS weightclass, i.datum AS camp, fighters.contract, fighters.rating, weightclass.lbs AS weight, fighters.record, fighters.nickname, country.name AS country FROM (((fighters LEFT JOIN country ON ((fighters.country = country.id))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) JOIN i ON ((fighters.id = i._grouping)));
 
 
 ALTER TABLE public.fighter_view OWNER TO jean;
@@ -305,7 +297,7 @@ ALTER SEQUENCE fighters_id_seq OWNED BY fighters.id;
 -- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
-SELECT pg_catalog.setval('fighters_id_seq', 336, true);
+SELECT pg_catalog.setval('fighters_id_seq', 346, true);
 
 
 --
@@ -314,7 +306,7 @@ SELECT pg_catalog.setval('fighters_id_seq', 336, true);
 
 CREATE TABLE fightersource (
     id integer NOT NULL,
-    source character varying
+    source character varying NOT NULL
 );
 
 
@@ -392,8 +384,8 @@ ALTER TABLE public.move_skill_requirements OWNER TO jean;
 
 CREATE TABLE moves (
     id integer NOT NULL,
-    name character varying,
-    type move_type
+    name character varying NOT NULL,
+    type move_type NOT NULL
 );
 
 
@@ -417,7 +409,7 @@ ALTER TABLE public.moves_camps OWNER TO jean;
 
 CREATE TABLE positions (
     id integer NOT NULL,
-    name character varying
+    name character varying NOT NULL
 );
 
 
@@ -430,7 +422,7 @@ ALTER TABLE public.positions OWNER TO jean;
 CREATE TABLE positions_moves (
     position_id integer NOT NULL,
     move_id integer NOT NULL,
-    end_position_id integer
+    end_position_id integer NOT NULL
 );
 
 
@@ -442,7 +434,7 @@ ALTER TABLE public.positions_moves OWNER TO jean;
 
 CREATE TABLE skills (
     id integer NOT NULL,
-    name character varying
+    name character varying NOT NULL
 );
 
 
@@ -453,7 +445,7 @@ ALTER TABLE public.skills OWNER TO jean;
 --
 
 CREATE VIEW position_move_camp_view AS
-    WITH x(_move, _length, _count, _number, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z._count, z._number, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, _length, _count, _number, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k._length, k._count, k._number, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, _length, _count, _number, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k._length, k._count, k._number, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT a.name AS start_position, moves.name AS move, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisite_moves, i.datum AS prerequisite_skills FROM ((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) ORDER BY a.id, moves.id, x._length;
+    WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), h(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT combo.button_id, buttons.abbr FROM (combo JOIN buttons ON ((combo.button_id = buttons.id))) ORDER BY combo.seq) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.name AS move, h.datum AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisite_moves, i.datum AS prerequisite_skills FROM (((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN h ON ((moves.id = h._grouping))) ORDER BY a.id, moves.id, x._length;
 
 
 ALTER TABLE public.position_move_camp_view OWNER TO jean;
@@ -463,7 +455,7 @@ ALTER TABLE public.position_move_camp_view OWNER TO jean;
 --
 
 CREATE VIEW position_moves_view AS
-    WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length AS move_count, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number)) ORDER BY x."position", x._length;
+    WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
 
 
 ALTER TABLE public.position_moves_view OWNER TO jean;
@@ -473,7 +465,7 @@ ALTER TABLE public.position_moves_view OWNER TO jean;
 --
 
 CREATE VIEW reverse_position_moves_view AS
-    WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.end_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length AS move_count, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number)) ORDER BY x."position", x._length;
+    WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.end_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
 
 
 ALTER TABLE public.reverse_position_moves_view OWNER TO jean;
@@ -523,7 +515,7 @@ ALTER TABLE public.skillfocii OWNER TO jean;
 --
 
 CREATE VIEW transition_moves_view AS
-    WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text <> (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))), a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text = (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT x.start_position, x.end_position, x._length AS move_count, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number)) UNION SELECT a.start_position, a.end_position, a._length AS move_count, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number)) ORDER BY 1, 2, 3;
+    WITH z(start_position, end_position, _length, moves) AS (WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text <> (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))) SELECT x.start_position, x.end_position, x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))), c(start_position, end_position, _length, moves) AS (WITH RECURSIVE a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text = (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT a.start_position, a.end_position, a._length, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number))) SELECT z.start_position, z.end_position, z._length AS move_count, z.moves FROM z UNION SELECT c.start_position, c.end_position, c._length AS move_count, c.moves FROM c ORDER BY 1, 2, 3;
 
 
 ALTER TABLE public.transition_moves_view OWNER TO jean;
@@ -827,10 +819,9 @@ COPY fighter_moves (fighter_id, move_id, level) FROM stdin;
 -- Data for Name: fighters; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
-COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contract) FROM stdin;
+COPY fighters (id, name, record, nickname, weightclass, country, contract, rating) FROM stdin;
 30	Kyle Noke	3–0	KO	5	2	\N	\N
 46	Yves Edwards	8–5	Thugjitsu Master	3	3	\N	\N
-18	Wanderlei Silva	3–6	The Axe Murderer	5	5	\N	\N
 22	Rousimar Palhares	5–2	Toquinho	5	5	\N	\N
 29	Jorge Santiago	1–3	The Sandman	5	5	\N	\N
 32	Rafael Natal	1–1–1	Sapo	5	5	\N	\N
@@ -845,11 +836,9 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 88	Paul Sass	1–0	Sassangle	3	15	\N	\N
 76	Kamal Shalorus	3–1–1	Prince of Persia	3	19	\N	\N
 9	Alessio Sakara	6–5 (1 NC)	Legionarius	5	20	\N	\N
-7	Yushin Okami	10–2	Thunder	5	21	\N	\N
 41	Riki Fukuda	0–1	Killer Bee	5	21	\N	\N
 39	Dongi Yang	1–1	The Ox	5	27	\N	\N
 20	C.B. Dollaway	5–3	The Doberman	5	29	\N	\N
-21	Steve Cantwell	4–4	The Robot	5	29	\N	\N
 23	Tim Boetsch	4–3	The Barbarian	5	29	\N	\N
 24	Nick Catone	3–2	The Jersey Devil	5	29	\N	\N
 25	Tim Credeur	3–2	Crazy	5	29	\N	\N
@@ -863,68 +852,59 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 51	Jeremy Stephens	7–5	Lil' Heathen	3	29	\N	\N
 52	Matt Wiman	7–4	Handsome	3	29	\N	\N
 146	Erick Silva	0–0	Indio	4	5	\N	\N
-160	Luiz Cane	4–3	Banha	6	5	\N	\N
-162	Mauricio Rua	3–3	Shogun	6	5	\N	\N
 175	Ronny Markes	0–0	Markes	6	5	\N	\N
 176	Stanislav Nedkov	0–0	Staki	6	6	\N	\N
 125	Rory MacDonald	3–1	Ares	4	7	\N	\N
 129	Sean Pierson	1–1	Pimp Daddy	4	7	\N	\N
-179	Mirko Cro Cop	4–5	Cro Cop	7	9	\N	\N
-126	James Wilks	2–2	Lightning	4	15	\N	\N
 140	Mark Scanlon	0–1	Scanno	4	15	\N	\N
 136	Pascal Krauss	1–0	Panzer	4	17	\N	\N
-180	Stefan Struve	5–3	Skyscraper	7	22	\N	\N
-110	Dong Hyun Kim	5–1 (1 NC)	Stun Gun	4	27	\N	\N
 141	Papy Abedi	0–0	Makambo	4	28	\N	\N
-94	Chris Lytle	9–10	Lights Out	4	29	\N	\N
-57	Joe Lauzon	7–3	J-Lau	3	29	\N	\N
 62	Danny Castillo	6–3	Last Call	3	29	\N	\N
 68	Ben Henderson	6–1	Smooth	3	29	\N	\N
 78	Charles Oliveira	2–1 (1 NC)	do Bronx	3	5	\N	\N
 83	John Makdessi	2–0	The Bull	3	7	\N	\N
-75	Ross Pearson	4–1	The Real Deal	3	15	\N	\N
 81	Takanori Gomi	1–2	The Fireball Kid	3	21	\N	\N
 59	Anthony Njokuani	6–4	The Assassin	3	24	\N	\N
 42	Melvin Guillard	10–4	The Young Assassin	3	29	\N	\N
-43	Clay Guida	9–5	The Carpenter	3	29	\N	\N
-27	Yoshihiro Akiyama	1–3	Sexyama	5	21	16	\N
+126	James Wilks	2–2	Lightning	4	15	UFN	71
+94	Chris Lytle	9–10	Lights Out	4	29	UFN	69
 48	Donald Cerrone	8–3 (1 NC)	The Cowboy	3	29	\N	\N
 169	Anthony Perosh	1–3	The Hippo	6	2	\N	\N
 154	Vladimir Matyushenko	7–3	The Janitor	6	4	\N	\N
 130	Carlos Eduardo Rocha	1–1	Ta Danado	4	5	\N	\N
-2	Michael Bisping	11–3	The Count	5	15	26	\N
+157	Krzysztof Soszynski	6–2	The Polish Experiment	6	25	UFN	71
 127	Claude Patrick	3–0	The Prince	4	7	\N	\N
 167	Igor Pokrajac	2–3	The Duke	6	9	\N	\N
 174	Karlos Vemola	1–1	The Terminator	6	12	\N	\N
-55	Gray Maynard	8–0–1 (1 NC)	The Bully	3	29	9	\N
+179	Mirko Cro Cop	4–5	Cro Cop	7	9	UFN	72
 115	John Hathaway	5–1	The Hitman	4	15	\N	\N
 170	Cyrille Diabate	2–1	The Snake	6	16	\N	\N
-49	Sean Sherk	8–4	The Muscle Shark	3	29	11	\N
+47	Spencer Fisher	7–6	The King	3	29	UFN	72
 164	Alexander Gustafsson	4–1	The Mauler	6	28	\N	\N
-47	Spencer Fisher	7–6	The King	3	29	18	\N
+63	Cole Miller	6–3	Magrinho	3	29	UFN	70
 69	Nik Lentz	5–0–1 (1 NC)	The Carny	3	29	\N	\N
 61	George Sotiropoulos	7–2	\N	3	2	\N	\N
 6	Royce Gracie	11–1–1	\N	5	5	\N	\N
-11	Demian Maia	8–3	\N	5	5	\N	\N
-168	Antonio Nogueira	2–2	Little Nog	7	5	15	\N
-95	Georges St.-Pierre	16–2	Rush	4	7	10	\N
-5	Anderson Silva	13–0	The Spider	5	5	15	\N
-178	Cheick Kongo	9–4–1	Kongo	7	16	26	\N
-63	Cole Miller	6–3	Magrinho	3	29	5	\N
-113	Dan Hardy	4–3	The Outlaw	4	15	12	\N
-181	Junior Dos Santos	7–0	Cigano	7	5	15	\N
-157	Krzysztof Soszynski	6–2	The Polish Experiment	6	25	21	\N
-153	Lyoto Machida	9–2	The Dragon	6	5	15	\N
-102	Martin Kampmann	8–4	Hitman	4	13	9	\N
-99	Thiago Alves	10–5	Pitbull	4	5	4	\N
-3	Vitor Belfort	9–5	The Phenom	5	5	9	\N
+57	Joe Lauzon	7–3	J-Lau	3	29	UFN	70
+75	Ross Pearson	4–1	The Real Deal	3	15	UFN	70
+110	Dong Hyun Kim	5–1 (1 NC)	Stun Gun	4	27	UFN	72
+102	Martin Kampmann	8–4	Hitman	4	13	UFN	72
+180	Stefan Struve	5–3	Skyscraper	7	22	UFN	72
+168	Antonio Nogueira	2–2	Little Nog	7	5	WFA	\N
+178	Cheick Kongo	9–4–1	Kongo	7	16	UFC	74
+95	Georges St.-Pierre	16–2	Rush	4	7	UFC	79
+181	Junior Dos Santos	7–0	Cigano	7	5	UFC	75
+49	Sean Sherk	8–4	The Muscle Shark	3	29	UFC	77
+99	Thiago Alves	10–5	Pitbull	4	5	UFC	76
+43	Clay Guida	9–5	The Carpenter	3	29	UFC	73
+5	Anderson Silva	13–0	The Spider	5	5	UFC	78
+153	Lyoto Machida	9–2	The Dragon	6	5	UFC	78
 70	Anthony Pettis	5–2	Showtime	3	29	\N	\N
 77	Jacob Volkmann	3–2	Christmas	3	29	\N	\N
 80	Dan Downes	1–2	Danny Boy	3	29	\N	\N
 85	Cody McKenzie	1–1	Big Time	3	29	\N	\N
 86	Edward Faaloloto	0–2	FaloFalo	3	29	\N	\N
 239	José Aldo	9–0	Junior	2	5	\N	\N
-189	Minotauro Nogueira	3–2	Minotauro	7	5	\N	\N
 219	Renan Barão	3–0	Barão	1	5	\N	\N
 261	Yuri Alcantara	1–0	Marajó	2	5	\N	\N
 265	Felipe Arantes	0–0	Sertanejo	2	5	\N	\N
@@ -941,7 +921,6 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 246	Bart Palaszewski	4–3	Bartimus	2	25	\N	\N
 4	Jorge Rivera	7–7	El Conquistador	5	29	\N	\N
 8	Brian Stann	9–3	All American	5	29	\N	\N
-106	Anthony Johnson	6–3	Rumble	4	29	\N	\N
 109	Dennis Hallman	3–5	Superman	4	29	\N	\N
 114	Mike Pyle	4–3	Quicksand	4	29	\N	\N
 117	DaMarques Johnson	3–3	Darkness	4	29	\N	\N
@@ -954,7 +933,6 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 137	Justin Edwards	0–1	Fast Eddie	4	29	\N	\N
 139	David Mitchell	0–1	Daudi	4	29	\N	\N
 143	Jorge Lopez	0–0	Lil' Monster	4	29	\N	\N
-185	Pat Barry	3–3	HD	7	29	\N	\N
 186	Matt Mitrione	5–0	Meathead	7	29	\N	\N
 191	Roy Nelson	2–2	Big Country	7	29	\N	\N
 193	Travis Browne	2–0–1	Hapa	7	29	\N	\N
@@ -974,32 +952,35 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 257	Tiequan Zhang	2–1	The Mongolian Wolf	2	8	\N	\N
 197	Rob Broughton	1–0	The Bear	7	15	\N	\N
 258	Chan Sung Jung	1–2	The Korean Zombie	2	27	\N	\N
+1	Chris Leben	12–6	The Crippler	5	29	UFN	72
 107	Matt Brown	5–4	The Immortal	4	29	\N	\N
 108	Rick Story	6–2	The Horror	4	29	\N	\N
 120	Jake Ellenberger	4–1	The Juggernaut	4	29	\N	\N
 121	Brian Foster	3–2	The Foster Boy	4	29	\N	\N
 123	Rich Attonito	3–1	The Raging Bull	4	29	\N	\N
 124	Charlie Brenneman	3–1	The Spaniard	4	29	\N	\N
+190	Heath Herring	2–3	The Texas Crazy Horse	7	29	UFN	72
+185	Pat Barry	3–3	HD	7	29	UFN	72
 187	Brendan Schaub	4–1	The Hybrid	7	29	\N	\N
 188	Joey Beltran	3–2	The Mexicutioner	7	29	\N	\N
+106	Anthony Johnson	6–3	Rumble	4	29	UFN	69
 203	Urijah Faber	9–4	The California Kid	1	29	\N	\N
 212	Damacio Page	3–3	The Angel of Death	1	29	\N	\N
 72	Aaron Riley	3–4	\N	3	29	\N	\N
 89	Ramsey Nijem	0–1	\N	3	29	\N	\N
 200	Philip De Fries	0–0	\N	7	15	\N	\N
 73	Evan Dunham	4–2	3D	3	29	\N	\N
-93	BJ Penn	12–6–2	The Prodigy	3	29	19	\N
-103	Carlos Condit	9–1	The Natural Born Killer	4	29	10	\N
-1	Chris Leben	12–6	The Crippler	5	29	21	\N
-97	Diego Sanchez	12–4	The Dream	3	29	23	\N
-190	Heath Herring	2–3	The Texas Crazy Horse	7	29	9	\N
-98	Jon Fitch	13–1–1	\N	4	29	4	\N
-96	Josh Koscheck	13–5	Kos	4	29	4	\N
-92	Matt Hughes	18–6	\N	4	29	24	\N
-100	Matt Serra	7–7	The Terror	4	29	13	\N
-101	Mike Swick	9–3	Quick	4	29	4	\N
-183	Shane Carwin	4–2	The Engineer	7	29	10	\N
-147	Tito Ortiz	15–9–1	The Huntington Beach Bad Boy	6	29	20	\N
+103	Carlos Condit	9–1	The Natural Born Killer	4	29	UFC	73
+97	Diego Sanchez	12–4	The Dream	3	29	UFC	74
+101	Mike Swick	9–3	Quick	4	29	UFC	74
+147	Tito Ortiz	15–9–1	The Huntington Beach Bad Boy	6	29	UFC	74
+100	Matt Serra	7–7	The Terror	4	29	UFC	75
+96	Josh Koscheck	13–5	Kos	4	29	UFC	76
+98	Jon Fitch	13–1–1	\N	4	29	UFC	77
+93	BJ Penn	12–6–2	The Prodigy	3	29	UFC	79
+189	Minotauro Nogueira	3–2	Minotauro	7	5	UFC	76
+92	Matt Hughes	18–6	\N	4	29	UFC	76
+183	Shane Carwin	4–2	The Engineer	7	29	UFC	76
 220	Michael McDonald	3–0	Mayday	1	29	\N	\N
 222	Reuben Duran	1–1	Hurricane	1	29	\N	\N
 226	Jeff Hougland	1–0	Hellbound	1	29	\N	\N
@@ -1012,14 +993,11 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 262	Alex Caceres	0–1	Bruce Leroy	2	29	\N	\N
 267	Jimy Hettes	0–0	The Kid	2	29	\N	\N
 206	Dominick Cruz	8–1	Dominator	1	29	\N	\N
-12	Alan Belcher	7–4	The Talent	5	29	\N	\N
 14	Mark Muñoz	8–2	The Filipino Wrecking Machine	5	29	\N	\N
-15	Nate Quarry	7–3	Rock	5	29	\N	\N
 16	Ed Herman	5–5	Short Fuse	5	29	\N	\N
 19	Aaron Simpson	6–2	A-Train	5	29	\N	\N
 163	Phil Davis	5–0	Mr. Wonderful	6	29	\N	\N
 165	Kyle Kingsbury	4–1	Kingsbu	6	29	\N	\N
-56	Frankie Edgar	8–1–1	The Answer	3	29	\N	\N
 84	Michael Johnson	1–1	The Menace	3	29	\N	\N
 223	Ian Loveland	1–1	The Barn Owl	1	29	\N	\N
 228	Edwin Figueroa	0–1	El Feroz	1	29	\N	\N
@@ -1031,19 +1009,15 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 253	Dustin Poirier	3–1	The Diamond	2	29	\N	\N
 255	Darren Elkins	2–1	The Damage	2	29	\N	\N
 256	Pablo Garza	2–1	The Scarecrow	2	29	\N	\N
-149	Rashad Evans	11–1–1	Suga	6	29	10	\N
-161	Jason Brilz	3–3	The Hitman	6	29	\N	\N
+274	Caol Uno	\N	\N	3	\N	UFN	69
 166	Eliot Marshall	3–2	The Fire	6	29	\N	\N
 60	Thiago Tavares	5–4–1	\N	3	5	\N	\N
 71	Rafael Dos Anjos	4–3	\N	3	5	\N	\N
 91	Vagner Rocha	0–1	\N	3	5	\N	\N
 64	Mark Bocek	5–4	\N	3	7	\N	\N
 74	TJ Grant	3–3	\N	3	7	\N	\N
-67	Terry Etim	5–3	\N	3	15	\N	\N
-50	Dennis Siver	8–4	\N	3	26	\N	\N
 31	Brad Tavares	2–1	\N	5	29	\N	\N
 54	Jim Miller	9–1	\N	3	29	\N	\N
-119	Paulo Thiago	3–3	\N	4	5	\N	\N
 171	Fabio Maldonado	1–1	\N	6	5	\N	\N
 144	Che Mills	0–0	\N	4	15	\N	\N
 173	James Te Huna	1–1	\N	6	23	\N	\N
@@ -1079,91 +1053,119 @@ COPY fighters (id, name, record, nickname, weightclass, country, camp_id, contra
 259	Jonathan Brookins	1–1	\N	2	29	\N	\N
 260	Nam Phan	0–2	\N	2	29	\N	\N
 263	Mike Lullo	0–1	\N	2	29	\N	\N
-148	Rich Franklin	13–5	Ace	6	29	3	\N
-159	Ryan Bader	5–2	Darth	6	29	6	\N
-17	Dan Miller	5–4	\N	5	29	\N	\N
-152	Stephan Bonnar	7–6	The American Psycho	6	29	14	\N
-155	Quinton Jackson	7–2	Rampage	6	29	26	\N
-112	Amir Sadollah	5–2	\N	4	29	9	\N
-151	Brandon Vera	7–5 (1 NC)	The Truth	6	29	2	\N
-184	Brock Lesnar	4–2	\N	7	29	11	\N
-182	Cain Velasquez	7–0	\N	7	29	4	\N
-13	Chael Sonnen	6–5	\N	5	29	21	\N
-150	Forrest Griffin	9–4	\N	6	29	9	\N
-177	Frank Mir	13–5	\N	7	29	14	\N
-156	Jon Jones	7–1	Bones	6	29	10	\N
-234	Kenny Florian	12–4	KenFlo	3	29	27	\N
-45	Nate Diaz	8–5	\N	3	29	8	\N
-158	Thiago Silva	5–2 (1 NC)	\N	6	5	5	\N
-235	Tyson Griffin	8–5	\N	3	29	9	\N
-269	Adam Gunn	\N	\N	4	\N	26	\N
-270	Andrei Arlovski	\N	\N	7	\N	10	\N
-271	Andrei Radaza	\N	\N	6	\N	4	\N
-272	Anthony Plascencia	\N	\N	7	\N	2	\N
-273	Brian Evans	\N	\N	5	\N	6	\N
-274	Caol Uno	\N	\N	3	\N	16	\N
-275	Carmelo Melendez	\N	\N	3	\N	17	\N
-276	Cesar Perez Jr.	\N	\N	7	\N	10	\N
-277	Chris Price	\N	\N	5	\N	13	\N
-278	Chuck Liddell	\N	\N	6	\N	25	\N
-279	Cole Gotti	\N	\N	7	\N	27	\N
-280	Cory Williams	\N	\N	3	\N	1	\N
-281	Daisuke Hironaka	\N	\N	3	\N	16	\N
-282	Damon Blaine	\N	\N	7	\N	6	\N
-283	Dan Henderson	\N	\N	5	\N	21	\N
-284	Dan Larson	\N	\N	5	\N	24	\N
-285	David Moore	\N	\N	6	\N	26	\N
-286	Denis Kang	\N	\N	5	\N	5	\N
-287	Derrick Mitchell	\N	\N	6	\N	12	\N
-288	Drew Chambers	\N	\N	6	\N	14	\N
-289	Drew McFedries	\N	\N	5	\N	18	\N
-290	Dwayne Williams	\N	\N	4	\N	20	\N
-291	Ed Duran	\N	\N	4	\N	2	\N
-292	Ed Hamlin	\N	\N	6	\N	23	\N
-293	Frank Hill	\N	\N	5	\N	25	\N
-294	Frank Trigg	\N	\N	4	\N	9	\N
-295	Gabriel Gonzaga	\N	\N	7	\N	17	\N
-296	Garrison Brooks	\N	\N	4	\N	11	\N
-297	George Goodridge	\N	\N	3	\N	21	\N
-298	Jake Carter	\N	\N	5	\N	20	\N
-299	James King	\N	\N	3	\N	26	\N
-300	Jeff Clayton	\N	\N	5	\N	11	\N
-301	Jessie James	\N	\N	3	\N	10	\N
-302	Joe Stevenson	\N	\N	3	\N	10	\N
-303	Josh Freeman	\N	\N	5	\N	3	\N
-304	Justin McCully	\N	\N	7	\N	20	\N
-305	Karl Thomas	\N	\N	6	\N	24	\N
-306	Karo Parisyan	\N	\N	4	\N	10	\N
-307	Keith Gilmore	\N	\N	7	\N	25	\N
-308	Keith Jardine	\N	\N	6	\N	10	\N
-309	Kendall Grove	\N	\N	5	\N	19	\N
-310	Kimbo Slice	\N	\N	7	\N	5	\N
-311	Kris Graham	\N	\N	7	\N	22	\N
-312	Luiz Cardoza	\N	\N	6	\N	7	\N
-313	Manny Dos Santos Jr.	\N	\N	3	\N	4	\N
-314	Marcello Cruz	\N	\N	5	\N	7	\N
-315	Marcus Davis	\N	\N	4	\N	14	\N
-316	Marcus Ferreira	\N	\N	4	\N	6	\N
-317	Matt Hamill	\N	\N	6	\N	20	\N
-318	Matt Williams	\N	\N	6	\N	11	\N
-319	Mike Barns	\N	\N	7	\N	12	\N
-320	Mitsuhiro Yoshida	\N	\N	4	\N	16	\N
-321	Murilo De Souza	\N	\N	4	\N	7	\N
-322	Nate Marquardt	\N	\N	5	\N	10	\N
-323	Noah Brown	\N	\N	6	\N	8	\N
-324	Pablo Casillas	\N	\N	5	\N	17	\N
-325	Patrick Cote	\N	\N	5	\N	14	\N
-326	Paulo Duarte	\N	\N	3	\N	15	\N
-327	PJ Bradley	\N	\N	4	\N	1	\N
-328	Rich Caldwell	\N	\N	7	\N	1	\N
-329	Roberto Martinez	\N	\N	5	\N	8	\N
-330	Ryo Matsui	\N	\N	7	\N	16	\N
-331	Sam Boberg	\N	\N	3	\N	6	\N
-332	Sato Matsui	\N	\N	6	\N	16	\N
-333	Todd Duffee	\N	\N	7	\N	5	\N
-334	Travis Rothwell	\N	\N	7	\N	21	\N
-335	Wilson Gouveia	\N	\N	5	\N	5	\N
-336	Randy Johnson	\N	The Monster	3	7	16	\N
+12	Alan Belcher	7–4	The Talent	5	29	UFN	72
+50	Dennis Siver	8–4	\N	3	26	UFN	69
+156	Jon Jones	7–1	Bones	6	29	UFN	72
+286	Denis Kang	\N	\N	5	\N	UFN	70
+278	Chuck Liddell	\N	\N	6	\N	UFN	72
+152	Stephan Bonnar	7–6	The American Psycho	6	29	UFN	69
+15	Nate Quarry	7–3	Rock	5	29	UFN	70
+67	Terry Etim	5–3	\N	3	15	UFN	70
+161	Jason Brilz	3–3	The Hitman	6	29	UFN	71
+112	Amir Sadollah	5–2	\N	4	29	UFN	72
+17	Dan Miller	5–4	\N	5	29	UFN	72
+269	Adam Gunn	\N	\N	4	\N	WFA	\N
+158	Thiago Silva	5–2 (1 NC)	\N	6	5	UFC	76
+13	Chael Sonnen	6–5	\N	5	29	UFC	76
+270	Andrei Arlovski	\N	\N	7	\N	UFC	74
+150	Forrest Griffin	9–4	\N	6	29	UFC	73
+182	Cain Velasquez	7–0	\N	7	29	UFC	77
+177	Frank Mir	13–5	\N	7	29	UFC	77
+283	Dan Henderson	\N	\N	5	\N	UFC	76
+45	Nate Diaz	8–5	\N	3	29	UFC	73
+159	Ryan Bader	5–2	Darth	6	29	UFC	73
+302	Joe Stevenson	\N	\N	3	\N	UFC	73
+271	Andrei Radaza	\N	\N	6	\N	WFA	\N
+272	Anthony Plascencia	\N	\N	7	\N	WFA	\N
+273	Brian Evans	\N	\N	5	\N	WFA	\N
+275	Carmelo Melendez	\N	\N	3	\N	WFA	\N
+276	Cesar Perez Jr.	\N	\N	7	\N	WFA	\N
+277	Chris Price	\N	\N	5	\N	WFA	\N
+279	Cole Gotti	\N	\N	7	\N	WFA	\N
+280	Cory Williams	\N	\N	3	\N	WFA	\N
+281	Daisuke Hironaka	\N	\N	3	\N	WFA	\N
+282	Damon Blaine	\N	\N	7	\N	WFA	\N
+284	Dan Larson	\N	\N	5	\N	WFA	\N
+285	David Moore	\N	\N	6	\N	WFA	\N
+287	Derrick Mitchell	\N	\N	6	\N	WFA	\N
+288	Drew Chambers	\N	\N	6	\N	WFA	\N
+290	Dwayne Williams	\N	\N	4	\N	WFA	\N
+291	Ed Duran	\N	\N	4	\N	WFA	\N
+292	Ed Hamlin	\N	\N	6	\N	WFA	\N
+293	Frank Hill	\N	\N	5	\N	WFA	\N
+296	Garrison Brooks	\N	\N	4	\N	WFA	\N
+297	George Goodridge	\N	\N	3	\N	WFA	\N
+298	Jake Carter	\N	\N	5	\N	WFA	\N
+299	James King	\N	\N	3	\N	WFA	\N
+300	Jeff Clayton	\N	\N	5	\N	WFA	\N
+301	Jessie James	\N	\N	3	\N	WFA	\N
+303	Josh Freeman	\N	\N	5	\N	WFA	\N
+305	Karl Thomas	\N	\N	6	\N	WFA	\N
+307	Keith Gilmore	\N	\N	7	\N	WFA	\N
+311	Kris Graham	\N	\N	7	\N	WFA	\N
+312	Luiz Cardoza	\N	\N	6	\N	WFA	\N
+313	Manny Dos Santos Jr.	\N	\N	3	\N	WFA	\N
+314	Marcello Cruz	\N	\N	5	\N	WFA	\N
+316	Marcus Ferreira	\N	\N	4	\N	WFA	\N
+318	Matt Williams	\N	\N	6	\N	WFA	\N
+319	Mike Barns	\N	\N	7	\N	WFA	\N
+320	Mitsuhiro Yoshida	\N	\N	4	\N	WFA	\N
+321	Murilo De Souza	\N	\N	4	\N	WFA	\N
+323	Noah Brown	\N	\N	6	\N	WFA	\N
+324	Pablo Casillas	\N	\N	5	\N	WFA	\N
+326	Paulo Duarte	\N	\N	3	\N	WFA	\N
+327	PJ Bradley	\N	\N	4	\N	WFA	\N
+328	Rich Caldwell	\N	\N	7	\N	WFA	\N
+329	Roberto Martinez	\N	\N	5	\N	WFA	\N
+330	Ryo Matsui	\N	\N	7	\N	WFA	\N
+331	Sam Boberg	\N	\N	3	\N	WFA	\N
+332	Sato Matsui	\N	\N	6	\N	WFA	\N
+334	Travis Rothwell	\N	\N	7	\N	WFA	\N
+336	Randy Johnson	\N	The Monster	3	7	WFA	\N
+2	Michael Bisping	11–3	The Count	5	15	UFC	74
+306	Karo Parisyan	\N	\N	4	\N	UFC	73
+317	Matt Hamill	\N	\N	6	\N	UFC	73
+333	Todd Duffee	\N	\N	7	\N	UFC	73
+295	Gabriel Gonzaga	\N	\N	7	\N	UFC	74
+322	Nate Marquardt	\N	\N	5	\N	UFC	77
+155	Quinton Jackson	7–2	Rampage	6	29	UFC	76
+345	Antoni Hardonk	\N	\N	7	\N	UFC	74
+346	Fabricio Werdum	\N	\N	7	\N	UFC	74
+289	Drew McFedries	\N	\N	5	\N	UFN	67
+310	Kimbo Slice	\N	\N	7	\N	UFN	67
+308	Keith Jardine	\N	\N	6	\N	UFN	70
+294	Frank Trigg	\N	\N	4	\N	UFN	71
+304	Justin McCully	\N	\N	7	\N	UFN	71
+315	Marcus Davis	\N	\N	4	\N	UFN	71
+325	Patrick Cote	\N	\N	5	\N	UFN	71
+309	Kendall Grove	\N	\N	5	\N	UFN	72
+335	Wilson Gouveia	\N	\N	5	\N	UFN	72
+337	Eddie Sanchez	\N	\N	3	\N	UFN	69
+338	Efrain Escudero	\N	\N	7	\N	UFN	69
+339	Mostapha Al Turk	\N	\N	7	\N	UFN	69
+340	Kurt Pellegrino	\N	\N	3	\N	UFN	70
+341	Ricardo Almeida	\N	\N	5	\N	UFN	70
+342	Hermes Franca	\N	\N	3	\N	UFN	71
+343	Dustin Hazelett	\N	\N	4	\N	UFN	72
+344	Mark Coleman	\N	\N	7	\N	UFN	72
+18	Wanderlei Silva	3–6	The Axe Murderer	5	5	UFC	74
+3	Vitor Belfort	9–5	The Phenom	5	5	UFC	76
+27	Yoshihiro Akiyama	1–3	Sexyama	5	21	UFC	73
+7	Yushin Okami	10–2	Thunder	5	21	UFC	76
+55	Gray Maynard	8–0–1 (1 NC)	The Bully	3	29	UFC	77
+160	Luiz Cane	4–3	Banha	6	5	UFC	73
+21	Steve Cantwell	4–4	The Robot	5	29	UFC	73
+113	Dan Hardy	4–3	The Outlaw	4	15	UFC	74
+11	Demian Maia	8–3	\N	5	5	UFC	76
+162	Mauricio Rua	3–3	Shogun	6	5	UFC	77
+234	Kenny Florian	12–4	KenFlo	3	29	UFC	77
+151	Brandon Vera	7–5 (1 NC)	The Truth	6	29	UFC	73
+235	Tyson Griffin	8–5	\N	3	29	UFC	77
+184	Brock Lesnar	4–2	\N	7	29	UFC	77
+56	Frankie Edgar	8–1–1	The Answer	3	29	UFC	77
+119	Paulo Thiago	3–3	\N	4	5	UFC	74
+148	Rich Franklin	13–5	Ace	6	29	UFC	75
+149	Rashad Evans	11–1–1	Suga	6	29	UFC	76
 \.
 
 
@@ -3401,6 +3403,14 @@ COPY weightclass (id, name, lbs) FROM stdin;
 
 
 --
+-- Name: abbr_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY buttons
+    ADD CONSTRAINT abbr_unique UNIQUE (abbr);
+
+
+--
 -- Name: buttons_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
@@ -3609,6 +3619,22 @@ ALTER TABLE ONLY weightclass
 
 
 --
+-- Name: button_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY combo
+    ADD CONSTRAINT button_id_fkey FOREIGN KEY (button_id) REFERENCES buttons(id);
+
+
+--
+-- Name: camp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighter_camps
+    ADD CONSTRAINT camp_id_fkey FOREIGN KEY (camp_id) REFERENCES camps(id);
+
+
+--
 -- Name: end_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
@@ -3625,19 +3651,19 @@ ALTER TABLE ONLY fightersource_fighters
 
 
 --
+-- Name: fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighter_camps
+    ADD CONSTRAINT fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id);
+
+
+--
 -- Name: fighter_moves_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighter_moves
     ADD CONSTRAINT fighter_moves_fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id);
-
-
---
--- Name: fighters_camp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
---
-
-ALTER TABLE ONLY fighters
-    ADD CONSTRAINT fighters_camp_id_fkey FOREIGN KEY (camp_id) REFERENCES camps(id);
 
 
 --
@@ -3669,6 +3695,22 @@ ALTER TABLE ONLY move_skill_requirements
 --
 
 ALTER TABLE ONLY move_move_requirements
+    ADD CONSTRAINT move_id_fkey FOREIGN KEY (move_id) REFERENCES moves(id);
+
+
+--
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY combo
+    ADD CONSTRAINT move_id_fkey FOREIGN KEY (move_id) REFERENCES moves(id);
+
+
+--
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighter_moves
     ADD CONSTRAINT move_id_fkey FOREIGN KEY (move_id) REFERENCES moves(id);
 
 
