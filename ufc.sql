@@ -55,6 +55,24 @@ CREATE TYPE move_type AS ENUM (
 ALTER TYPE public.move_type OWNER TO jean;
 
 --
+-- Name: technique_type; Type: TYPE; Schema: public; Owner: jean
+--
+
+CREATE TYPE technique_type AS ENUM (
+    'Strike',
+    'Kick',
+    'Transition',
+    'Submission',
+    'Ground Strike',
+    'Clinch Strike',
+    'Clinch Transition',
+    'Takedown'
+);
+
+
+ALTER TYPE public.technique_type OWNER TO jean;
+
+--
 -- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: jean
 --
 
@@ -231,23 +249,91 @@ CREATE TABLE fighter_moves (
 ALTER TABLE public.fighter_moves OWNER TO jean;
 
 --
+-- Name: fightercontract; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fightercontract (
+    id integer NOT NULL,
+    contract contract NOT NULL
+);
+
+
+ALTER TABLE public.fightercontract OWNER TO jean;
+
+--
+-- Name: fightercountry; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fightercountry (
+    id integer NOT NULL,
+    country integer NOT NULL
+);
+
+
+ALTER TABLE public.fightercountry OWNER TO jean;
+
+--
+-- Name: fighternickname; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fighternickname (
+    id integer NOT NULL,
+    nickname text NOT NULL
+);
+
+
+ALTER TABLE public.fighternickname OWNER TO jean;
+
+--
+-- Name: fighterrating; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fighterrating (
+    id integer NOT NULL,
+    rating integer NOT NULL,
+    CONSTRAINT fighterrating_rating_check CHECK (((rating >= 0) AND (rating <= 100)))
+);
+
+
+ALTER TABLE public.fighterrating OWNER TO jean;
+
+--
+-- Name: fighterrecords; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fighterrecords (
+    id integer NOT NULL,
+    record text NOT NULL
+);
+
+
+ALTER TABLE public.fighterrecords OWNER TO jean;
+
+--
 -- Name: fighters; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fighters (
     id integer NOT NULL,
     name character varying NOT NULL,
-    record character varying,
-    nickname character varying,
     weightclass integer,
-    country integer,
-    contract contract,
-    rating integer,
-    CONSTRAINT fighters_rating_check CHECK (((rating >= 0) AND (rating <= 100)))
+    source_id integer NOT NULL
 );
 
 
 ALTER TABLE public.fighters OWNER TO jean;
+
+--
+-- Name: fightersource; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+--
+
+CREATE TABLE fightersource (
+    id integer NOT NULL,
+    source character varying NOT NULL
+);
+
+
+ALTER TABLE public.fightersource OWNER TO jean;
 
 --
 -- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
@@ -267,7 +353,7 @@ ALTER TABLE public.weightclass OWNER TO jean;
 --
 
 CREATE VIEW fighter_view AS
-    WITH i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.name, weightclass.name AS weightclass, i.datum AS camp, fighters.contract, fighters.rating, weightclass.lbs AS weight, fighters.record, fighters.nickname, country.name AS country FROM (((fighters LEFT JOIN country ON ((fighters.country = country.id))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) JOIN i ON ((fighters.id = i._grouping)));
+    WITH i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.id, fighters.name, weightclass.name AS weightclass, i.datum AS camp, fightercontract.contract, fighterrating.rating, fightersource.source, weightclass.lbs AS weight, fighterrecords.record, fighternickname.nickname, country.name AS country FROM (((((((((fighters LEFT JOIN i ON ((fighters.id = i._grouping))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) LEFT JOIN fightercontract ON ((fighters.id = fightercontract.id))) LEFT JOIN fighterrecords ON ((fighters.id = fighterrecords.id))) LEFT JOIN fighternickname ON ((fighters.id = fighternickname.id))) LEFT JOIN fighterrating ON ((fighters.id = fighterrating.id))) LEFT JOIN fightercountry ON ((fighters.id = fightercountry.id))) LEFT JOIN fightersource ON ((fighters.source_id = fightersource.id))) LEFT JOIN country ON ((fightercountry.country = country.id)));
 
 
 ALTER TABLE public.fighter_view OWNER TO jean;
@@ -301,30 +387,6 @@ SELECT pg_catalog.setval('fighters_id_seq', 346, true);
 
 
 --
--- Name: fightersource; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
---
-
-CREATE TABLE fightersource (
-    id integer NOT NULL,
-    source character varying NOT NULL
-);
-
-
-ALTER TABLE public.fightersource OWNER TO jean;
-
---
--- Name: fightersource_fighters; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
---
-
-CREATE TABLE fightersource_fighters (
-    fightersource_id integer NOT NULL,
-    fighter_id integer NOT NULL
-);
-
-
-ALTER TABLE public.fightersource_fighters OWNER TO jean;
-
---
 -- Name: fightersource_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
@@ -349,7 +411,7 @@ ALTER SEQUENCE fightersource_id_seq OWNED BY fightersource.id;
 -- Name: fightersource_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
-SELECT pg_catalog.setval('fightersource_id_seq', 4, true);
+SELECT pg_catalog.setval('fightersource_id_seq', 5, true);
 
 
 --
@@ -385,7 +447,7 @@ ALTER TABLE public.move_skill_requirements OWNER TO jean;
 CREATE TABLE moves (
     id integer NOT NULL,
     name character varying NOT NULL,
-    type move_type NOT NULL
+    type technique_type
 );
 
 
@@ -816,356 +878,1388 @@ COPY fighter_moves (fighter_id, move_id, level) FROM stdin;
 
 
 --
+-- Data for Name: fightercontract; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY fightercontract (id, contract) FROM stdin;
+274	UFN
+286	UFN
+278	UFN
+269	WFA
+270	UFC
+283	UFC
+126	UFN
+94	UFN
+157	UFN
+179	UFN
+47	UFN
+63	UFN
+57	UFN
+75	UFN
+302	UFC
+271	WFA
+110	UFN
+102	UFN
+180	UFN
+168	WFA
+178	UFC
+95	UFC
+181	UFC
+49	UFC
+99	UFC
+43	UFC
+5	UFC
+153	UFC
+272	WFA
+273	WFA
+1	UFN
+190	UFN
+185	UFN
+106	UFN
+103	UFC
+97	UFC
+101	UFC
+147	UFC
+100	UFC
+96	UFC
+98	UFC
+93	UFC
+189	UFC
+92	UFC
+183	UFC
+12	UFN
+50	UFN
+156	UFN
+152	UFN
+15	UFN
+67	UFN
+161	UFN
+112	UFN
+17	UFN
+158	UFC
+13	UFC
+150	UFC
+182	UFC
+177	UFC
+45	UFC
+159	UFC
+336	WFA
+2	UFC
+155	UFC
+18	UFC
+3	UFC
+27	UFC
+7	UFC
+55	UFC
+160	UFC
+21	UFC
+113	UFC
+11	UFC
+162	UFC
+234	UFC
+151	UFC
+235	UFC
+184	UFC
+56	UFC
+119	UFC
+148	UFC
+149	UFC
+275	WFA
+276	WFA
+277	WFA
+279	WFA
+280	WFA
+281	WFA
+282	WFA
+284	WFA
+285	WFA
+287	WFA
+288	WFA
+290	WFA
+291	WFA
+292	WFA
+293	WFA
+296	WFA
+297	WFA
+298	WFA
+299	WFA
+300	WFA
+301	WFA
+303	WFA
+305	WFA
+307	WFA
+311	WFA
+312	WFA
+313	WFA
+314	WFA
+316	WFA
+318	WFA
+319	WFA
+320	WFA
+321	WFA
+323	WFA
+324	WFA
+326	WFA
+327	WFA
+328	WFA
+329	WFA
+330	WFA
+331	WFA
+332	WFA
+334	WFA
+306	UFC
+317	UFC
+333	UFC
+295	UFC
+322	UFC
+345	UFC
+346	UFC
+289	UFN
+310	UFN
+308	UFN
+294	UFN
+304	UFN
+315	UFN
+325	UFN
+309	UFN
+335	UFN
+337	UFN
+338	UFN
+339	UFN
+340	UFN
+341	UFN
+342	UFN
+343	UFN
+344	UFN
+\.
+
+
+--
+-- Data for Name: fightercountry; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY fightercountry (id, country) FROM stdin;
+30	2
+46	3
+22	5
+29	5
+32	5
+44	5
+79	5
+82	5
+10	7
+35	7
+53	7
+38	11
+66	15
+88	15
+76	19
+9	20
+41	21
+39	27
+20	29
+23	29
+24	29
+25	29
+26	29
+28	29
+33	29
+34	29
+36	29
+37	29
+40	29
+51	29
+52	29
+146	5
+175	5
+176	6
+125	7
+129	7
+140	15
+136	17
+141	28
+62	29
+68	29
+78	5
+83	7
+81	21
+59	24
+42	29
+126	15
+94	29
+48	29
+169	2
+154	4
+130	5
+242	29
+157	25
+127	7
+167	9
+174	12
+179	9
+115	15
+170	16
+47	29
+164	28
+63	29
+69	29
+61	2
+6	5
+57	29
+75	15
+110	27
+102	13
+180	22
+168	5
+178	16
+95	7
+181	5
+49	29
+99	5
+43	29
+5	5
+153	5
+70	29
+77	29
+80	29
+85	29
+86	29
+239	5
+219	5
+261	5
+265	5
+145	5
+266	7
+249	10
+217	14
+215	15
+264	15
+218	18
+230	21
+268	21
+195	23
+246	25
+4	29
+8	29
+109	29
+114	29
+117	29
+118	29
+122	29
+128	29
+132	29
+134	29
+135	29
+137	29
+139	29
+143	29
+186	29
+191	29
+193	29
+196	29
+198	29
+199	29
+204	29
+208	29
+213	29
+214	29
+216	29
+87	29
+90	29
+238	1
+245	5
+240	7
+257	8
+197	15
+258	27
+1	29
+107	29
+108	29
+120	29
+121	29
+123	29
+124	29
+190	29
+185	29
+187	29
+188	29
+106	29
+203	29
+212	29
+72	29
+89	29
+200	15
+73	29
+103	29
+97	29
+101	29
+147	29
+100	29
+96	29
+98	29
+93	29
+189	5
+92	29
+183	29
+220	29
+222	29
+226	29
+227	29
+229	29
+236	29
+247	29
+250	29
+262	29
+267	29
+206	29
+14	29
+16	29
+19	29
+163	29
+165	29
+84	29
+223	29
+228	29
+231	29
+244	29
+248	29
+251	29
+252	29
+253	29
+255	29
+256	29
+166	29
+60	5
+71	5
+91	5
+64	7
+74	7
+31	29
+54	29
+171	5
+144	15
+173	23
+58	29
+65	29
+202	15
+211	5
+232	5
+241	5
+233	15
+210	21
+254	21
+104	29
+105	29
+111	29
+116	29
+131	29
+133	29
+138	29
+142	29
+172	29
+192	29
+194	29
+201	29
+205	29
+207	29
+209	29
+221	29
+224	29
+225	29
+237	29
+243	29
+259	29
+260	29
+263	29
+12	29
+50	26
+156	29
+152	29
+15	29
+67	15
+161	29
+112	29
+17	29
+158	5
+13	29
+150	29
+182	29
+177	29
+45	29
+159	29
+336	7
+2	15
+155	29
+18	5
+3	5
+27	21
+7	21
+55	29
+160	5
+21	29
+113	15
+11	5
+162	5
+234	29
+151	29
+235	29
+184	29
+56	29
+119	5
+148	29
+149	29
+\.
+
+
+--
+-- Data for Name: fighternickname; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY fighternickname (id, nickname) FROM stdin;
+30	KO
+46	Thugjitsu Master
+22	Toquinho
+29	The Sandman
+32	Sapo
+44	Tibau
+79	Tractor
+82	Junior
+10	The Athlete
+35	The Promise
+53	Hands of Stone
+38	Costa
+66	Relentless
+88	Sassangle
+76	Prince of Persia
+9	Legionarius
+41	Killer Bee
+39	The Ox
+20	The Doberman
+23	The Barbarian
+24	The Jersey Devil
+25	Crazy
+26	Filthy
+28	The Master of Disaster
+33	The Messenger
+34	The Crusher
+36	The All-American
+37	Mayhem
+40	The Gentleman
+51	Lil' Heathen
+52	Handsome
+146	Indio
+175	Markes
+176	Staki
+125	Ares
+129	Pimp Daddy
+140	Scanno
+136	Panzer
+141	Makambo
+62	Last Call
+68	Smooth
+78	do Bronx
+83	The Bull
+81	The Fireball Kid
+59	The Assassin
+42	The Young Assassin
+126	Lightning
+94	Lights Out
+48	The Cowboy
+169	The Hippo
+154	The Janitor
+130	Ta Danado
+242	Cub
+157	The Polish Experiment
+127	The Prince
+167	The Duke
+174	The Terminator
+179	Cro Cop
+115	The Hitman
+170	The Snake
+47	The King
+164	The Mauler
+63	Magrinho
+69	The Carny
+57	J-Lau
+75	The Real Deal
+110	Stun Gun
+102	Hitman
+180	Skyscraper
+168	Little Nog
+178	Kongo
+95	Rush
+181	Cigano
+49	The Muscle Shark
+99	Pitbull
+43	The Carpenter
+5	The Spider
+153	The Dragon
+70	Showtime
+77	Christmas
+80	Danny Boy
+85	Big Time
+86	FaloFalo
+239	Junior
+219	Barão
+261	Marajó
+265	Sertanejo
+145	Beicao
+266	Pato
+249	Showtime
+217	Pride of El Salvador
+215	One-Punch
+264	Shotgun
+218	Tiger
+230	Kid
+268	Iron Broom
+195	Super Samoan
+246	Bartimus
+4	El Conquistador
+8	All American
+109	Superman
+114	Quicksand
+117	Darkness
+118	Ninja
+122	Bang
+128	Bad Boy
+132	TJ
+134	C-Murder
+135	Heavy Metal
+137	Fast Eddie
+139	Daudi
+143	Lil' Monster
+186	Meathead
+191	Big Country
+193	Hapa
+196	Big
+198	Pee-Wee
+199	Big Red
+204	Young Guns
+208	Joe-B-Wan Kenobi
+213	Big Frog
+214	Mighty Mouse
+216	Kamikaze
+87	El Cucuy
+90	The Spider
+238	The Anvil
+245	The Gun
+240	The Machine
+257	The Mongolian Wolf
+197	The Bear
+258	The Korean Zombie
+1	The Crippler
+107	The Immortal
+108	The Horror
+120	The Juggernaut
+121	The Foster Boy
+123	The Raging Bull
+124	The Spaniard
+190	The Texas Crazy Horse
+185	HD
+187	The Hybrid
+188	The Mexicutioner
+106	Rumble
+203	The California Kid
+212	The Angel of Death
+73	3D
+103	The Natural Born Killer
+97	The Dream
+101	Quick
+147	The Huntington Beach Bad Boy
+100	The Terror
+96	Kos
+93	The Prodigy
+189	Minotauro
+183	The Engineer
+220	Mayday
+222	Hurricane
+226	Hellbound
+227	Apache Kid
+229	Eagle Eye
+236	Bad Boy
+247	Money
+250	New Breed
+262	Bruce Leroy
+267	The Kid
+206	Dominator
+14	The Filipino Wrecking Machine
+16	Short Fuse
+19	A-Train
+163	Mr. Wonderful
+165	Kingsbu
+84	The Menace
+223	The Barn Owl
+228	El Feroz
+231	The Hulk
+244	The Bully
+248	The Fluke
+251	da Menace
+252	The Real One
+253	The Diamond
+255	The Damage
+256	The Scarecrow
+166	The Fire
+12	The Talent
+156	Bones
+152	The American Psycho
+15	Rock
+161	The Hitman
+159	Darth
+336	The Monster
+2	The Count
+155	Rampage
+18	The Axe Murderer
+3	The Phenom
+27	Sexyama
+7	Thunder
+55	The Bully
+160	Banha
+21	The Robot
+113	The Outlaw
+162	Shogun
+234	KenFlo
+151	The Truth
+56	The Answer
+148	Ace
+149	Suga
+\.
+
+
+--
+-- Data for Name: fighterrating; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY fighterrating (id, rating) FROM stdin;
+274	69
+286	70
+278	72
+270	74
+283	76
+126	71
+94	69
+157	71
+179	72
+47	72
+63	70
+57	70
+75	70
+302	73
+110	72
+102	72
+180	72
+178	74
+95	79
+181	75
+49	77
+99	76
+43	73
+5	78
+153	78
+1	72
+190	72
+185	72
+106	69
+103	73
+97	74
+101	74
+147	74
+100	75
+96	76
+98	77
+93	79
+189	76
+92	76
+183	76
+12	72
+50	69
+156	72
+152	69
+15	70
+67	70
+161	71
+112	72
+17	72
+158	76
+13	76
+150	73
+182	77
+177	77
+45	73
+159	73
+2	74
+155	76
+18	74
+3	76
+27	73
+7	76
+55	77
+160	73
+21	73
+113	74
+11	76
+162	77
+234	77
+151	73
+235	77
+184	77
+56	77
+119	74
+148	75
+149	76
+306	73
+317	73
+333	73
+295	74
+322	77
+345	74
+346	74
+289	67
+310	67
+308	70
+294	71
+304	71
+315	71
+325	71
+309	72
+335	72
+337	69
+338	69
+339	69
+340	70
+341	70
+342	71
+343	72
+344	72
+\.
+
+
+--
+-- Data for Name: fighterrecords; Type: TABLE DATA; Schema: public; Owner: jean
+--
+
+COPY fighterrecords (id, record) FROM stdin;
+30	3–0
+46	8–5
+22	5–2
+29	1–3
+32	1–1–1
+44	9–5
+79	1–3
+82	2–0
+10	6–6
+35	2–0
+53	6–5
+38	1–1
+66	4–5
+88	1–0
+76	3–1–1
+9	6–5 (1 NC)
+41	0–1
+39	1–1
+20	5–3
+23	4–3
+24	3–2
+25	3–2
+26	3–2
+28	1–3
+33	1–2
+34	2–0
+36	2–0
+37	1–1
+40	0–1
+51	7–5
+52	7–4
+146	0–0
+175	0–0
+176	0–0
+125	3–1
+129	1–1
+140	0–1
+136	1–0
+141	0–0
+62	6–3
+68	6–1
+78	2–1 (1 NC)
+83	2–0
+81	1–2
+59	6–4
+42	10–4
+126	2–2
+94	9–10
+48	8–3 (1 NC)
+169	1–3
+154	7–3
+130	1–1
+242	5–3
+157	6–2
+127	3–0
+167	2–3
+174	1–1
+179	4–5
+115	5–1
+170	2–1
+47	7–6
+164	4–1
+63	6–3
+69	5–0–1 (1 NC)
+61	7–2
+6	11–1–1
+57	7–3
+75	4–1
+110	5–1 (1 NC)
+102	8–4
+180	5–3
+168	2–2
+178	9–4–1
+95	16–2
+181	7–0
+49	8–4
+99	10–5
+43	9–5
+5	13–0
+153	9–2
+70	5–2
+77	3–2
+80	1–2
+85	1–1
+86	0–2
+239	9–0
+219	3–0
+261	1–0
+265	0–0
+145	0–0
+266	0–0
+249	3–3
+217	2–2
+215	3–1
+264	0–1
+218	1–3
+230	0–1
+268	0–0
+195	1–1
+246	4–3
+4	7–7
+8	9–3
+109	3–5
+114	4–3
+117	3–3
+118	3–3
+122	3–2
+128	2–0
+132	1–1
+134	1–0
+135	1–0
+137	0–1
+139	0–1
+143	0–0
+186	5–0
+191	2–2
+193	2–0–1
+196	1–1
+198	1–0
+199	0–1
+204	8–3
+208	6–2
+213	1–5
+214	4–1
+216	2–2
+87	1–0
+90	0–1
+238	5–5
+245	5–2
+240	6–3
+257	2–1
+197	1–0
+258	1–2
+1	12–6
+107	5–4
+108	6–2
+120	4–1
+121	3–2
+123	3–1
+124	3–1
+190	2–3
+185	3–3
+187	4–1
+188	3–2
+106	6–3
+203	9–4
+212	3–3
+72	3–4
+89	0–1
+200	0–0
+73	4–2
+103	9–1
+97	12–4
+101	9–3
+147	15–9–1
+100	7–7
+96	13–5
+98	13–1–1
+93	12–6–2
+189	3–2
+92	18–6
+183	4–2
+220	3–0
+222	1–1
+226	1–0
+227	0–1
+229	0–1
+236	6–6–1
+247	6–0
+250	4–1
+262	0–1
+267	0–0
+206	8–1
+14	8–2
+16	5–5
+19	6–2
+163	5–0
+165	4–1
+84	1–1
+223	1–1
+228	0–1
+231	0–0
+244	5–2
+248	4–2
+251	2–3
+252	1–4
+253	3–1
+255	2–1
+256	2–1
+166	3–2
+60	5–4–1
+71	4–3
+91	0–1
+64	5–4
+74	3–3
+31	2–1
+54	9–1
+171	1–1
+144	0–0
+173	1–1
+58	7–3
+65	4–5
+202	0–0
+211	3–3
+232	0–0
+241	5–4
+233	0–0
+210	3–4
+254	0–4
+104	6–4
+105	8–1
+111	5–2
+116	4–2
+131	1–1
+133	1–0
+138	0–1
+142	0–0
+172	1–1
+192	3–0
+194	1–2
+201	0–0
+205	7–3
+207	7–1
+209	5–3
+221	1–2
+224	0–2
+225	0–2
+237	7–5
+243	3–4–1
+259	1–1
+260	0–2
+263	0–1
+12	7–4
+50	8–4
+156	7–1
+152	7–6
+15	7–3
+67	5–3
+161	3–3
+112	5–2
+17	5–4
+158	5–2 (1 NC)
+13	6–5
+150	9–4
+182	7–0
+177	13–5
+45	8–5
+159	5–2
+2	11–3
+155	7–2
+18	3–6
+3	9–5
+27	1–3
+7	10–2
+55	8–0–1 (1 NC)
+160	4–3
+21	4–4
+113	4–3
+11	8–3
+162	3–3
+234	12–4
+151	7–5 (1 NC)
+235	8–5
+184	4–2
+56	8–1–1
+119	3–3
+148	13–5
+149	11–1–1
+\.
+
+
+--
 -- Data for Name: fighters; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
-COPY fighters (id, name, record, nickname, weightclass, country, contract, rating) FROM stdin;
-30	Kyle Noke	3–0	KO	5	2	\N	\N
-46	Yves Edwards	8–5	Thugjitsu Master	3	3	\N	\N
-22	Rousimar Palhares	5–2	Toquinho	5	5	\N	\N
-29	Jorge Santiago	1–3	The Sandman	5	5	\N	\N
-32	Rafael Natal	1–1–1	Sapo	5	5	\N	\N
-44	Gleison Tibau	9–5	Tibau	3	5	\N	\N
-79	Rafaello Oliveira	1–3	Tractor	3	5	\N	\N
-82	Edson Barboza	2–0	Junior	3	5	\N	\N
-10	Jason MacDonald	6–6	The Athlete	5	7	\N	\N
-35	Nick Ring	2–0	The Promise	5	7	\N	\N
-53	Sam Stout	6–5	Hands of Stone	3	7	\N	\N
-38	Constantinos Philippou	1–1	Costa	5	11	\N	\N
-66	Paul Taylor	4–5	Relentless	3	15	\N	\N
-88	Paul Sass	1–0	Sassangle	3	15	\N	\N
-76	Kamal Shalorus	3–1–1	Prince of Persia	3	19	\N	\N
-9	Alessio Sakara	6–5 (1 NC)	Legionarius	5	20	\N	\N
-41	Riki Fukuda	0–1	Killer Bee	5	21	\N	\N
-39	Dongi Yang	1–1	The Ox	5	27	\N	\N
-20	C.B. Dollaway	5–3	The Doberman	5	29	\N	\N
-23	Tim Boetsch	4–3	The Barbarian	5	29	\N	\N
-24	Nick Catone	3–2	The Jersey Devil	5	29	\N	\N
-25	Tim Credeur	3–2	Crazy	5	29	\N	\N
-26	Tom Lawlor	3–2	Filthy	5	29	\N	\N
-28	Mike Massenzio	1–3	The Master of Disaster	5	29	\N	\N
-33	Jared Hamman	1–2	The Messenger	5	29	\N	\N
-34	Court McGee	2–0	The Crusher	5	29	\N	\N
-36	Chris Weidman	2–0	The All-American	5	29	\N	\N
-37	Jason Miller	1–1	Mayhem	5	29	\N	\N
-40	Paul Bradley	0–1	The Gentleman	5	29	\N	\N
-51	Jeremy Stephens	7–5	Lil' Heathen	3	29	\N	\N
-52	Matt Wiman	7–4	Handsome	3	29	\N	\N
-146	Erick Silva	0–0	Indio	4	5	\N	\N
-175	Ronny Markes	0–0	Markes	6	5	\N	\N
-176	Stanislav Nedkov	0–0	Staki	6	6	\N	\N
-125	Rory MacDonald	3–1	Ares	4	7	\N	\N
-129	Sean Pierson	1–1	Pimp Daddy	4	7	\N	\N
-140	Mark Scanlon	0–1	Scanno	4	15	\N	\N
-136	Pascal Krauss	1–0	Panzer	4	17	\N	\N
-141	Papy Abedi	0–0	Makambo	4	28	\N	\N
-62	Danny Castillo	6–3	Last Call	3	29	\N	\N
-68	Ben Henderson	6–1	Smooth	3	29	\N	\N
-78	Charles Oliveira	2–1 (1 NC)	do Bronx	3	5	\N	\N
-83	John Makdessi	2–0	The Bull	3	7	\N	\N
-81	Takanori Gomi	1–2	The Fireball Kid	3	21	\N	\N
-59	Anthony Njokuani	6–4	The Assassin	3	24	\N	\N
-42	Melvin Guillard	10–4	The Young Assassin	3	29	\N	\N
-126	James Wilks	2–2	Lightning	4	15	UFN	71
-94	Chris Lytle	9–10	Lights Out	4	29	UFN	69
-48	Donald Cerrone	8–3 (1 NC)	The Cowboy	3	29	\N	\N
-169	Anthony Perosh	1–3	The Hippo	6	2	\N	\N
-154	Vladimir Matyushenko	7–3	The Janitor	6	4	\N	\N
-130	Carlos Eduardo Rocha	1–1	Ta Danado	4	5	\N	\N
-157	Krzysztof Soszynski	6–2	The Polish Experiment	6	25	UFN	71
-127	Claude Patrick	3–0	The Prince	4	7	\N	\N
-167	Igor Pokrajac	2–3	The Duke	6	9	\N	\N
-174	Karlos Vemola	1–1	The Terminator	6	12	\N	\N
-179	Mirko Cro Cop	4–5	Cro Cop	7	9	UFN	72
-115	John Hathaway	5–1	The Hitman	4	15	\N	\N
-170	Cyrille Diabate	2–1	The Snake	6	16	\N	\N
-47	Spencer Fisher	7–6	The King	3	29	UFN	72
-164	Alexander Gustafsson	4–1	The Mauler	6	28	\N	\N
-63	Cole Miller	6–3	Magrinho	3	29	UFN	70
-69	Nik Lentz	5–0–1 (1 NC)	The Carny	3	29	\N	\N
-61	George Sotiropoulos	7–2	\N	3	2	\N	\N
-6	Royce Gracie	11–1–1	\N	5	5	\N	\N
-57	Joe Lauzon	7–3	J-Lau	3	29	UFN	70
-75	Ross Pearson	4–1	The Real Deal	3	15	UFN	70
-110	Dong Hyun Kim	5–1 (1 NC)	Stun Gun	4	27	UFN	72
-102	Martin Kampmann	8–4	Hitman	4	13	UFN	72
-180	Stefan Struve	5–3	Skyscraper	7	22	UFN	72
-168	Antonio Nogueira	2–2	Little Nog	7	5	WFA	\N
-178	Cheick Kongo	9–4–1	Kongo	7	16	UFC	74
-95	Georges St.-Pierre	16–2	Rush	4	7	UFC	79
-181	Junior Dos Santos	7–0	Cigano	7	5	UFC	75
-49	Sean Sherk	8–4	The Muscle Shark	3	29	UFC	77
-99	Thiago Alves	10–5	Pitbull	4	5	UFC	76
-43	Clay Guida	9–5	The Carpenter	3	29	UFC	73
-5	Anderson Silva	13–0	The Spider	5	5	UFC	78
-153	Lyoto Machida	9–2	The Dragon	6	5	UFC	78
-70	Anthony Pettis	5–2	Showtime	3	29	\N	\N
-77	Jacob Volkmann	3–2	Christmas	3	29	\N	\N
-80	Dan Downes	1–2	Danny Boy	3	29	\N	\N
-85	Cody McKenzie	1–1	Big Time	3	29	\N	\N
-86	Edward Faaloloto	0–2	FaloFalo	3	29	\N	\N
-239	José Aldo	9–0	Junior	2	5	\N	\N
-219	Renan Barão	3–0	Barão	1	5	\N	\N
-261	Yuri Alcantara	1–0	Marajó	2	5	\N	\N
-265	Felipe Arantes	0–0	Sertanejo	2	5	\N	\N
-145	Luis Ramos	0–0	Beicao	4	5	\N	\N
-266	Antonio Carvalho	0–0	Pato	2	7	\N	\N
-249	Javier Vazquez	3–3	Showtime	2	10	\N	\N
-217	Ivan Menjivar	2–2	Pride of El Salvador	1	14	\N	\N
-215	Brad Pickett	3–1	One-Punch	1	15	\N	\N
-264	Jason Young	0–1	Shotgun	2	15	\N	\N
-218	Yves Jabouin	1–3	Tiger	1	18	\N	\N
-230	Norifumi Yamamoto	0–1	Kid	1	21	\N	\N
-268	Hatsu Hioki	0–0	Iron Broom	2	21	\N	\N
-195	Mark Hunt	1–1	Super Samoan	7	23	\N	\N
-246	Bart Palaszewski	4–3	Bartimus	2	25	\N	\N
-4	Jorge Rivera	7–7	El Conquistador	5	29	\N	\N
-8	Brian Stann	9–3	All American	5	29	\N	\N
-109	Dennis Hallman	3–5	Superman	4	29	\N	\N
-114	Mike Pyle	4–3	Quicksand	4	29	\N	\N
-117	DaMarques Johnson	3–3	Darkness	4	29	\N	\N
-118	Daniel Roberts	3–3	Ninja	4	29	\N	\N
-122	Duane Ludwig	3–2	Bang	4	29	\N	\N
-128	Brian Ebersole	2–0	Bad Boy	4	29	\N	\N
-132	TJ Waldburger	1–1	TJ	4	29	\N	\N
-134	Chris Cope	1–0	C-Murder	4	29	\N	\N
-135	Clay Harvison	1–0	Heavy Metal	4	29	\N	\N
-137	Justin Edwards	0–1	Fast Eddie	4	29	\N	\N
-139	David Mitchell	0–1	Daudi	4	29	\N	\N
-143	Jorge Lopez	0–0	Lil' Monster	4	29	\N	\N
-186	Matt Mitrione	5–0	Meathead	7	29	\N	\N
-191	Roy Nelson	2–2	Big Country	7	29	\N	\N
-193	Travis Browne	2–0–1	Hapa	7	29	\N	\N
-196	Ben Rothwell	1–1	Big	7	29	\N	\N
-198	Dave Herman	1–0	Pee-Wee	7	29	\N	\N
-199	Aaron Rosa	0–1	Big Red	7	29	\N	\N
-204	Scott Jorgensen	8–3	Young Guns	1	29	\N	\N
-208	Joseph Benavidez	6–2	Joe-B-Wan Kenobi	1	29	\N	\N
-213	Jeff Curran	1–5	Big Frog	1	29	\N	\N
-214	Demetrious Johnson	4–1	Mighty Mouse	1	29	\N	\N
-216	Chris Cariaso	2–2	Kamikaze	1	29	\N	\N
-87	Tony Ferguson	1–0	El Cucuy	3	29	\N	\N
-90	T.J. O'Brien	0–1	The Spider	3	29	\N	\N
-238	Manny Gamburyan	5–5	The Anvil	2	1	\N	\N
-245	Diego Nunes	5–2	The Gun	2	5	\N	\N
-240	Mark Hominick	6–3	The Machine	2	7	\N	\N
-257	Tiequan Zhang	2–1	The Mongolian Wolf	2	8	\N	\N
-197	Rob Broughton	1–0	The Bear	7	15	\N	\N
-258	Chan Sung Jung	1–2	The Korean Zombie	2	27	\N	\N
-1	Chris Leben	12–6	The Crippler	5	29	UFN	72
-107	Matt Brown	5–4	The Immortal	4	29	\N	\N
-108	Rick Story	6–2	The Horror	4	29	\N	\N
-120	Jake Ellenberger	4–1	The Juggernaut	4	29	\N	\N
-121	Brian Foster	3–2	The Foster Boy	4	29	\N	\N
-123	Rich Attonito	3–1	The Raging Bull	4	29	\N	\N
-124	Charlie Brenneman	3–1	The Spaniard	4	29	\N	\N
-190	Heath Herring	2–3	The Texas Crazy Horse	7	29	UFN	72
-185	Pat Barry	3–3	HD	7	29	UFN	72
-187	Brendan Schaub	4–1	The Hybrid	7	29	\N	\N
-188	Joey Beltran	3–2	The Mexicutioner	7	29	\N	\N
-106	Anthony Johnson	6–3	Rumble	4	29	UFN	69
-203	Urijah Faber	9–4	The California Kid	1	29	\N	\N
-212	Damacio Page	3–3	The Angel of Death	1	29	\N	\N
-72	Aaron Riley	3–4	\N	3	29	\N	\N
-89	Ramsey Nijem	0–1	\N	3	29	\N	\N
-200	Philip De Fries	0–0	\N	7	15	\N	\N
-73	Evan Dunham	4–2	3D	3	29	\N	\N
-103	Carlos Condit	9–1	The Natural Born Killer	4	29	UFC	73
-97	Diego Sanchez	12–4	The Dream	3	29	UFC	74
-101	Mike Swick	9–3	Quick	4	29	UFC	74
-147	Tito Ortiz	15–9–1	The Huntington Beach Bad Boy	6	29	UFC	74
-100	Matt Serra	7–7	The Terror	4	29	UFC	75
-96	Josh Koscheck	13–5	Kos	4	29	UFC	76
-98	Jon Fitch	13–1–1	\N	4	29	UFC	77
-93	BJ Penn	12–6–2	The Prodigy	3	29	UFC	79
-189	Minotauro Nogueira	3–2	Minotauro	7	5	UFC	76
-92	Matt Hughes	18–6	\N	4	29	UFC	76
-183	Shane Carwin	4–2	The Engineer	7	29	UFC	76
-220	Michael McDonald	3–0	Mayday	1	29	\N	\N
-222	Reuben Duran	1–1	Hurricane	1	29	\N	\N
-226	Jeff Hougland	1–0	Hellbound	1	29	\N	\N
-227	Cole Escovedo	0–1	Apache Kid	1	29	\N	\N
-229	Donny Walker	0–1	Eagle Eye	1	29	\N	\N
-236	Leonard Garcia	6–6–1	Bad Boy	2	29	\N	\N
-242	Cub Swanson	5–3	Cub	2	29	\N	\N
-247	Chad Mendes	6–0	Money	2	29	\N	\N
-250	Erik Koch	4–1	New Breed	2	29	\N	\N
-262	Alex Caceres	0–1	Bruce Leroy	2	29	\N	\N
-267	Jimy Hettes	0–0	The Kid	2	29	\N	\N
-206	Dominick Cruz	8–1	Dominator	1	29	\N	\N
-14	Mark Muñoz	8–2	The Filipino Wrecking Machine	5	29	\N	\N
-16	Ed Herman	5–5	Short Fuse	5	29	\N	\N
-19	Aaron Simpson	6–2	A-Train	5	29	\N	\N
-163	Phil Davis	5–0	Mr. Wonderful	6	29	\N	\N
-165	Kyle Kingsbury	4–1	Kingsbu	6	29	\N	\N
-84	Michael Johnson	1–1	The Menace	3	29	\N	\N
-223	Ian Loveland	1–1	The Barn Owl	1	29	\N	\N
-228	Edwin Figueroa	0–1	El Feroz	1	29	\N	\N
-231	Mike Easton	0–0	The Hulk	1	29	\N	\N
-244	Ricardo Lamas	5–2	The Bully	2	29	\N	\N
-248	Josh Grispi	4–2	The Fluke	2	29	\N	\N
-251	Mackens Semerzier	2–3	da Menace	2	29	\N	\N
-252	Matt Grice	1–4	The Real One	2	29	\N	\N
-253	Dustin Poirier	3–1	The Diamond	2	29	\N	\N
-255	Darren Elkins	2–1	The Damage	2	29	\N	\N
-256	Pablo Garza	2–1	The Scarecrow	2	29	\N	\N
-274	Caol Uno	\N	\N	3	\N	UFN	69
-166	Eliot Marshall	3–2	The Fire	6	29	\N	\N
-60	Thiago Tavares	5–4–1	\N	3	5	\N	\N
-71	Rafael Dos Anjos	4–3	\N	3	5	\N	\N
-91	Vagner Rocha	0–1	\N	3	5	\N	\N
-64	Mark Bocek	5–4	\N	3	7	\N	\N
-74	TJ Grant	3–3	\N	3	7	\N	\N
-31	Brad Tavares	2–1	\N	5	29	\N	\N
-54	Jim Miller	9–1	\N	3	29	\N	\N
-171	Fabio Maldonado	1–1	\N	6	5	\N	\N
-144	Che Mills	0–0	\N	4	15	\N	\N
-173	James Te Huna	1–1	\N	6	23	\N	\N
-58	Shane Roller	7–3	\N	3	29	\N	\N
-65	Mac Danzig	4–5	\N	3	29	\N	\N
-202	Oli Thompson	0–0	\N	7	15	\N	\N
-211	Raphael Assunção	3–3	\N	1	5	\N	\N
-232	Johnny Eduardo	0–0	\N	1	5	\N	\N
-241	Rani Yahya	5–4	\N	2	5	\N	\N
-233	Vaughan Lee	0–0	\N	1	15	\N	\N
-210	Takeya Mizugaki	3–4	\N	1	21	\N	\N
-254	Michihiro Omigawa	0–4	\N	2	21	\N	\N
-104	Nick Diaz	6–4	\N	4	29	\N	\N
-105	Johny Hendricks	8–1	\N	4	29	\N	\N
-111	Matthew Riddle	5–2	\N	4	29	\N	\N
-116	Mike Pierce	4–2	\N	4	29	\N	\N
-131	Jake Shields	1–1	\N	4	29	\N	\N
-133	Shamar Bailey	1–0	\N	4	29	\N	\N
-138	James Head	0–1	\N	4	29	\N	\N
-142	Lance Benoist	0–0	\N	4	29	\N	\N
-172	Ricardo Romero	1–1	\N	6	29	\N	\N
-192	Mike Russow	3–0	\N	7	29	\N	\N
-194	Christian Morecraft	1–2	\N	7	29	\N	\N
-201	Stipe Miocic	0–0	\N	7	29	\N	\N
-205	Miguel Angel Torres	7–3	\N	1	29	\N	\N
-207	Brian Bowles	7–1	\N	1	29	\N	\N
-209	Eddie Wineland	5–3	\N	1	29	\N	\N
-221	Nick Pace	1–2	\N	1	29	\N	\N
-224	Jason Reinhardt	0–2	\N	1	29	\N	\N
-225	Ken Stone	0–2	\N	1	29	\N	\N
-237	Mike Brown	7–5	\N	2	29	\N	\N
-243	George Roop	3–4–1	\N	2	29	\N	\N
-259	Jonathan Brookins	1–1	\N	2	29	\N	\N
-260	Nam Phan	0–2	\N	2	29	\N	\N
-263	Mike Lullo	0–1	\N	2	29	\N	\N
-12	Alan Belcher	7–4	The Talent	5	29	UFN	72
-50	Dennis Siver	8–4	\N	3	26	UFN	69
-156	Jon Jones	7–1	Bones	6	29	UFN	72
-286	Denis Kang	\N	\N	5	\N	UFN	70
-278	Chuck Liddell	\N	\N	6	\N	UFN	72
-152	Stephan Bonnar	7–6	The American Psycho	6	29	UFN	69
-15	Nate Quarry	7–3	Rock	5	29	UFN	70
-67	Terry Etim	5–3	\N	3	15	UFN	70
-161	Jason Brilz	3–3	The Hitman	6	29	UFN	71
-112	Amir Sadollah	5–2	\N	4	29	UFN	72
-17	Dan Miller	5–4	\N	5	29	UFN	72
-269	Adam Gunn	\N	\N	4	\N	WFA	\N
-158	Thiago Silva	5–2 (1 NC)	\N	6	5	UFC	76
-13	Chael Sonnen	6–5	\N	5	29	UFC	76
-270	Andrei Arlovski	\N	\N	7	\N	UFC	74
-150	Forrest Griffin	9–4	\N	6	29	UFC	73
-182	Cain Velasquez	7–0	\N	7	29	UFC	77
-177	Frank Mir	13–5	\N	7	29	UFC	77
-283	Dan Henderson	\N	\N	5	\N	UFC	76
-45	Nate Diaz	8–5	\N	3	29	UFC	73
-159	Ryan Bader	5–2	Darth	6	29	UFC	73
-302	Joe Stevenson	\N	\N	3	\N	UFC	73
-271	Andrei Radaza	\N	\N	6	\N	WFA	\N
-272	Anthony Plascencia	\N	\N	7	\N	WFA	\N
-273	Brian Evans	\N	\N	5	\N	WFA	\N
-275	Carmelo Melendez	\N	\N	3	\N	WFA	\N
-276	Cesar Perez Jr.	\N	\N	7	\N	WFA	\N
-277	Chris Price	\N	\N	5	\N	WFA	\N
-279	Cole Gotti	\N	\N	7	\N	WFA	\N
-280	Cory Williams	\N	\N	3	\N	WFA	\N
-281	Daisuke Hironaka	\N	\N	3	\N	WFA	\N
-282	Damon Blaine	\N	\N	7	\N	WFA	\N
-284	Dan Larson	\N	\N	5	\N	WFA	\N
-285	David Moore	\N	\N	6	\N	WFA	\N
-287	Derrick Mitchell	\N	\N	6	\N	WFA	\N
-288	Drew Chambers	\N	\N	6	\N	WFA	\N
-290	Dwayne Williams	\N	\N	4	\N	WFA	\N
-291	Ed Duran	\N	\N	4	\N	WFA	\N
-292	Ed Hamlin	\N	\N	6	\N	WFA	\N
-293	Frank Hill	\N	\N	5	\N	WFA	\N
-296	Garrison Brooks	\N	\N	4	\N	WFA	\N
-297	George Goodridge	\N	\N	3	\N	WFA	\N
-298	Jake Carter	\N	\N	5	\N	WFA	\N
-299	James King	\N	\N	3	\N	WFA	\N
-300	Jeff Clayton	\N	\N	5	\N	WFA	\N
-301	Jessie James	\N	\N	3	\N	WFA	\N
-303	Josh Freeman	\N	\N	5	\N	WFA	\N
-305	Karl Thomas	\N	\N	6	\N	WFA	\N
-307	Keith Gilmore	\N	\N	7	\N	WFA	\N
-311	Kris Graham	\N	\N	7	\N	WFA	\N
-312	Luiz Cardoza	\N	\N	6	\N	WFA	\N
-313	Manny Dos Santos Jr.	\N	\N	3	\N	WFA	\N
-314	Marcello Cruz	\N	\N	5	\N	WFA	\N
-316	Marcus Ferreira	\N	\N	4	\N	WFA	\N
-318	Matt Williams	\N	\N	6	\N	WFA	\N
-319	Mike Barns	\N	\N	7	\N	WFA	\N
-320	Mitsuhiro Yoshida	\N	\N	4	\N	WFA	\N
-321	Murilo De Souza	\N	\N	4	\N	WFA	\N
-323	Noah Brown	\N	\N	6	\N	WFA	\N
-324	Pablo Casillas	\N	\N	5	\N	WFA	\N
-326	Paulo Duarte	\N	\N	3	\N	WFA	\N
-327	PJ Bradley	\N	\N	4	\N	WFA	\N
-328	Rich Caldwell	\N	\N	7	\N	WFA	\N
-329	Roberto Martinez	\N	\N	5	\N	WFA	\N
-330	Ryo Matsui	\N	\N	7	\N	WFA	\N
-331	Sam Boberg	\N	\N	3	\N	WFA	\N
-332	Sato Matsui	\N	\N	6	\N	WFA	\N
-334	Travis Rothwell	\N	\N	7	\N	WFA	\N
-336	Randy Johnson	\N	The Monster	3	7	WFA	\N
-2	Michael Bisping	11–3	The Count	5	15	UFC	74
-306	Karo Parisyan	\N	\N	4	\N	UFC	73
-317	Matt Hamill	\N	\N	6	\N	UFC	73
-333	Todd Duffee	\N	\N	7	\N	UFC	73
-295	Gabriel Gonzaga	\N	\N	7	\N	UFC	74
-322	Nate Marquardt	\N	\N	5	\N	UFC	77
-155	Quinton Jackson	7–2	Rampage	6	29	UFC	76
-345	Antoni Hardonk	\N	\N	7	\N	UFC	74
-346	Fabricio Werdum	\N	\N	7	\N	UFC	74
-289	Drew McFedries	\N	\N	5	\N	UFN	67
-310	Kimbo Slice	\N	\N	7	\N	UFN	67
-308	Keith Jardine	\N	\N	6	\N	UFN	70
-294	Frank Trigg	\N	\N	4	\N	UFN	71
-304	Justin McCully	\N	\N	7	\N	UFN	71
-315	Marcus Davis	\N	\N	4	\N	UFN	71
-325	Patrick Cote	\N	\N	5	\N	UFN	71
-309	Kendall Grove	\N	\N	5	\N	UFN	72
-335	Wilson Gouveia	\N	\N	5	\N	UFN	72
-337	Eddie Sanchez	\N	\N	3	\N	UFN	69
-338	Efrain Escudero	\N	\N	7	\N	UFN	69
-339	Mostapha Al Turk	\N	\N	7	\N	UFN	69
-340	Kurt Pellegrino	\N	\N	3	\N	UFN	70
-341	Ricardo Almeida	\N	\N	5	\N	UFN	70
-342	Hermes Franca	\N	\N	3	\N	UFN	71
-343	Dustin Hazelett	\N	\N	4	\N	UFN	72
-344	Mark Coleman	\N	\N	7	\N	UFN	72
-18	Wanderlei Silva	3–6	The Axe Murderer	5	5	UFC	74
-3	Vitor Belfort	9–5	The Phenom	5	5	UFC	76
-27	Yoshihiro Akiyama	1–3	Sexyama	5	21	UFC	73
-7	Yushin Okami	10–2	Thunder	5	21	UFC	76
-55	Gray Maynard	8–0–1 (1 NC)	The Bully	3	29	UFC	77
-160	Luiz Cane	4–3	Banha	6	5	UFC	73
-21	Steve Cantwell	4–4	The Robot	5	29	UFC	73
-113	Dan Hardy	4–3	The Outlaw	4	15	UFC	74
-11	Demian Maia	8–3	\N	5	5	UFC	76
-162	Mauricio Rua	3–3	Shogun	6	5	UFC	77
-234	Kenny Florian	12–4	KenFlo	3	29	UFC	77
-151	Brandon Vera	7–5 (1 NC)	The Truth	6	29	UFC	73
-235	Tyson Griffin	8–5	\N	3	29	UFC	77
-184	Brock Lesnar	4–2	\N	7	29	UFC	77
-56	Frankie Edgar	8–1–1	The Answer	3	29	UFC	77
-119	Paulo Thiago	3–3	\N	4	5	UFC	74
-148	Rich Franklin	13–5	Ace	6	29	UFC	75
-149	Rashad Evans	11–1–1	Suga	6	29	UFC	76
+COPY fighters (id, name, weightclass, source_id) FROM stdin;
+30	Kyle Noke	5	5
+46	Yves Edwards	3	5
+22	Rousimar Palhares	5	5
+29	Jorge Santiago	5	5
+32	Rafael Natal	5	5
+44	Gleison Tibau	3	5
+79	Rafaello Oliveira	3	5
+82	Edson Barboza	3	5
+10	Jason MacDonald	5	5
+35	Nick Ring	5	5
+53	Sam Stout	3	5
+38	Constantinos Philippou	5	5
+66	Paul Taylor	3	5
+88	Paul Sass	3	5
+76	Kamal Shalorus	3	5
+9	Alessio Sakara	5	5
+41	Riki Fukuda	5	5
+39	Dongi Yang	5	5
+20	C.B. Dollaway	5	5
+118	Daniel Roberts	4	5
+122	Duane Ludwig	4	5
+128	Brian Ebersole	4	5
+132	TJ Waldburger	4	5
+134	Chris Cope	4	5
+135	Clay Harvison	4	5
+137	Justin Edwards	4	5
+139	David Mitchell	4	5
+143	Jorge Lopez	4	5
+186	Matt Mitrione	7	5
+191	Roy Nelson	7	5
+193	Travis Browne	7	5
+196	Ben Rothwell	7	5
+198	Dave Herman	7	5
+199	Aaron Rosa	7	5
+204	Scott Jorgensen	1	5
+208	Joseph Benavidez	1	5
+213	Jeff Curran	1	5
+214	Demetrious Johnson	1	5
+216	Chris Cariaso	1	5
+87	Tony Ferguson	3	5
+90	T.J. O'Brien	3	5
+238	Manny Gamburyan	2	5
+245	Diego Nunes	2	5
+240	Mark Hominick	2	5
+257	Tiequan Zhang	2	5
+197	Rob Broughton	7	5
+258	Chan Sung Jung	2	5
+107	Matt Brown	4	5
+108	Rick Story	4	5
+120	Jake Ellenberger	4	5
+121	Brian Foster	4	5
+123	Rich Attonito	4	5
+124	Charlie Brenneman	4	5
+187	Brendan Schaub	7	5
+188	Joey Beltran	7	5
+203	Urijah Faber	1	5
+212	Damacio Page	1	5
+72	Aaron Riley	3	5
+89	Ramsey Nijem	3	5
+200	Philip De Fries	7	5
+73	Evan Dunham	3	5
+220	Michael McDonald	1	5
+222	Reuben Duran	1	5
+226	Jeff Hougland	1	5
+227	Cole Escovedo	1	5
+229	Donny Walker	1	5
+236	Leonard Garcia	2	5
+247	Chad Mendes	2	5
+250	Erik Koch	2	5
+262	Alex Caceres	2	5
+267	Jimy Hettes	2	5
+206	Dominick Cruz	1	5
+14	Mark Muñoz	5	5
+16	Ed Herman	5	5
+19	Aaron Simpson	5	5
+163	Phil Davis	6	5
+165	Kyle Kingsbury	6	5
+84	Michael Johnson	3	5
+223	Ian Loveland	1	5
+228	Edwin Figueroa	1	5
+231	Mike Easton	1	5
+244	Ricardo Lamas	2	5
+248	Josh Grispi	2	5
+251	Mackens Semerzier	2	5
+252	Matt Grice	2	5
+253	Dustin Poirier	2	5
+255	Darren Elkins	2	5
+256	Pablo Garza	2	5
+166	Eliot Marshall	6	5
+60	Thiago Tavares	3	5
+71	Rafael Dos Anjos	3	5
+91	Vagner Rocha	3	5
+64	Mark Bocek	3	5
+74	TJ Grant	3	5
+31	Brad Tavares	5	5
+54	Jim Miller	3	5
+23	Tim Boetsch	5	5
+24	Nick Catone	5	5
+25	Tim Credeur	5	5
+26	Tom Lawlor	5	5
+28	Mike Massenzio	5	5
+33	Jared Hamman	5	5
+34	Court McGee	5	5
+36	Chris Weidman	5	5
+37	Jason Miller	5	5
+40	Paul Bradley	5	5
+51	Jeremy Stephens	3	5
+52	Matt Wiman	3	5
+146	Erick Silva	4	5
+175	Ronny Markes	6	5
+176	Stanislav Nedkov	6	5
+125	Rory MacDonald	4	5
+129	Sean Pierson	4	5
+140	Mark Scanlon	4	5
+136	Pascal Krauss	4	5
+171	Fabio Maldonado	6	5
+144	Che Mills	4	5
+173	James Te Huna	6	5
+58	Shane Roller	3	5
+65	Mac Danzig	3	5
+202	Oli Thompson	7	5
+211	Raphael Assunção	1	5
+232	Johnny Eduardo	1	5
+241	Rani Yahya	2	5
+233	Vaughan Lee	1	5
+210	Takeya Mizugaki	1	5
+254	Michihiro Omigawa	2	5
+104	Nick Diaz	4	5
+105	Johny Hendricks	4	5
+111	Matthew Riddle	4	5
+116	Mike Pierce	4	5
+131	Jake Shields	4	5
+133	Shamar Bailey	4	5
+138	James Head	4	5
+142	Lance Benoist	4	5
+172	Ricardo Romero	6	5
+192	Mike Russow	7	5
+194	Christian Morecraft	7	5
+201	Stipe Miocic	7	5
+205	Miguel Angel Torres	1	5
+207	Brian Bowles	1	5
+209	Eddie Wineland	1	5
+221	Nick Pace	1	5
+224	Jason Reinhardt	1	5
+225	Ken Stone	1	5
+237	Mike Brown	2	5
+243	George Roop	2	5
+259	Jonathan Brookins	2	5
+260	Nam Phan	2	5
+263	Mike Lullo	2	5
+141	Papy Abedi	4	5
+62	Danny Castillo	3	5
+68	Ben Henderson	3	5
+78	Charles Oliveira	3	5
+83	John Makdessi	3	5
+81	Takanori Gomi	3	5
+59	Anthony Njokuani	3	5
+42	Melvin Guillard	3	5
+48	Donald Cerrone	3	5
+169	Anthony Perosh	6	5
+154	Vladimir Matyushenko	6	5
+130	Carlos Eduardo Rocha	4	5
+242	Cub Swanson	2	5
+274	Caol Uno	3	3
+286	Denis Kang	5	3
+278	Chuck Liddell	6	3
+269	Adam Gunn	4	3
+270	Andrei Arlovski	7	3
+283	Dan Henderson	5	3
+126	James Wilks	4	3
+94	Chris Lytle	4	3
+127	Claude Patrick	4	5
+167	Igor Pokrajac	6	5
+174	Karlos Vemola	6	5
+115	John Hathaway	4	5
+170	Cyrille Diabate	6	5
+164	Alexander Gustafsson	6	5
+69	Nik Lentz	3	5
+61	George Sotiropoulos	3	5
+6	Royce Gracie	5	5
+70	Anthony Pettis	3	5
+157	Krzysztof Soszynski	6	3
+179	Mirko Cro Cop	7	3
+47	Spencer Fisher	3	3
+63	Cole Miller	3	3
+57	Joe Lauzon	3	3
+75	Ross Pearson	3	3
+302	Joe Stevenson	3	3
+271	Andrei Radaza	6	3
+110	Dong Hyun Kim	4	3
+102	Martin Kampmann	4	3
+180	Stefan Struve	7	3
+168	Antonio Nogueira	7	3
+178	Cheick Kongo	7	3
+95	Georges St.-Pierre	4	3
+181	Junior Dos Santos	7	3
+49	Sean Sherk	3	3
+99	Thiago Alves	4	3
+43	Clay Guida	3	3
+5	Anderson Silva	5	3
+153	Lyoto Machida	6	3
+272	Anthony Plascencia	7	3
+273	Brian Evans	5	3
+77	Jacob Volkmann	3	5
+80	Dan Downes	3	5
+85	Cody McKenzie	3	5
+86	Edward Faaloloto	3	5
+239	José Aldo	2	5
+219	Renan Barão	1	5
+261	Yuri Alcantara	2	5
+265	Felipe Arantes	2	5
+145	Luis Ramos	4	5
+266	Antonio Carvalho	2	5
+249	Javier Vazquez	2	5
+217	Ivan Menjivar	1	5
+215	Brad Pickett	1	5
+264	Jason Young	2	5
+218	Yves Jabouin	1	5
+230	Norifumi Yamamoto	1	5
+268	Hatsu Hioki	2	5
+195	Mark Hunt	7	5
+1	Chris Leben	5	3
+190	Heath Herring	7	3
+185	Pat Barry	7	3
+106	Anthony Johnson	4	3
+103	Carlos Condit	4	3
+97	Diego Sanchez	3	3
+101	Mike Swick	4	3
+147	Tito Ortiz	6	3
+100	Matt Serra	4	3
+96	Josh Koscheck	4	3
+246	Bart Palaszewski	2	5
+4	Jorge Rivera	5	5
+8	Brian Stann	5	5
+109	Dennis Hallman	4	5
+114	Mike Pyle	4	5
+117	DaMarques Johnson	4	5
+98	Jon Fitch	4	3
+93	BJ Penn	3	3
+189	Minotauro Nogueira	7	3
+92	Matt Hughes	4	3
+183	Shane Carwin	7	3
+12	Alan Belcher	5	3
+50	Dennis Siver	3	3
+156	Jon Jones	6	3
+152	Stephan Bonnar	6	3
+15	Nate Quarry	5	3
+67	Terry Etim	3	3
+161	Jason Brilz	6	3
+112	Amir Sadollah	4	3
+17	Dan Miller	5	3
+158	Thiago Silva	6	3
+13	Chael Sonnen	5	3
+150	Forrest Griffin	6	3
+182	Cain Velasquez	7	3
+177	Frank Mir	7	3
+45	Nate Diaz	3	3
+159	Ryan Bader	6	3
+336	Randy Johnson	3	4
+2	Michael Bisping	5	3
+155	Quinton Jackson	6	3
+18	Wanderlei Silva	5	3
+3	Vitor Belfort	5	3
+27	Yoshihiro Akiyama	5	3
+7	Yushin Okami	5	3
+55	Gray Maynard	3	3
+160	Luiz Cane	6	3
+21	Steve Cantwell	5	3
+113	Dan Hardy	4	3
+11	Demian Maia	5	3
+162	Mauricio Rua	6	3
+234	Kenny Florian	3	3
+151	Brandon Vera	6	3
+235	Tyson Griffin	3	3
+184	Brock Lesnar	7	3
+56	Frankie Edgar	3	3
+119	Paulo Thiago	4	3
+148	Rich Franklin	6	3
+149	Rashad Evans	6	3
+275	Carmelo Melendez	3	3
+276	Cesar Perez Jr.	7	3
+277	Chris Price	5	3
+279	Cole Gotti	7	3
+280	Cory Williams	3	3
+281	Daisuke Hironaka	3	3
+282	Damon Blaine	7	3
+284	Dan Larson	5	3
+285	David Moore	6	3
+287	Derrick Mitchell	6	3
+288	Drew Chambers	6	3
+290	Dwayne Williams	4	3
+291	Ed Duran	4	3
+292	Ed Hamlin	6	3
+293	Frank Hill	5	3
+296	Garrison Brooks	4	3
+297	George Goodridge	3	3
+298	Jake Carter	5	3
+299	James King	3	3
+300	Jeff Clayton	5	3
+301	Jessie James	3	3
+303	Josh Freeman	5	3
+305	Karl Thomas	6	3
+307	Keith Gilmore	7	3
+311	Kris Graham	7	3
+312	Luiz Cardoza	6	3
+313	Manny Dos Santos Jr.	3	3
+314	Marcello Cruz	5	3
+316	Marcus Ferreira	4	3
+318	Matt Williams	6	3
+319	Mike Barns	7	3
+320	Mitsuhiro Yoshida	4	3
+321	Murilo De Souza	4	3
+323	Noah Brown	6	3
+324	Pablo Casillas	5	3
+326	Paulo Duarte	3	3
+327	PJ Bradley	4	3
+328	Rich Caldwell	7	3
+329	Roberto Martinez	5	3
+330	Ryo Matsui	7	3
+331	Sam Boberg	3	3
+332	Sato Matsui	6	3
+334	Travis Rothwell	7	3
+306	Karo Parisyan	4	3
+317	Matt Hamill	6	3
+333	Todd Duffee	7	3
+295	Gabriel Gonzaga	7	3
+322	Nate Marquardt	5	3
+345	Antoni Hardonk	7	3
+346	Fabricio Werdum	7	3
+289	Drew McFedries	5	3
+310	Kimbo Slice	7	3
+308	Keith Jardine	6	3
+294	Frank Trigg	4	3
+304	Justin McCully	7	3
+315	Marcus Davis	4	3
+325	Patrick Cote	5	3
+309	Kendall Grove	5	3
+335	Wilson Gouveia	5	3
+337	Eddie Sanchez	3	3
+338	Efrain Escudero	7	3
+339	Mostapha Al Turk	7	3
+340	Kurt Pellegrino	3	3
+341	Ricardo Almeida	5	3
+342	Hermes Franca	3	3
+343	Dustin Hazelett	4	3
+344	Mark Coleman	7	3
 \.
 
 
@@ -1176,283 +2270,7 @@ COPY fighters (id, name, record, nickname, weightclass, country, contract, ratin
 COPY fightersource (id, source) FROM stdin;
 3	Game
 4	Player
-\.
-
-
---
--- Data for Name: fightersource_fighters; Type: TABLE DATA; Schema: public; Owner: jean
---
-
-COPY fightersource_fighters (fightersource_id, fighter_id) FROM stdin;
-3	30
-3	61
-3	46
-3	3
-3	5
-3	6
-3	11
-3	18
-3	22
-3	29
-3	32
-3	44
-3	60
-3	71
-3	78
-3	79
-3	82
-3	91
-3	10
-3	35
-3	53
-3	64
-3	74
-3	83
-3	38
-3	2
-3	66
-3	67
-3	75
-3	88
-3	76
-3	9
-3	7
-3	27
-3	41
-3	81
-3	59
-3	50
-3	39
-3	169
-3	154
-3	99
-3	119
-3	130
-3	146
-3	153
-3	158
-3	160
-3	162
-3	168
-3	171
-3	175
-3	181
-3	176
-3	95
-3	125
-3	127
-3	129
-3	167
-3	179
-3	174
-3	102
-3	113
-3	115
-3	126
-3	140
-3	144
-3	170
-3	178
-3	136
-3	180
-3	173
-3	157
-3	110
-3	141
-3	164
-3	94
-3	238
-3	189
-3	211
-3	219
-3	232
-3	239
-3	241
-3	245
-3	261
-3	265
-3	145
-3	240
-3	266
-3	257
-3	249
-3	217
-3	197
-3	200
-3	202
-3	215
-3	233
-3	264
-3	218
-3	210
-3	230
-3	254
-3	268
-3	195
-3	246
-3	258
-3	1
-3	4
-3	8
-3	184
-3	12
-3	13
-3	14
-3	15
-3	16
-3	17
-3	19
-3	20
-3	21
-3	23
-3	24
-3	25
-3	26
-3	28
-3	31
-3	33
-3	34
-3	36
-3	37
-3	40
-3	42
-3	43
-3	45
-3	47
-3	48
-3	49
-3	51
-3	52
-3	54
-3	55
-3	56
-3	57
-3	58
-3	62
-3	63
-3	65
-3	68
-3	69
-3	70
-3	72
-3	73
-3	77
-3	80
-3	84
-3	85
-3	86
-3	87
-3	89
-3	90
-3	92
-3	93
-3	96
-3	97
-3	98
-3	100
-3	101
-3	103
-3	104
-3	105
-3	106
-3	107
-3	108
-3	109
-3	111
-3	112
-3	114
-3	116
-3	117
-3	118
-3	120
-3	121
-3	122
-3	123
-3	124
-3	128
-3	131
-3	132
-3	133
-3	134
-3	135
-3	137
-3	138
-3	139
-3	142
-3	143
-3	147
-3	148
-3	149
-3	150
-3	151
-3	152
-3	155
-3	156
-3	159
-3	161
-3	163
-3	165
-3	166
-3	172
-3	177
-3	182
-3	183
-3	185
-3	186
-3	187
-3	188
-3	190
-3	191
-3	192
-3	193
-3	194
-3	196
-3	198
-3	199
-3	201
-3	203
-3	204
-3	205
-3	206
-3	207
-3	208
-3	209
-3	212
-3	213
-3	214
-3	216
-3	220
-3	221
-3	222
-3	223
-3	224
-3	225
-3	226
-3	227
-3	228
-3	229
-3	231
-3	234
-3	235
-3	236
-3	237
-3	242
-3	243
-3	244
-3	247
-3	248
-3	250
-3	251
-3	252
-3	253
-3	255
-3	256
-3	259
-3	260
-3	262
-3	263
-3	267
-4	336
+5	Real World
 \.
 
 
@@ -1533,25 +2351,62 @@ COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
 --
 
 COPY moves (id, name, type) FROM stdin;
+3	Pummel to Double Underhook Defense	Clinch Transition
 207	Transition to Open Guard Down Top	Transition
 210	Transition to Open Guard Down Top	Transition
 158	Transition to Open Guard Down Bottom	Transition
 159	Transition to Up/Down Bottom	Transition
 161	Transition to Half Guard Down Top	Transition
 162	Transition to Open Guard Top	Transition
+205	Cage Transition to Mount Down Top	Transition
+272	Cage Transition to Side Control Top	Transition
+124	Right Karate Front Kick	Kick
+130	Right MMA Back Spin Kick	Kick
+131	Right Muay Thai Head Kick	Kick
+132	Right Muay Thai Leg Kick	Kick
 163	Transition to Side Control Top	Transition
+4	Transition to Both Standing	Transition
 160	Triangle Choke from Butterfly Guard	Submission
 264	Triangle Choke from Rubber Guard Bottom	Submission
-4	Transition to Both Standing	Transition
 184	Transition to Up/Down Bottom	Transition
 187	Transition to Mount Down Top	Transition
+190	D'arce Choke	Submission
+208	Arm Triangle Choke from Mount Top	Submission
+212	Arm Triangle Choke from Mount Top	Submission
+228	North/South Choke from North/South Top	Submission
+233	Strike Catch to Triangle Choke	Submission
+240	Triangle Choke	Submission
+243	Achilles Lock	Submission
+231	Strike Catch to Kimura	Submission
+236	Kimura	Submission
 188	Transition to Side Control Top	Transition
 200	Transition to Mount Down Top	Transition
+133	Right Muay Thai Push Kick	Kick
+134	Right Muay Thai Snap Kick	Kick
+138	Right Spinning Back Kick	Kick
+150	Strong Left Leg Kick	Kick
+151	Strong Right Leg Kick	Kick
+152	Switch Left Head Kick	Kick
+155	Two Step Right Middle Kick	Kick
+41	Left Muay Thai Elbow	Strike
+43	Right Chopping Hook	Strike
+58	Ducking Right Hook	Strike
+47	Right Short Uppercut from Sway Forward	Strike
+50	Backstep Right Hook from Switch Stance	Strike
+46	Right Muay Thai Elbow	Strike
+57	Ducking Left Hook	Strike
+70	Left Guarded Hook	Strike
+73	Left Hook from Sway Back	Strike
+74	Left Hook from Sway Forward	Strike
+76	Left Hook from Sway Right	Strike
+83	Left Over Hook	Strike
+84	Left Over Strong Hook	Strike
+89	Left Sidestepping Upper Jab	Strike
+92	Left Strong Uppercut	Strike
 201	Transition to Mount Top	Transition
 202	Transition to Side Control Top	Transition
 203	Transition to Half Guard Bottom	Transition
 204	Transition to Mount Down Bottom	Transition
-205	Cage Transition to Mount Down Top	Transition
 206	Transition to Half Guard Down Bottom	Transition
 229	Transition to Mount Down Top	Transition
 234	Transition to Open Guard Down Bottom	Transition
@@ -1563,107 +2418,77 @@ COPY moves (id, name, type) FROM stdin;
 253	Transition to Half Guard Down Top	Transition
 254	Transition to Half Guard Top	Transition
 255	Transition to Side Control Top	Transition
-272	Cage Transition to Side Control Top	Transition
-190	D'arce Choke	Submission
-208	Arm Triangle Choke from Mount Top	Submission
-212	Arm Triangle Choke from Mount Top	Submission
-228	North/South Choke from North/South Top	Submission
-233	Strike Catch to Triangle Choke	Submission
-240	Triangle Choke	Submission
-47	Right Short Uppercut from Sway Forward	Strike
-92	Left Strong Uppercut	Strike
-95	Left Uppercut	Strike
-112	Right Ducking Uppercut to Head	Strike
-128	Right Long Uppercut	Strike
-140	Right Strong Uppercut	Strike
-142	Right Uppercut	Strike
-149	Stepping Right Uppercut	Strike
-76	Left Hook from Sway Right	Strike
-83	Left Over Hook	Strike
-84	Left Over Strong Hook	Strike
-96	Lunging Left Hook	Strike
-97	Lunging Right Hook	Strike
-106	Overhand Right Hook from Sway Forward	Strike
-116	Right Guarded Hook	Strike
-120	Right Hook from Sway Back	Strike
-121	Right Hook from Sway Left	Strike
-129	Right Over Hook	Strike
-143	Shogun's Stepping Left Hook	Strike
-147	Stepping Over Left Hook	Strike
-122	Right Hook From Sway Right	Strike
-43	Right Chopping Hook	Strike
-50	Backstep Right Hook from Switch Stance	Strike
-57	Ducking Left Hook	Strike
-58	Ducking Right Hook	Strike
-70	Left Guarded Hook	Strike
-73	Left Hook from Sway Back	Strike
-74	Left Hook from Sway Forward	Strike
-89	Left Sidestepping Upper Jab	Strike
-94	Left Upper Jab	Strike
-146	Stepping Heavy Jab	Strike
-103	Overhand Left from Sway Forward	Strike
-104	Overhand Right	Strike
-105	Overhand Right from Sway Forward	Strike
-156	Weaving Overhand Right	Strike
-93	Left Undercut	Strike
-148	Stepping Right Undercut	Strike
-41	Left Muay Thai Elbow	Strike
-46	Right Muay Thai Elbow	Strike
-136	Right Spinning Back Elbow	Strike
-243	Achilles Lock	Submission
-231	Strike Catch to Kimura	Submission
-236	Kimura	Submission
-3	Pummel to Double Underhook Defense	Transition
 273	Transition to Both Standing	Transition
 274	Transition to Butterfly Guard Bottom	Transition
 275	Transition to Half Guard Down Bottom	Transition
+93	Left Undercut	Strike
+95	Left Uppercut	Strike
+94	Left Upper Jab	Strike
+96	Lunging Left Hook	Strike
+97	Lunging Right Hook	Strike
+103	Overhand Left from Sway Forward	Strike
 232	Strike Catch to Omoplata	Submission
 237	Omoplata	Submission
 157	Gogoplata from Butterfly Guard	Submission
-1	German Suplex to Back Side Control Offense	Transition
-6	German Suplex to Back Side Control Offense	Transition
+245	Kneebar	Submission
 265	Transition to Half Guard Down Top	Transition
 266	Transition to Open Guard Top	Transition
 268	Transition to Both Standing	Transition
 271	Transition to Mount Top	Transition
-64	Jardine's Right Superman Punch	Strike
-2	Lift Up Slam to Side Control Offense	Transition
-164	Slam to Open Guard Down Offense	Transition
-77	Left Jab to Sway Back	Strike
-7	Pull to Side Control	Transition
-5	Back Throw to Side Control Right Offense	Transition
+1	German Suplex to Back Side Control Offense	Takedown
+6	German Suplex to Back Side Control Offense	Takedown
+2	Lift Up Slam to Side Control Offense	Takedown
+164	Slam to Open Guard Down Offense	Takedown
+7	Pull to Side Control	Takedown
+5	Back Throw to Side Control Right Offense	Takedown
+144	Shoot to Double Leg Takedown	Takedown
+71	Left Head Kick	Kick
+72	Left High Front Kick	Kick
 114	Right Flying Knee	Kick
 145	Step Right Knee	Kick
 153	Two Step Left Flying Knee	Kick
 154	Two Step Right Flying Knee	Kick
-144	Shoot to Double Leg Takedown	Transition
+62	Hendo's Right Back Fist	Strike
+64	Jardine's Right Superman Punch	Strike
+65	Jon Jones' Right Back Fist	Strike
+77	Left Jab to Sway Back	Strike
 99	Lyoto's Right Straight	Strike
 100	Lyoto's Stepping Straight	Strike
+104	Overhand Right	Strike
+105	Overhand Right from Sway Forward	Strike
+106	Overhand Right Hook from Sway Forward	Strike
+112	Right Ducking Uppercut to Head	Strike
+116	Right Guarded Hook	Strike
+120	Right Hook from Sway Back	Strike
+121	Right Hook from Sway Left	Strike
+122	Right Hook From Sway Right	Strike
 125	Right Karate Straight	Strike
 126	Right Long Straight	Strike
+128	Right Long Uppercut	Strike
+129	Right Over Hook	Strike
+136	Right Spinning Back Elbow	Strike
 139	Right Strong Straight	Strike
-71	Left Head Kick	Kick
-72	Left High Front Kick	Kick
-62	Hendo's Right Back Fist	Strike
-65	Jon Jones' Right Back Fist	Strike
-245	Kneebar	Submission
+140	Right Strong Uppercut	Strike
+142	Right Uppercut	Strike
+143	Shogun's Stepping Left Hook	Strike
+146	Stepping Heavy Jab	Strike
+147	Stepping Over Left Hook	Strike
+148	Stepping Right Undercut	Strike
+149	Stepping Right Uppercut	Strike
+156	Weaving Overhand Right	Strike
 26	Peruvian Neck Tie	Submission
 9	Arm Trap Rear Naked Choke	Submission
 16	Arm Trap Rear Naked Choke	Submission
 22	Arm Trap Rear Naked Choke	Submission
 24	Arm Trap Rear Naked Choke	Submission
-258	Takedown to Half Guard Down Offense	Transition
-259	Hip Throw to Side Control Offense	Transition
-260	Pull Guard to Open Guard Down Defense	Transition
-256	Ouchi Gari to Open Guard Down Offense	Transition
 262	Gogoplata from Rubber Guard Bottom	Submission
 263	Omoplata from Rubber Guard Bottom	Submission
 269	Americana from Side Control Top	Submission
 267	Armbar from Salaverry Top	Submission
-67	Left Back Fist	Strike
-90	Left Spinning Back Fist	Strike
-109	Right Back Fist	Strike
-137	Right Spinning Back Fist	Strike
+258	Takedown to Half Guard Down Offense	Takedown
+259	Hip Throw to Side Control Offense	Takedown
+260	Pull Guard to Open Guard Down Defense	Takedown
+256	Ouchi Gari to Open Guard Down Offense	Takedown
 78	Left Jumping Front Kick	Kick
 80	Left Muay Thai Head Kick	Kick
 81	Left Muay Thai Leg Kick	Kick
@@ -1673,6 +2498,45 @@ COPY moves (id, name, type) FROM stdin;
 91	Left Spinning Back Kick	Kick
 98	Lyoto's Left Head Kick	Kick
 42	Left Short Uppercut From Sway Forward	Strike
+67	Left Back Fist	Strike
+90	Left Spinning Back Fist	Strike
+109	Right Back Fist	Strike
+137	Right Spinning Back Fist	Strike
+59	Forrest's Left Front Kick	Kick
+60	Forrest's Left Head Kick	Kick
+247	Achilles Lock from Open Guard Top	Submission
+250	Kneebar from Open Guard Top	Submission
+10	Armbar from Back Mount Face Up Top	Submission
+17	Armbar from Back Mount Top	Submission
+25	Armbar from Back Side Control Top	Submission
+11	Rear Naked Choke	Submission
+15	Rear Naked Choke from Back Mount Rocked	Submission
+18	Rear Naked Choke Facing Downward	Submission
+23	Rear Naked Choke	Submission
+27	Rear Naked Choke	Submission
+175	Strike Catch to Armbar	Submission
+211	Armbar from Mount Rocked Top	Submission
+213	Armbar from Mount Top	Submission
+227	Armbar from North/South Top	Submission
+230	Strike Catch to Armbar	Submission
+278	Armbar from Side Control Rocked Top	Submission
+38	Inside Left Uppercut	Strike
+39	Inside Right Uppercut	Strike
+51	Backstepping Right Straight	Strike
+52	Brock's Right Straight	Strike
+56	Chuck's Right Straight	Strike
+63	Hendo's Right Strong Straight	Strike
+69	Left Flicking Jab	Strike
+75	Left Hook from Sway Left	Strike
+79	Left Long Superman Punch	Strike
+85	Left Punch from Kick Catch	Strike
+86	Left Quick Superman Punch	Strike
+127	Right Long Superman Punch	Strike
+135	Right Punch from Kick Catch	Strike
+277	Americana from Side Control Top	Submission
+279	Americana from Side Control Top	Submission
+246	Toe Hold	Submission
+252	Toe Hold from Open Guard Top	Submission
 276	Transition to Open Guard Down Bottom	Transition
 8	Transition to Both Standing	Transition
 13	Transition to Back Mount Face Up Body Triangle Top	Transition
@@ -1684,9 +2548,23 @@ COPY moves (id, name, type) FROM stdin;
 177	Transition to Half Guard Down Bottom	Transition
 178	Transition to Open Guard Bottom	Transition
 179	Transition to Up/Down Bottom	Transition
-180	Cage Transition to Half Guard Down Bottom	Transition
 182	Transition to Butterfly Guard Bottom	Transition
 183	Transition to Open Guard Down Bottom	Transition
+219	Pummel to Over/Under Hook	Clinch Transition
+257	Pummel to Double Underhook Cage Offense	Clinch Transition
+261	Pummel to Double Underhook Offense	Clinch Transition
+180	Cage Transition to Half Guard Down Bottom	Transition
+40	Left Leg Kick	Kick
+44	Right Dodge Knee to the Body	Kick
+45	Right Leg Kick	Kick
+48	Strong Left Leg Kick	Kick
+49	Strong Right Leg Kick	Kick
+53	Caol's Back Spin Kick	Kick
+54	Caol's Left Side Kick	Kick
+55	Check Head Kick	Kick
+61	GSP's Head Kick	Kick
+66	Left Axe Kick	Kick
+68	Left Front Upward Kick	Kick
 101	Napao's Right Head Kick	Kick
 102	One Feint Head Kick	Kick
 107	Quick Head Kick	Kick
@@ -1699,156 +2577,96 @@ COPY moves (id, name, type) FROM stdin;
 118	Right High Front Kick	Kick
 119	Right High Kick	Kick
 123	Right Karate Back Spin Kick	Kick
-124	Right Karate Front Kick	Kick
-130	Right MMA Back Spin Kick	Kick
-131	Right Muay Thai Head Kick	Kick
-132	Right Muay Thai Leg Kick	Kick
-133	Right Muay Thai Push Kick	Kick
-38	Inside Left Uppercut	Strike
-39	Inside Right Uppercut	Strike
-75	Left Hook from Sway Left	Strike
-12	Strong Right Hook	Strike
-19	Strong Hook	Strike
-28	Strong Hook	Strike
-198	Strong Hook	Strike
-247	Achilles Lock from Open Guard Top	Submission
-250	Kneebar from Open Guard Top	Submission
-10	Armbar from Back Mount Face Up Top	Submission
-17	Armbar from Back Mount Top	Submission
-25	Armbar from Back Side Control Top	Submission
-79	Left Long Superman Punch	Strike
-85	Left Punch from Kick Catch	Strike
-86	Left Quick Superman Punch	Strike
-127	Right Long Superman Punch	Strike
-135	Right Punch from Kick Catch	Strike
 141	Right Superman Punch	Strike
-11	Rear Naked Choke	Submission
-15	Rear Naked Choke from Back Mount Rocked	Submission
-18	Rear Naked Choke Facing Downward	Submission
-23	Rear Naked Choke	Submission
-27	Rear Naked Choke	Submission
-134	Right Muay Thai Snap Kick	Kick
-138	Right Spinning Back Kick	Kick
-150	Strong Left Leg Kick	Kick
-151	Strong Right Leg Kick	Kick
-152	Switch Left Head Kick	Kick
-155	Two Step Right Middle Kick	Kick
-215	Strong Hook	Strike
-219	Pummel to Over/Under Hook	Strike
-244	Heel Hook	Strike
-249	Heel Hook from Open Guard Top	Strike
-251	Strong Hook	Strike
-175	Strike Catch to Armbar	Submission
-211	Armbar from Mount Rocked Top	Submission
-213	Armbar from Mount Top	Submission
-227	Armbar from North/South Top	Submission
-230	Strike Catch to Armbar	Submission
-278	Armbar from Side Control Rocked Top	Submission
-277	Americana from Side Control Top	Submission
-279	Americana from Side Control Top	Submission
-246	Toe Hold	Submission
-252	Toe Hold from Open Guard Top	Submission
-257	Pummel to Double Underhook Cage Offense	Transition
-261	Pummel to Double Underhook Offense	Transition
-29	Strong Knee to Abdomen	Kick
-40	Left Leg Kick	Kick
-45	Right Leg Kick	Kick
-48	Strong Left Leg Kick	Kick
-49	Strong Right Leg Kick	Kick
-53	Caol's Back Spin Kick	Kick
-54	Caol's Left Side Kick	Kick
-55	Check Head Kick	Kick
-59	Forrest's Left Front Kick	Kick
-60	Forrest's Left Head Kick	Kick
-61	GSP's Head Kick	Kick
-66	Left Axe Kick	Kick
-68	Left Front Upward Kick	Kick
-69	Left Flicking Jab	Strike
-44	Right Dodge Knee to the Body	Kick
-51	Backstepping Right Straight	Strike
-52	Brock's Right Straight	Strike
-56	Chuck's Right Straight	Strike
-63	Hendo's Right Strong Straight	Strike
-270	Elbow	Strike
-226	Uppercut	Strike
-193	Elbow	Strike
-214	Elbow	Strike
-220	Arcing Elbow	Strike
-248	Elbow	Strike
-166	Clinch to Body Lock Cage Offense	Submission
-194	Hammer Fist	Strike
-172	Clinch to Body Lock Offense	Submission
+244	Heel Hook	Submission
+249	Heel Hook from Open Guard Top	Submission
+19	Strong Hook	Ground Strike
+28	Strong Hook	Ground Strike
+29	Strong Knee to Abdomen	Ground Strike
+12	Strong Right Hook	Ground Strike
+251	Strong Hook	Ground Strike
+198	Strong Hook	Ground Strike
+215	Strong Hook	Ground Strike
 196	Kneebar from Half Guard Top	Submission
 185	Americana from Half Guard Top	Submission
 189	Americana from Half Guard Rocked Top	Submission
 192	Americana from Half Guard Top	Submission
 199	Toe Hold from Half Guard Top	Submission
 176	Strike Catch to Kimura	Submission
-168	Suplex to Side Control Offense	Transition
-174	Suplex to Side Control Offense	Transition
-169	Judo Hip Throw to Side Control Offense	Transition
 181	Kimura	Submission
-167	Pull Guard to Open Guard Down Defense	Transition
 186	Kimura from Half Guard Top	Submission
 191	Kimura from Half Guard Top	Submission
 195	Kimura from Half Guard Top	Submission
-170	Pummel to Double Underhook Offense	Transition
-171	Pummel to Single Collar Tie	Transition
-218	Pummel to Muay Thai Clinch Offense	Transition
-173	Pull Guard to Open Guard Down Defense	Transition
-223	Pull Guard to Open Guard Down Defense	Transition
-216	Rear Leg Knee	Kick
-217	Strong Knee	Kick
-221	Knee	Kick
-222	Knee to Body	Kick
-224	Rear Leg Knee	Kick
-225	Strong Knee	Kick
-165	Left Turn Off to Double Underhook Defense	Transition
-209	Ground Buster from Mount Down Top	Strike
-287	Transition to Salaverry Top	Transition
+170	Pummel to Double Underhook Offense	Clinch Transition
+171	Pummel to Single Collar Tie	Clinch Transition
+218	Pummel to Muay Thai Clinch Offense	Clinch Transition
+166	Clinch to Body Lock Cage Offense	Clinch Transition
+172	Clinch to Body Lock Offense	Clinch Transition
+165	Left Turn Off to Double Underhook Defense	Clinch Transition
+168	Suplex to Side Control Offense	Takedown
+174	Suplex to Side Control Offense	Takedown
+169	Judo Hip Throw to Side Control Offense	Takedown
+167	Pull Guard to Open Guard Down Defense	Takedown
+173	Pull Guard to Open Guard Down Defense	Takedown
+223	Pull Guard to Open Guard Down Defense	Takedown
+248	Elbow	Ground Strike
+270	Elbow	Ground Strike
+193	Elbow	Ground Strike
+194	Hammer Fist	Ground Strike
+209	Ground Buster from Mount Down Top	Ground Strike
+214	Elbow	Ground Strike
+216	Rear Leg Knee	Clinch Strike
+217	Strong Knee	Clinch Strike
+220	Arcing Elbow	Clinch Strike
+221	Knee	Clinch Strike
+222	Knee to Body	Clinch Strike
+224	Rear Leg Knee	Clinch Strike
+225	Strong Knee	Clinch Strike
+226	Uppercut	Clinch Strike
 304	Peruvian Neck Tie from Sprawl Top	Submission
-33	Suplex to Side Control Offense	Transition
-36	Suplex to Half Guard Down Offense	Transition
-37	Suplex to Side Control Offense	Transition
-34	Judo Hip Throw to Side Control Offense	Transition
-32	Pull Guard to Open Guard Down Defense	Transition
-35	Pull Guard to Open Guard Down Defense	Transition
 280	Arm Triangle Choke	Submission
 301	Guillotine Choke from Sprawl Rocked	Submission
 302	Anaconda Choke from Sprawl Top	Submission
 303	Guillotine Choke from Sprawl Top	Submission
-285	Transition to Mount Down Top	Transition
-286	Transition to Mount Top	Transition
-299	Transition to Both Standing	Transition
-300	Transition to Open Guard Down Bottom	Transition
-306	Transition to Back Mount Top	Transition
-310	Up-Kick	Kick
-314	Left Axe Kick to Body	Kick
-292	Strong Uppercut	Strike
-293	Uppercut to Body	Strike
-296	Uppercut	Strike
-290	Strong Hook	Strike
-295	Strong Hook	Strike
-305	Strong Hook	Strike
-312	Heel Hook from Up/Down Near Top	Strike
-281	Elbow	Strike
-289	Downward Arcing Elbow	Strike
 311	Achilles Lock from Up/Down Near Top	Submission
 309	Kneebar from Up/Down Near Bottom	Submission
 313	Kneebar from Up/Down Near Top	Submission
 317	Toe Hold from Up/Down Near Top	Submission
 282	Kimura from Side Control Top	Submission
-297	Slam to Open Guard Down Offense	Transition
-298	Slam to Side Control Offense	Transition
-294	Pull Guard to Open Guard Down Defense	Transition
-283	Strong Left Knee to Abdomen	Kick
-284	Strong Right Knee to Abdomen	Kick
-288	Crushing Knee	Kick
-291	Strong Knee to Abdomen	Kick
-307	Left Superman Punch	Strike
-308	Right Superman Punch	Strike
-315	Left Superman Punch	Strike
-316	Right Superman Punch	Strike
+287	Transition to Salaverry Top	Transition
+285	Transition to Mount Down Top	Transition
+286	Transition to Mount Top	Transition
+299	Transition to Both Standing	Transition
+300	Transition to Open Guard Down Bottom	Transition
+306	Transition to Back Mount Top	Transition
+33	Suplex to Side Control Offense	Takedown
+36	Suplex to Half Guard Down Offense	Takedown
+37	Suplex to Side Control Offense	Takedown
+34	Judo Hip Throw to Side Control Offense	Takedown
+32	Pull Guard to Open Guard Down Defense	Takedown
+35	Pull Guard to Open Guard Down Defense	Takedown
+297	Slam to Open Guard Down Offense	Takedown
+298	Slam to Side Control Offense	Takedown
+294	Pull Guard to Open Guard Down Defense	Takedown
+312	Heel Hook from Up/Down Near Top	Submission
+281	Elbow	Ground Strike
+283	Strong Left Knee to Abdomen	Ground Strike
+284	Strong Right Knee to Abdomen	Ground Strike
+305	Strong Hook	Ground Strike
+307	Left Superman Punch	Ground Strike
+308	Right Superman Punch	Ground Strike
+314	Left Axe Kick to Body	Ground Strike
+315	Left Superman Punch	Ground Strike
+316	Right Superman Punch	Ground Strike
+310	Up-Kick	Ground Strike
+289	Downward Arcing Elbow	Clinch Strike
+290	Strong Hook	Clinch Strike
+291	Strong Knee to Abdomen	Clinch Strike
+293	Uppercut to Body	Clinch Strike
+295	Strong Hook	Clinch Strike
+296	Uppercut	Clinch Strike
+288	Crushing Knee	Clinch Strike
+292	Strong Uppercut	Clinch Strike
 \.
 
 
@@ -3018,6 +3836,7 @@ COPY positions (id, name) FROM stdin;
 --
 
 COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
+24	180	24
 1	1	10
 1	2	50
 2	4	15
@@ -3047,7 +3866,6 @@ COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
 22	174	50
 23	177	24
 23	178	37
-24	180	24
 24	182	16
 24	183	38
 25	187	30
@@ -3467,19 +4285,51 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
+-- Name: fightercontract_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fightercontract
+    ADD CONSTRAINT fightercontract_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fightercountry_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fightercountry
+    ADD CONSTRAINT fightercountry_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fighternickname_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fighternickname
+    ADD CONSTRAINT fighternickname_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fighterrating_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fighterrating
+    ADD CONSTRAINT fighterrating_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: fighterrecords_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+--
+
+ALTER TABLE ONLY fighterrecords
+    ADD CONSTRAINT fighterrecords_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighters
     ADD CONSTRAINT fighters_pkey PRIMARY KEY (id);
-
-
---
--- Name: fightersource_fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
---
-
-ALTER TABLE ONLY fightersource_fighters
-    ADD CONSTRAINT fightersource_fighters_pkey PRIMARY KEY (fightersource_id, fighter_id);
 
 
 --
@@ -3646,14 +4496,6 @@ ALTER TABLE ONLY positions_moves
 -- Name: fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
-ALTER TABLE ONLY fightersource_fighters
-    ADD CONSTRAINT fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id);
-
-
---
--- Name: fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
---
-
 ALTER TABLE ONLY fighter_camps
     ADD CONSTRAINT fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id);
 
@@ -3667,19 +4509,59 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
--- Name: fighters_country_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fightercontract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fightercontract
+    ADD CONSTRAINT fightercontract_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+
+
+--
+-- Name: fightercountry_country_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fightercountry
+    ADD CONSTRAINT fightercountry_country_fkey FOREIGN KEY (country) REFERENCES country(id);
+
+
+--
+-- Name: fightercountry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fightercountry
+    ADD CONSTRAINT fightercountry_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+
+
+--
+-- Name: fighternickname_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighternickname
+    ADD CONSTRAINT fighternickname_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+
+
+--
+-- Name: fighterrating_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighterrating
+    ADD CONSTRAINT fighterrating_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+
+
+--
+-- Name: fighterrecords_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY fighterrecords
+    ADD CONSTRAINT fighterrecords_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+
+
+--
+-- Name: fighters_source_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighters
-    ADD CONSTRAINT fighters_country_id_fkey FOREIGN KEY (country) REFERENCES country(id);
-
-
---
--- Name: fightersource_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
---
-
-ALTER TABLE ONLY fightersource_fighters
-    ADD CONSTRAINT fightersource_id_fkey FOREIGN KEY (fightersource_id) REFERENCES fightersource(id);
+    ADD CONSTRAINT fighters_source_id_fkey FOREIGN KEY (source_id) REFERENCES fightersource(id);
 
 
 --
