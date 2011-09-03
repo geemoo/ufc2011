@@ -1,0 +1,29 @@
+       type        |                        move                        |            position            | id  | combo_list 
+-------------------+----------------------------------------------------+--------------------------------+-----+------------
+ Takedown          | Suplex to Side Control Offense                     | Double Underhook Cage Offense  | 168 | lb tuc, lb tdcc
+ Takedown          | Pull Guard to Open Guard Down Defense              | Single Collar Tie Offense      | 294 | lb tuc, lb tdcc
+ Takedown          | Back Throw to Side Control Right Offense           | Back Clinch Offense            |   5 | lb tuc, lb tdcc
+ Takedown          | German Suplex to Back Side Control Offense         | Back Clinch Offense            |   6 | lb tuc, lb tdcc
+ Takedown          | Hip Throw to Side Control Offense                  | Over/Under Hook Offense        | 259 | lb tuc, lb tdcc
+ Takedown          | Pull to Side Control                               | Back Clinch Offense            |   7 | lb tuc, lb tdcc
+ Takedown          | Ouchi Gari to Open Guard Down Offense              | Over/Under Hook Cage Offense   | 256 | lb tuc
+ Takedown          | German Suplex to Back Side Control Offense         | Back Clinch Cage Offense       |   1 | lb tuc, lb tdcc
+ Takedown          | Takedown to Half Guard Down Offense                | Over/Under Hook Cage Offense   | 258 | lb tuc
+ Takedown          | Suplex to Side Control Offense                     | Body Lock Cage Offense         |  33 | lb tuc, lb tdcc
+ Takedown          | Judo Hip Throw to Side Control Offense             | Double Underhook Defense       | 169 | lb tuc, lb tdcc
+ Takedown          | Suplex to Half Guard Down Offense                  | Body Lock Offense              |  36 | lb tuc, lb tdcc
+ Takedown          | Pull Guard to Open Guard Down Defense              | Body Lock Offense              |  35 | lb tuc, lb tdcc
+ Takedown          | Suplex to Side Control Offense                     | Double Underhook Offense       | 174 | lb tuc, lb tdcc
+ Takedown          | Slam to Open Guard Down Offense                    | Single Leg Clinch Cage Offense | 297 | lb tuc, lb tdcc
+ Takedown          | Slam to Open Guard Down Offense                    | Double Leg Clinch Cage Offense | 164 | lb tuc, lb tdcc
+
+ Takedown          | Lift Up Slam to Side Control Offense               | Back Clinch Cage Offense       |   2 | #lb tuc, lb tdcc
+ Takedown          | Pull Guard to Open Guard Down Defense              | Double Underhook Cage Offense  | 167 | #lb tuc, lb tdcc
+ Takedown          | Suplex to Side Control Offense                     | Body Lock Offense              |  37 | #lb tuc, lb tdcc
+ Takedown          | Pull Guard to Open Guard Down Defense              | Muay Thai Clinch Offense       | 223 | #lb tuc, lb tdcc
+ Takedown          | Judo Hip Throw to Side Control Offense             | Body Lock Defense              |  34 | #lb tuc, lb tdcc
+ Takedown          | Pull Guard to Open Guard Down Defense              | Body Lock Cage Offense         |  32 | #lb tuc, lb tdcc
+ Takedown          | Shoot to Double Leg Takedown                       | Both Standing Striking Range   | 144 | #lb tuc, lb tdcc
+ Takedown          | Pull Guard to Open Guard Down Defense              | Over/Under Hook Offense        | 260 | #lb tuc, lb tdcc
+ Takedown          | Slam to Side Control Offense                       | Single Leg Clinch Cage Offense | 298 | #lb tuc, lb tdcc
+ Takedown          | Pull Guard to Open Guard Down Defense              | Double Underhook Offense       | 173 | #lb tuc, lb tdcc

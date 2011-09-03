@@ -1,0 +1,320 @@
+       type        |                        move                        |            position            | id  | combo_list 
+-------------------+----------------------------------------------------+--------------------------------+-----+------------
+ Strike            | Inside Left Uppercut                               | Both Standing Clinch Range     |  38 | 
+ Strike            | Inside Right Uppercut                              | Both Standing Clinch Range     |  39 | 
+ Strike            | Left Muay Thai Elbow                               | Both Standing Clinch Range     |  41 | 
+ Strike            | Left Short Uppercut From Sway Forward              | Both Standing Clinch Range     |  42 | 
+ Strike            | Right Chopping Hook                                | Both Standing Clinch Range     |  43 | 
+ Strike            | Right Muay Thai Elbow                              | Both Standing Clinch Range     |  46 | 
+ Strike            | Right Short Uppercut from Sway Forward             | Both Standing Clinch Range     |  47 | 
+ Strike            | Backstepping Right Straight                        | Both Standing Striking Range   |  51 | 
+ Strike            | Backstep Right Hook from Switch Stance             | Both Standing Striking Range   |  50 | 
+ Strike            | Brock's Right Straight                             | Both Standing Striking Range   |  52 | 
+ Strike            | Chuck's Right Straight                             | Both Standing Striking Range   |  56 | 
+ Strike            | Ducking Left Hook                                  | Both Standing Striking Range   |  57 | 
+ Strike            | Ducking Right Hook                                 | Both Standing Striking Range   |  58 | 
+ Strike            | Hendo's Right Back Fist                            | Both Standing Striking Range   |  62 | 
+ Strike            | Hendo's Right Strong Straight                      | Both Standing Striking Range   |  63 | 
+ Strike            | Jardine's Right Superman Punch                     | Both Standing Striking Range   |  64 | 
+ Strike            | Jon Jones' Right Back Fist                         | Both Standing Striking Range   |  65 | 
+ Strike            | Left Back Fist                                     | Both Standing Striking Range   |  67 | 
+ Strike            | Left Flicking Jab                                  | Both Standing Striking Range   |  69 | 
+ Strike            | Left Guarded Hook                                  | Both Standing Striking Range   |  70 | 
+ Strike            | Left Hook from Sway Back                           | Both Standing Striking Range   |  73 | 
+ Strike            | Left Hook from Sway Forward                        | Both Standing Striking Range   |  74 | 
+ Strike            | Left Hook from Sway Left                           | Both Standing Striking Range   |  75 | 
+ Strike            | Left Hook from Sway Right                          | Both Standing Striking Range   |  76 | 
+ Strike            | Left Jab to Sway Back                              | Both Standing Striking Range   |  77 | 
+ Strike            | Left Long Superman Punch                           | Both Standing Striking Range   |  79 | 
+ Strike            | Left Over Hook                                     | Both Standing Striking Range   |  83 | 
+ Strike            | Left Over Strong Hook                              | Both Standing Striking Range   |  84 | 
+ Strike            | Left Punch from Kick Catch                         | Both Standing Striking Range   |  85 | 
+ Strike            | Left Quick Superman Punch                          | Both Standing Striking Range   |  86 | 
+ Strike            | Left Sidestepping Upper Jab                        | Both Standing Striking Range   |  89 | 
+ Strike            | Left Spinning Back Fist                            | Both Standing Striking Range   |  90 | 
+ Strike            | Left Strong Uppercut                               | Both Standing Striking Range   |  92 | 
+ Strike            | Left Undercut                                      | Both Standing Striking Range   |  93 | 
+ Strike            | Left Uppercut                                      | Both Standing Striking Range   |  95 | 
+ Strike            | Left Upper Jab                                     | Both Standing Striking Range   |  94 | 
+ Strike            | Lunging Left Hook                                  | Both Standing Striking Range   |  96 | 
+ Strike            | Lunging Right Hook                                 | Both Standing Striking Range   |  97 | 
+ Strike            | Lyoto's Right Straight                             | Both Standing Striking Range   |  99 | 
+ Strike            | Lyoto's Stepping Straight                          | Both Standing Striking Range   | 100 | 
+ Strike            | Overhand Left from Sway Forward                    | Both Standing Striking Range   | 103 | 
+ Strike            | Overhand Right                                     | Both Standing Striking Range   | 104 | 
+ Strike            | Overhand Right from Sway Forward                   | Both Standing Striking Range   | 105 | 
+ Strike            | Overhand Right Hook from Sway Forward              | Both Standing Striking Range   | 106 | 
+ Strike            | Right Back Fist                                    | Both Standing Striking Range   | 109 | 
+ Strike            | Right Ducking Uppercut to Head                     | Both Standing Striking Range   | 112 | 
+ Strike            | Right Guarded Hook                                 | Both Standing Striking Range   | 116 | 
+ Strike            | Right Hook from Sway Back                          | Both Standing Striking Range   | 120 | 
+ Strike            | Right Hook from Sway Left                          | Both Standing Striking Range   | 121 | 
+ Strike            | Right Hook From Sway Right                         | Both Standing Striking Range   | 122 | 
+ Strike            | Right Karate Straight                              | Both Standing Striking Range   | 125 | 
+ Strike            | Right Long Straight                                | Both Standing Striking Range   | 126 | 
+ Strike            | Right Long Superman Punch                          | Both Standing Striking Range   | 127 | 
+ Strike            | Right Long Uppercut                                | Both Standing Striking Range   | 128 | 
+ Strike            | Right Over Hook                                    | Both Standing Striking Range   | 129 | 
+ Strike            | Right Punch from Kick Catch                        | Both Standing Striking Range   | 135 | 
+ Strike            | Right Spinning Back Elbow                          | Both Standing Striking Range   | 136 | 
+ Strike            | Right Spinning Back Fist                           | Both Standing Striking Range   | 137 | 
+ Strike            | Right Strong Straight                              | Both Standing Striking Range   | 139 | 
+ Strike            | Right Strong Uppercut                              | Both Standing Striking Range   | 140 | 
+ Strike            | Right Superman Punch                               | Both Standing Striking Range   | 141 | 
+ Strike            | Right Uppercut                                     | Both Standing Striking Range   | 142 | 
+ Strike            | Shogun's Stepping Left Hook                        | Both Standing Striking Range   | 143 | 
+ Strike            | Stepping Heavy Jab                                 | Both Standing Striking Range   | 146 | 
+ Strike            | Stepping Over Left Hook                            | Both Standing Striking Range   | 147 | 
+ Strike            | Stepping Right Undercut                            | Both Standing Striking Range   | 148 | 
+ Strike            | Stepping Right Uppercut                            | Both Standing Striking Range   | 149 | 
+ Strike            | Weaving Overhand Right                             | Both Standing Striking Range   | 156 | 
+ Kick              | Left Leg Kick                                      | Both Standing Clinch Range     |  40 | 
+ Kick              | Right Dodge Knee to the Body                       | Both Standing Clinch Range     |  44 | 
+ Kick              | Right Leg Kick                                     | Both Standing Clinch Range     |  45 | 
+ Kick              | Strong Left Leg Kick                               | Both Standing Clinch Range     |  48 | 
+ Kick              | Strong Right Leg Kick                              | Both Standing Clinch Range     |  49 | 
+ Kick              | Caol's Back Spin Kick                              | Both Standing Striking Range   |  53 | 
+ Kick              | Caol's Left Side Kick                              | Both Standing Striking Range   |  54 | 
+ Kick              | Check Head Kick                                    | Both Standing Striking Range   |  55 | 
+ Kick              | Forrest's Left Front Kick                          | Both Standing Striking Range   |  59 | 
+ Kick              | Forrest's Left Head Kick                           | Both Standing Striking Range   |  60 | 
+ Kick              | GSP's Head Kick                                    | Both Standing Striking Range   |  61 | 
+ Kick              | Left Axe Kick                                      | Both Standing Striking Range   |  66 | 
+ Kick              | Left Front Upward Kick                             | Both Standing Striking Range   |  68 | 
+ Kick              | Left Head Kick                                     | Both Standing Striking Range   |  71 | 
+ Kick              | Left High Front Kick                               | Both Standing Striking Range   |  72 | 
+ Kick              | Left Jumping Front Kick                            | Both Standing Striking Range   |  78 | 
+ Kick              | Left Muay Thai Head Kick                           | Both Standing Striking Range   |  80 | 
+ Kick              | Left Muay Thai Leg Kick                            | Both Standing Striking Range   |  81 | 
+ Kick              | Left Muay Thai Push Kick                           | Both Standing Striking Range   |  82 | 
+ Kick              | Left Side Kick                                     | Both Standing Striking Range   |  87 | 
+ Kick              | Left Side Kick to Body                             | Both Standing Striking Range   |  88 | 
+ Kick              | Left Spinning Back Kick                            | Both Standing Striking Range   |  91 | 
+ Kick              | Lyoto's Left Head Kick                             | Both Standing Striking Range   |  98 | 
+ Kick              | Napao's Right Head Kick                            | Both Standing Striking Range   | 101 | 
+ Kick              | One Feint Head Kick                                | Both Standing Striking Range   | 102 | 
+ Kick              | Quick Head Kick                                    | Both Standing Striking Range   | 107 | 
+ Kick              | Right Axe Kick                                     | Both Standing Striking Range   | 108 | 
+ Kick              | Right Back Kick                                    | Both Standing Striking Range   | 110 | 
+ Kick              | Right Brazilian Head Kick                          | Both Standing Striking Range   | 111 | 
+ Kick              | Right Flying Head Kick                             | Both Standing Striking Range   | 113 | 
+ Kick              | Right Flying Knee                                  | Both Standing Striking Range   | 114 | 
+ Kick              | Right Front Upper Kick                             | Both Standing Striking Range   | 115 | 
+ Kick              | Right Head Kick                                    | Both Standing Striking Range   | 117 | 
+ Kick              | Right High Front Kick                              | Both Standing Striking Range   | 118 | 
+ Kick              | Right High Kick                                    | Both Standing Striking Range   | 119 | 
+ Kick              | Right Karate Back Spin Kick                        | Both Standing Striking Range   | 123 | 
+ Kick              | Right Karate Front Kick                            | Both Standing Striking Range   | 124 | 
+ Kick              | Right MMA Back Spin Kick                           | Both Standing Striking Range   | 130 | 
+ Kick              | Right Muay Thai Head Kick                          | Both Standing Striking Range   | 131 | 
+ Kick              | Right Muay Thai Leg Kick                           | Both Standing Striking Range   | 132 | 
+ Kick              | Right Muay Thai Push Kick                          | Both Standing Striking Range   | 133 | 
+ Kick              | Right Muay Thai Snap Kick                          | Both Standing Striking Range   | 134 | 
+ Kick              | Right Spinning Back Kick                           | Both Standing Striking Range   | 138 | 
+ Kick              | Step Right Knee                                    | Both Standing Striking Range   | 145 | 
+ Kick              | Strong Left Leg Kick                               | Both Standing Striking Range   | 150 | 
+ Kick              | Strong Right Leg Kick                              | Both Standing Striking Range   | 151 | 
+ Kick              | Switch Left Head Kick                              | Both Standing Striking Range   | 152 | 
+ Kick              | Two Step Left Flying Knee                          | Both Standing Striking Range   | 153 | 
+ Kick              | Two Step Right Flying Knee                         | Both Standing Striking Range   | 154 | 
+ Kick              | Two Step Right Middle Kick                         | Both Standing Striking Range   | 155 | 
+ Transition        | Transition to Both Standing                        | Back Clinch Defense            |   4 | 
+ Transition        | Transition to Both Standing                        | Back Mount Bottom              |   8 | 
+ Transition        | Transition to Back Mount Face Up Body Triangle Top | Back Mount Face Up Top         |  13 | 
+ Transition        | Transition to Mount Top                            | Back Mount Face Up Top         |  14 | 
+ Transition        | Transition to Both Standing                        | Back Side Control Bottom       |  20 | 
+ Transition        | Transition to Open Guard Bottom                    | Back Side Control Bottom       |  21 | 
+ Transition        | Transition to Back Mount Face Up Top               | Back Side Control Top          |  30 | 
+ Transition        | Transition to Back Mount Top                       | Back Side Control Top          |  31 | 
+ Transition        | Transition to Open Guard Down Bottom               | Butterfly Guard Bottom         | 158 | 
+ Transition        | Transition to Up/Down Bottom                       | Butterfly Guard Bottom         | 159 | 
+ Transition        | Transition to Half Guard Down Top                  | Butterfly Guard Top            | 161 | 
+ Transition        | Transition to Open Guard Top                       | Butterfly Guard Top            | 162 | 
+ Transition        | Transition to Side Control Top                     | Butterfly Guard Top            | 163 | 
+ Transition        | Transition to Half Guard Down Bottom               | Half Guard Bottom              | 177 | 
+ Transition        | Transition to Open Guard Bottom                    | Half Guard Bottom              | 178 | 
+ Transition        | Transition to Up/Down Bottom                       | Half Guard Bottom              | 179 | 
+ Transition        | Cage Transition to Half Guard Down Bottom          | Half Guard Down Bottom         | 180 | 
+ Transition        | Transition to Butterfly Guard Bottom               | Half Guard Down Bottom         | 182 | 
+ Transition        | Transition to Open Guard Down Bottom               | Half Guard Down Bottom         | 183 | 
+ Transition        | Transition to Up/Down Bottom                       | Half Guard Down Bottom         | 184 | 
+ Transition        | Transition to Mount Down Top                       | Half Guard Down Top            | 187 | 
+ Transition        | Transition to Side Control Top                     | Half Guard Down Top            | 188 | 
+ Transition        | Transition to Mount Down Top                       | Half Guard Top                 | 200 | 
+ Transition        | Transition to Mount Top                            | Half Guard Top                 | 201 | 
+ Transition        | Transition to Side Control Top                     | Half Guard Top                 | 202 | 
+ Transition        | Transition to Half Guard Bottom                    | Mount Bottom                   | 203 | 
+ Transition        | Transition to Mount Down Bottom                    | Mount Bottom                   | 204 | 
+ Transition        | Cage Transition to Mount Down Top                  | Mount Down Bottom              | 205 | 
+ Transition        | Transition to Half Guard Down Bottom               | Mount Down Bottom              | 206 | 
+ Transition        | Transition to Open Guard Down Top                  | Mount Down Bottom              | 207 | 
+ Transition        | Transition to Open Guard Down Top                  | Mount Down Top                 | 210 | 
+ Transition        | Transition to Mount Down Top                       | North/South Top                | 229 | 
+ Transition        | Transition to Open Guard Down Bottom               | Open Guard Bottom              | 234 | 
+ Transition        | Transition to Up/Down Bottom                       | Open Guard Bottom              | 235 | 
+ Transition        | Transition to Rubber Guard Down Bottom             | Open Guard Down Bottom         | 238 | 
+ Transition        | Transition to Up/Down Bottom                       | Open Guard Down Bottom         | 239 | 
+ Transition        | Transition to Half Guard Down Top                  | Open Guard Down Top            | 241 | 
+ Transition        | Transition to Side Control Top                     | Open Guard Down Top            | 242 | 
+ Transition        | Transition to Half Guard Down Top                  | Open Guard Top                 | 253 | 
+ Transition        | Transition to Half Guard Top                       | Open Guard Top                 | 254 | 
+ Transition        | Transition to Side Control Top                     | Open Guard Top                 | 255 | 
+ Transition        | Transition to Half Guard Down Top                  | Rubber Guard Top               | 265 | 
+ Transition        | Transition to Open Guard Top                       | Rubber Guard Top               | 266 | 
+ Transition        | Transition to Both Standing                        | Sallaverry Bottom              | 268 | 
+ Transition        | Transition to Mount Top                            | Sallaverry Top                 | 271 | 
+ Transition        | Cage Transition to Side Control Top                | Side Control Bottom            | 272 | 
+ Transition        | Transition to Both Standing                        | Side Control Bottom            | 273 | 
+ Transition        | Transition to Butterfly Guard Bottom               | Side Control Bottom            | 274 | 
+ Transition        | Transition to Half Guard Down Bottom               | Side Control Bottom            | 275 | 
+ Transition        | Transition to Open Guard Down Bottom               | Side Control Bottom            | 276 | 
+ Transition        | Transition to Mount Down Top                       | Side Control Top               | 285 | 
+ Transition        | Transition to Mount Top                            | Side Control Top               | 286 | 
+ Transition        | Transition to Salaverry Top                        | Side Control Top               | 287 | 
+ Transition        | Transition to Both Standing                        | Sprawl Bottom                  | 299 | 
+ Transition        | Transition to Open Guard Down Bottom               | Sprawl Bottom                  | 300 | 
+ Transition        | Transition to Back Mount Top                       | Sprawl Top                     | 306 | 
+ Submission        | Armbar from Back Mount Face Up Top                 | Back Mount Face Up Top         |  10 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Mount Face Up Top         |   9 | 
+ Submission        | Rear Naked Choke                                   | Back Mount Face Up Top         |  11 | 
+ Submission        | Rear Naked Choke from Back Mount Rocked            | Back Mount Rocked Top          |  15 | 
+ Submission        | Armbar from Back Mount Top                         | Back Mount Top                 |  17 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Mount Top                 |  16 | 
+ Submission        | Rear Naked Choke Facing Downward                   | Back Mount Top                 |  18 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Side Control Rocked Top   |  22 | 
+ Submission        | Rear Naked Choke                                   | Back Side Control Rocked Top   |  23 | 
+ Submission        | Armbar from Back Side Control Top                  | Back Side Control Top          |  25 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Side Control Top          |  24 | 
+ Submission        | Peruvian Neck Tie                                  | Back Side Control Top          |  26 | 
+ Submission        | Rear Naked Choke                                   | Back Side Control Top          |  27 | 
+ Submission        | Gogoplata from Butterfly Guard                     | Butterfly Guard Bottom         | 157 | 
+ Submission        | Triangle Choke from Butterfly Guard                | Butterfly Guard Bottom         | 160 | 
+ Submission        | Strike Catch to Armbar                             | Half Guard Bottom              | 175 | 
+ Submission        | Strike Catch to Kimura                             | Half Guard Bottom              | 176 | 
+ Submission        | Kimura                                             | Half Guard Down Bottom         | 181 | 
+ Submission        | Americana from Half Guard Top                      | Half Guard Down Top            | 185 | 
+ Submission        | Kimura from Half Guard Top                         | Half Guard Down Top            | 186 | 
+ Submission        | Americana from Half Guard Rocked Top               | Half Guard Rocked Top          | 189 | 
+ Submission        | D'arce Choke                                       | Half Guard Rocked Top          | 190 | 
+ Submission        | Kimura from Half Guard Top                         | Half Guard Rocked Top          | 191 | 
+ Submission        | Americana from Half Guard Top                      | Half Guard Top                 | 192 | 
+ Submission        | Kimura from Half Guard Top                         | Half Guard Top                 | 195 | 
+ Submission        | Kneebar from Half Guard Top                        | Half Guard Top                 | 196 | 
+ Submission        | Toe Hold from Half Guard Top                       | Half Guard Top                 | 199 | 
+ Submission        | Arm Triangle Choke from Mount Top                  | Mount Down Top                 | 208 | 
+ Submission        | Armbar from Mount Rocked Top                       | Mount Rocked Top               | 211 | 
+ Submission        | Armbar from Mount Top                              | Mount Top                      | 213 | 
+ Submission        | Arm Triangle Choke from Mount Top                  | Mount Top                      | 212 | 
+ Submission        | Armbar from North/South Top                        | North/South Top                | 227 | 
+ Submission        | North/South Choke from North/South Top             | North/South Top                | 228 | 
+ Submission        | Strike Catch to Armbar                             | Open Guard Bottom              | 230 | 
+ Submission        | Strike Catch to Kimura                             | Open Guard Bottom              | 231 | 
+ Submission        | Strike Catch to Omoplata                           | Open Guard Bottom              | 232 | 
+ Submission        | Strike Catch to Triangle Choke                     | Open Guard Bottom              | 233 | 
+ Submission        | Kimura                                             | Open Guard Down Bottom         | 236 | 
+ Submission        | Omoplata                                           | Open Guard Down Bottom         | 237 | 
+ Submission        | Triangle Choke                                     | Open Guard Down Bottom         | 240 | 
+ Submission        | Achilles Lock                                      | Open Guard Rocked Top          | 243 | 
+ Submission        | Heel Hook                                          | Open Guard Rocked Top          | 244 | 
+ Submission        | Kneebar                                            | Open Guard Rocked Top          | 245 | 
+ Submission        | Toe Hold                                           | Open Guard Rocked Top          | 246 | 
+ Submission        | Achilles Lock from Open Guard Top                  | Open Guard Top                 | 247 | 
+ Submission        | Heel Hook from Open Guard Top                      | Open Guard Top                 | 249 | 
+ Submission        | Kneebar from Open Guard Top                        | Open Guard Top                 | 250 | 
+ Submission        | Toe Hold from Open Guard Top                       | Open Guard Top                 | 252 | 
+ Submission        | Gogoplata from Rubber Guard Bottom                 | Rubber Guard Bottom            | 262 | 
+ Submission        | Omoplata from Rubber Guard Bottom                  | Rubber Guard Bottom            | 263 | 
+ Submission        | Triangle Choke from Rubber Guard Bottom            | Rubber Guard Bottom            | 264 | 
+ Submission        | Armbar from Salaverry Top                          | Sallaverry Bottom              | 267 | 
+ Submission        | Americana from Side Control Top                    | Sallaverry Top                 | 269 | 
+ Submission        | Americana from Side Control Top                    | Side Control Rocked Top        | 277 | 
+ Submission        | Armbar from Side Control Rocked Top                | Side Control Rocked Top        | 278 | 
+ Submission        | Americana from Side Control Top                    | Side Control Top               | 279 | 
+ Submission        | Arm Triangle Choke                                 | Side Control Top               | 280 | 
+ Submission        | Kimura from Side Control Top                       | Side Control Top               | 282 | 
+ Submission        | Guillotine Choke from Sprawl Rocked                | Sprawl Rocked Top              | 301 | 
+ Submission        | Anaconda Choke from Sprawl Top                     | Sprawl Top                     | 302 | 
+ Submission        | Guillotine Choke from Sprawl Top                   | Sprawl Top                     | 303 | 
+ Submission        | Peruvian Neck Tie from Sprawl Top                  | Sprawl Top                     | 304 | 
+ Submission        | Kneebar from Up/Down Near Bottom                   | Up/Down Near Bottom            | 309 | 
+ Submission        | Achilles Lock from Up/Down Near Top                | Up/Down Near Top               | 311 | 
+ Submission        | Heel Hook from Up/Down Near Top                    | Up/Down Near Top               | 312 | 
+ Submission        | Kneebar from Up/Down Near Top                      | Up/Down Near Top               | 313 | 
+ Submission        | Toe Hold from Up/Down Near Top                     | Up/Down Near Top               | 317 | 
+ Ground Strike     | Strong Right Hook                                  | Back Mount Face Up Top         |  12 | 
+ Ground Strike     | Strong Hook                                        | Back Mount Top                 |  19 | 
+ Ground Strike     | Strong Hook                                        | Back Side Control Top          |  28 | 
+ Ground Strike     | Strong Knee to Abdomen                             | Back Side Control Top          |  29 | 
+ Ground Strike     | Elbow                                              | Half Guard Top                 | 193 | 
+ Ground Strike     | Hammer Fist                                        | Half Guard Top                 | 194 | 
+ Ground Strike     | Strong Hook                                        | Half Guard Top                 | 198 | 
+ Ground Strike     | Ground Buster from Mount Down Top                  | Mount Down Top                 | 209 | 
+ Ground Strike     | Elbow                                              | Mount Top                      | 214 | 
+ Ground Strike     | Strong Hook                                        | Mount Top                      | 215 | 
+ Ground Strike     | Elbow                                              | Open Guard Top                 | 248 | 
+ Ground Strike     | Strong Hook                                        | Open Guard Top                 | 251 | 
+ Ground Strike     | Elbow                                              | Sallaverry Top                 | 270 | 
+ Ground Strike     | Elbow                                              | Side Control Top               | 281 | 
+ Ground Strike     | Strong Left Knee to Abdomen                        | Side Control Top               | 283 | 
+ Ground Strike     | Strong Right Knee to Abdomen                       | Side Control Top               | 284 | 
+ Ground Strike     | Strong Hook                                        | Sprawl Top                     | 305 | 
+ Ground Strike     | Left Superman Punch                                | Up/Down Far Top                | 307 | 
+ Ground Strike     | Right Superman Punch                               | Up/Down Far Top                | 308 | 
+ Ground Strike     | Up-Kick                                            | Up/Down Near Bottom            | 310 | 
+ Ground Strike     | Left Axe Kick to Body                              | Up/Down Near Top               | 314 | 
+ Ground Strike     | Left Superman Punch                                | Up/Down Near Top               | 315 | 
+ Ground Strike     | Right Superman Punch                               | Up/Down Near Top               | 316 | 
+ Clinch Strike     | Rear Leg Knee                                      | Muay Thai Clinch Cage Offense  | 216 | 
+ Clinch Strike     | Strong Knee                                        | Muay Thai Clinch Cage Offense  | 217 | 
+ Clinch Strike     | Arcing Elbow                                       | Muay Thai Clinch Offense       | 220 | 
+ Clinch Strike     | Knee                                               | Muay Thai Clinch Offense       | 221 | 
+ Clinch Strike     | Knee to Body                                       | Muay Thai Clinch Offense       | 222 | 
+ Clinch Strike     | Rear Leg Knee                                      | Muay Thai Clinch Offense       | 224 | 
+ Clinch Strike     | Strong Knee                                        | Muay Thai Clinch Offense       | 225 | 
+ Clinch Strike     | Uppercut                                           | Muay Thai Clinch Offense       | 226 | 
+ Clinch Strike     | Crushing Knee                                      | Single Collar Tie Cage Offense | 288 | 
+ Clinch Strike     | Downward Arcing Elbow                              | Single Collar Tie Cage Offense | 289 | 
+ Clinch Strike     | Strong Hook                                        | Single Collar Tie Cage Offense | 290 | 
+ Clinch Strike     | Strong Knee to Abdomen                             | Single Collar Tie Cage Offense | 291 | 
+ Clinch Strike     | Strong Uppercut                                    | Single Collar Tie Cage Offense | 292 | 
+ Clinch Strike     | Uppercut to Body                                   | Single Collar Tie Cage Offense | 293 | 
+ Clinch Strike     | Strong Hook                                        | Single Collar Tie Offense      | 295 | 
+ Clinch Strike     | Uppercut                                           | Single Collar Tie Offense      | 296 | 
+ Clinch Transition | Pummel to Double Underhook Defense                 | Back Clinch Defense            |   3 | 
+ Clinch Transition | Left Turn Off to Double Underhook Defense          | Double Underhook Cage Defense  | 165 | 
+ Clinch Transition | Clinch to Body Lock Cage Offense                   | Double Underhook Cage Offense  | 166 | 
+ Clinch Transition | Pummel to Double Underhook Offense                 | Double Underhook Defense       | 170 | 
+ Clinch Transition | Pummel to Single Collar Tie                        | Double Underhook Defense       | 171 | 
+ Clinch Transition | Clinch to Body Lock Offense                        | Double Underhook Offense       | 172 | 
+ Clinch Transition | Pummel to Muay Thai Clinch Offense                 | Muay Thai Clinch Defense       | 218 | 
+ Clinch Transition | Pummel to Over/Under Hook                          | Muay Thai Clinch Defense       | 219 | 
+ Clinch Transition | Pummel to Double Underhook Cage Offense            | Over/Under Hook Cage Offense   | 257 | 
+ Clinch Transition | Pummel to Double Underhook Offense                 | Over/Under Hook Offense        | 261 | 
+ Takedown          | German Suplex to Back Side Control Offense         | Back Clinch Cage Offense       |   1 | 
+ Takedown          | Lift Up Slam to Side Control Offense               | Back Clinch Cage Offense       |   2 | 
+ Takedown          | Back Throw to Side Control Right Offense           | Back Clinch Offense            |   5 | 
+ Takedown          | German Suplex to Back Side Control Offense         | Back Clinch Offense            |   6 | 
+ Takedown          | Pull to Side Control                               | Back Clinch Offense            |   7 | 
+ Takedown          | Pull Guard to Open Guard Down Defense              | Body Lock Cage Offense         |  32 | 
+ Takedown          | Suplex to Side Control Offense                     | Body Lock Cage Offense         |  33 | 
+ Takedown          | Judo Hip Throw to Side Control Offense             | Body Lock Defense              |  34 | 
+ Takedown          | Pull Guard to Open Guard Down Defense              | Body Lock Offense              |  35 | 
+ Takedown          | Suplex to Half Guard Down Offense                  | Body Lock Offense              |  36 | 
+ Takedown          | Suplex to Side Control Offense                     | Body Lock Offense              |  37 | 
+ Takedown          | Shoot to Double Leg Takedown                       | Both Standing Striking Range   | 144 | 
+ Takedown          | Slam to Open Guard Down Offense                    | Double Leg Clinch Cage Offense | 164 | 
+ Takedown          | Pull Guard to Open Guard Down Defense              | Double Underhook Cage Offense  | 167 | 
+ Takedown          | Suplex to Side Control Offense                     | Double Underhook Cage Offense  | 168 | 
+ Takedown          | Judo Hip Throw to Side Control Offense             | Double Underhook Defense       | 169 | 
+ Takedown          | Pull Guard to Open Guard Down Defense              | Double Underhook Offense       | 173 | 
+ Takedown          | Suplex to Side Control Offense                     | Double Underhook Offense       | 174 | 
+ Takedown          | Pull Guard to Open Guard Down Defense              | Muay Thai Clinch Offense       | 223 | 
+ Takedown          | Ouchi Gari to Open Guard Down Offense              | Over/Under Hook Cage Offense   | 256 | 
+ Takedown          | Takedown to Half Guard Down Offense                | Over/Under Hook Cage Offense   | 258 | 
+ Takedown          | Hip Throw to Side Control Offense                  | Over/Under Hook Offense        | 259 | 
+ Takedown          | Pull Guard to Open Guard Down Defense              | Over/Under Hook Offense        | 260 | 
+ Takedown          | Pull Guard to Open Guard Down Defense              | Single Collar Tie Offense      | 294 | 
+ Takedown          | Slam to Open Guard Down Offense                    | Single Leg Clinch Cage Offense | 297 | 
+ Takedown          | Slam to Side Control Offense                       | Single Leg Clinch Cage Offense | 298 | 
+(316 rows)
+

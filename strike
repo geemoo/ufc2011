@@ -1,0 +1,70 @@
+       type        |                        move                        |            position            | id  | combo_list 
+-------------------+----------------------------------------------------+--------------------------------+-----+------------
+ Strike            | Inside Left Uppercut                               | Both Standing Clinch Range     |  38 | 
+ Strike            | Inside Right Uppercut                              | Both Standing Clinch Range     |  39 | 
+ Strike            | Left Muay Thai Elbow                               | Both Standing Clinch Range     |  41 | 
+ Strike            | Left Short Uppercut From Sway Forward              | Both Standing Clinch Range     |  42 | 
+ Strike            | Right Chopping Hook                                | Both Standing Clinch Range     |  43 | 
+ Strike            | Right Muay Thai Elbow                              | Both Standing Clinch Range     |  46 | 
+ Strike            | Right Short Uppercut from Sway Forward             | Both Standing Clinch Range     |  47 | 
+ Strike            | Backstepping Right Straight                        | Both Standing Striking Range   |  51 | 
+ Strike            | Backstep Right Hook from Switch Stance             | Both Standing Striking Range   |  50 | 
+ Strike            | Brock's Right Straight                             | Both Standing Striking Range   |  52 | 
+ Strike            | Chuck's Right Straight                             | Both Standing Striking Range   |  56 | 
+ Strike            | Ducking Left Hook                                  | Both Standing Striking Range   |  57 | 
+ Strike            | Ducking Right Hook                                 | Both Standing Striking Range   |  58 | 
+ Strike            | Hendo's Right Back Fist                            | Both Standing Striking Range   |  62 | 
+ Strike            | Hendo's Right Strong Straight                      | Both Standing Striking Range   |  63 | 
+ Strike            | Jardine's Right Superman Punch                     | Both Standing Striking Range   |  64 | 
+ Strike            | Jon Jones' Right Back Fist                         | Both Standing Striking Range   |  65 | 
+ Strike            | Left Back Fist                                     | Both Standing Striking Range   |  67 | 
+ Strike            | Left Flicking Jab                                  | Both Standing Striking Range   |  69 | 
+ Strike            | Left Guarded Hook                                  | Both Standing Striking Range   |  70 | 
+ Strike            | Left Hook from Sway Back                           | Both Standing Striking Range   |  73 | 
+ Strike            | Left Hook from Sway Forward                        | Both Standing Striking Range   |  74 | 
+ Strike            | Left Hook from Sway Left                           | Both Standing Striking Range   |  75 | 
+ Strike            | Left Hook from Sway Right                          | Both Standing Striking Range   |  76 | 
+ Strike            | Left Jab to Sway Back                              | Both Standing Striking Range   |  77 | 
+ Strike            | Left Long Superman Punch                           | Both Standing Striking Range   |  79 | 
+ Strike            | Left Over Hook                                     | Both Standing Striking Range   |  83 | 
+ Strike            | Left Over Strong Hook                              | Both Standing Striking Range   |  84 | 
+ Strike            | Left Punch from Kick Catch                         | Both Standing Striking Range   |  85 | 
+ Strike            | Left Quick Superman Punch                          | Both Standing Striking Range   |  86 | 
+ Strike            | Left Sidestepping Upper Jab                        | Both Standing Striking Range   |  89 | 
+ Strike            | Left Spinning Back Fist                            | Both Standing Striking Range   |  90 | 
+ Strike            | Left Strong Uppercut                               | Both Standing Striking Range   |  92 | 
+ Strike            | Left Undercut                                      | Both Standing Striking Range   |  93 | 
+ Strike            | Left Uppercut                                      | Both Standing Striking Range   |  95 | 
+ Strike            | Left Upper Jab                                     | Both Standing Striking Range   |  94 | 
+ Strike            | Lunging Left Hook                                  | Both Standing Striking Range   |  96 | 
+ Strike            | Lunging Right Hook                                 | Both Standing Striking Range   |  97 | 
+ Strike            | Lyoto's Right Straight                             | Both Standing Striking Range   |  99 | 
+ Strike            | Lyoto's Stepping Straight                          | Both Standing Striking Range   | 100 | 
+ Strike            | Overhand Left from Sway Forward                    | Both Standing Striking Range   | 103 | 
+ Strike            | Overhand Right                                     | Both Standing Striking Range   | 104 | 
+ Strike            | Overhand Right from Sway Forward                   | Both Standing Striking Range   | 105 | 
+ Strike            | Overhand Right Hook from Sway Forward              | Both Standing Striking Range   | 106 | 
+ Strike            | Right Back Fist                                    | Both Standing Striking Range   | 109 | 
+ Strike            | Right Ducking Uppercut to Head                     | Both Standing Striking Range   | 112 | 
+ Strike            | Right Guarded Hook                                 | Both Standing Striking Range   | 116 | 
+ Strike            | Right Hook from Sway Back                          | Both Standing Striking Range   | 120 | 
+ Strike            | Right Hook from Sway Left                          | Both Standing Striking Range   | 121 | 
+ Strike            | Right Hook From Sway Right                         | Both Standing Striking Range   | 122 | 
+ Strike            | Right Karate Straight                              | Both Standing Striking Range   | 125 | 
+ Strike            | Right Long Straight                                | Both Standing Striking Range   | 126 | 
+ Strike            | Right Long Superman Punch                          | Both Standing Striking Range   | 127 | 
+ Strike            | Right Long Uppercut                                | Both Standing Striking Range   | 128 | 
+ Strike            | Right Over Hook                                    | Both Standing Striking Range   | 129 | 
+ Strike            | Right Punch from Kick Catch                        | Both Standing Striking Range   | 135 | 
+ Strike            | Right Spinning Back Elbow                          | Both Standing Striking Range   | 136 | 
+ Strike            | Right Spinning Back Fist                           | Both Standing Striking Range   | 137 | 
+ Strike            | Right Strong Straight                              | Both Standing Striking Range   | 139 | 
+ Strike            | Right Strong Uppercut                              | Both Standing Striking Range   | 140 | 
+ Strike            | Right Superman Punch                               | Both Standing Striking Range   | 141 | 
+ Strike            | Right Uppercut                                     | Both Standing Striking Range   | 142 | 
+ Strike            | Shogun's Stepping Left Hook                        | Both Standing Striking Range   | 143 | 
+ Strike            | Stepping Heavy Jab                                 | Both Standing Striking Range   | 146 | 
+ Strike            | Stepping Over Left Hook                            | Both Standing Striking Range   | 147 | 
+ Strike            | Stepping Right Undercut                            | Both Standing Striking Range   | 148 | 
+ Strike            | Stepping Right Uppercut                            | Both Standing Striking Range   | 149 | 
+ Strike            | Weaving Overhand Right                             | Both Standing Striking Range   | 156 | 

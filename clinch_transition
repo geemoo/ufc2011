@@ -1,0 +1,12 @@
+       type        |                        move                        |            position            | id  | combo_list 
+-------------------+----------------------------------------------------+--------------------------------+-----+------------
+ Clinch Transition | Pummel to Double Underhook Defense                 | Back Clinch Defense            |   3 | tuc, tdcc
+ Clinch Transition | Left Turn Off to Double Underhook Defense          | Double Underhook Cage Defense  | 165 | Tuc, Tdcc
+ Clinch Transition | Clinch to Body Lock Cage Offense                   | Double Underhook Cage Offense  | 166 | lb tuc, lb tdcc
+ Clinch Transition | Pummel to Double Underhook Offense                 | Double Underhook Defense       | 170 | lb tuc, lb tdcc
+ Clinch Transition | Pummel to Single Collar Tie                        | Double Underhook Defense       | 171 | Tuc, Tdcc
+ Clinch Transition | Clinch to Body Lock Offense                        | Double Underhook Offense       | 172 | #lb tuc, lb tdcc
+ Clinch Transition | Pummel to Muay Thai Clinch Offense                 | Muay Thai Clinch Defense       | 218 | lb tuc, lb tdcc
+ Clinch Transition | Pummel to Over/Under Hook                          | Muay Thai Clinch Defense       | 219 | Tuc, Tdcc
+ Clinch Transition | Pummel to Double Underhook Cage Offense            | Over/Under Hook Cage Offense   | 257 | tuc, tdcc
+ Clinch Transition | Pummel to Double Underhook Offense                 | Over/Under Hook Offense        | 261 | tuc, tdcc
