@@ -12,7 +12,7 @@ SET escape_string_warning = off;
 SET search_path = public, pg_catalog;
 
 --
--- Name: contract; Type: TYPE; Schema: public; Owner: jean
+-- Name: contract; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE contract AS ENUM (
@@ -23,10 +23,8 @@ CREATE TYPE contract AS ENUM (
 );
 
 
-ALTER TYPE public.contract OWNER TO jean;
-
 --
--- Name: focusgroup; Type: TYPE; Schema: public; Owner: jean
+-- Name: focusgroup; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE focusgroup AS ENUM (
@@ -38,10 +36,8 @@ CREATE TYPE focusgroup AS ENUM (
 );
 
 
-ALTER TYPE public.focusgroup OWNER TO jean;
-
 --
--- Name: move_type; Type: TYPE; Schema: public; Owner: jean
+-- Name: move_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE move_type AS ENUM (
@@ -52,10 +48,8 @@ CREATE TYPE move_type AS ENUM (
 );
 
 
-ALTER TYPE public.move_type OWNER TO jean;
-
 --
--- Name: technique_type; Type: TYPE; Schema: public; Owner: jean
+-- Name: technique_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE technique_type AS ENUM (
@@ -70,10 +64,8 @@ CREATE TYPE technique_type AS ENUM (
 );
 
 
-ALTER TYPE public.technique_type OWNER TO jean;
-
 --
--- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: jean
+-- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) RETURNS record
@@ -81,14 +73,12 @@ CREATE FUNCTION move_search(character varying, OUT start_position character vary
     AS $_$ select start_position, move, camp from position_move_camp_view where move like $1 $_$;
 
 
-ALTER FUNCTION public.move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) OWNER TO jean;
-
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: buttons; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: buttons; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE buttons (
@@ -98,10 +88,8 @@ CREATE TABLE buttons (
 );
 
 
-ALTER TABLE public.buttons OWNER TO jean;
-
 --
--- Name: buttons_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
+-- Name: buttons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE buttons_id_seq
@@ -112,24 +100,22 @@ CREATE SEQUENCE buttons_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.buttons_id_seq OWNER TO jean;
-
 --
--- Name: buttons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+-- Name: buttons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE buttons_id_seq OWNED BY buttons.id;
 
 
 --
--- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+-- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('buttons_id_seq', 32, true);
 
 
 --
--- Name: camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: camps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE camps (
@@ -138,10 +124,8 @@ CREATE TABLE camps (
 );
 
 
-ALTER TABLE public.camps OWNER TO jean;
-
 --
--- Name: combo; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: combo; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE combo (
@@ -151,10 +135,8 @@ CREATE TABLE combo (
 );
 
 
-ALTER TABLE public.combo OWNER TO jean;
-
 --
--- Name: combo_seq_seq; Type: SEQUENCE; Schema: public; Owner: jean
+-- Name: combo_seq_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE combo_seq_seq
@@ -165,24 +147,22 @@ CREATE SEQUENCE combo_seq_seq
     CACHE 1;
 
 
-ALTER TABLE public.combo_seq_seq OWNER TO jean;
-
 --
--- Name: combo_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+-- Name: combo_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE combo_seq_seq OWNED BY combo.seq;
 
 
 --
--- Name: combo_seq_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+-- Name: combo_seq_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('combo_seq_seq', 1, false);
 
 
 --
--- Name: country; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: country; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE country (
@@ -191,10 +171,8 @@ CREATE TABLE country (
 );
 
 
-ALTER TABLE public.country OWNER TO jean;
-
 --
--- Name: country_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
+-- Name: country_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE country_id_seq
@@ -205,24 +183,22 @@ CREATE SEQUENCE country_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.country_id_seq OWNER TO jean;
-
 --
--- Name: country_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+-- Name: country_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE country_id_seq OWNED BY country.id;
 
 
 --
--- Name: country_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+-- Name: country_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('country_id_seq', 29, true);
 
 
 --
--- Name: fighter_camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighter_camps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fighter_camps (
@@ -231,10 +207,8 @@ CREATE TABLE fighter_camps (
 );
 
 
-ALTER TABLE public.fighter_camps OWNER TO jean;
-
 --
--- Name: fighter_moves; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighter_moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fighter_moves (
@@ -246,10 +220,8 @@ CREATE TABLE fighter_moves (
 );
 
 
-ALTER TABLE public.fighter_moves OWNER TO jean;
-
 --
--- Name: fightercontract; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fightercontract; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fightercontract (
@@ -258,10 +230,8 @@ CREATE TABLE fightercontract (
 );
 
 
-ALTER TABLE public.fightercontract OWNER TO jean;
-
 --
--- Name: fightercountry; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fightercountry; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fightercountry (
@@ -270,10 +240,8 @@ CREATE TABLE fightercountry (
 );
 
 
-ALTER TABLE public.fightercountry OWNER TO jean;
-
 --
--- Name: fighternickname; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighternickname; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fighternickname (
@@ -282,10 +250,8 @@ CREATE TABLE fighternickname (
 );
 
 
-ALTER TABLE public.fighternickname OWNER TO jean;
-
 --
--- Name: fighterrating; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighterrating; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fighterrating (
@@ -295,10 +261,8 @@ CREATE TABLE fighterrating (
 );
 
 
-ALTER TABLE public.fighterrating OWNER TO jean;
-
 --
--- Name: fighterrecords; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighterrecords; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fighterrecords (
@@ -307,10 +271,8 @@ CREATE TABLE fighterrecords (
 );
 
 
-ALTER TABLE public.fighterrecords OWNER TO jean;
-
 --
--- Name: fighters; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighters; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fighters (
@@ -321,10 +283,8 @@ CREATE TABLE fighters (
 );
 
 
-ALTER TABLE public.fighters OWNER TO jean;
-
 --
--- Name: fightersource; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: fightersource; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fightersource (
@@ -333,10 +293,8 @@ CREATE TABLE fightersource (
 );
 
 
-ALTER TABLE public.fightersource OWNER TO jean;
-
 --
--- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: weightclass; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE weightclass (
@@ -346,20 +304,16 @@ CREATE TABLE weightclass (
 );
 
 
-ALTER TABLE public.weightclass OWNER TO jean;
-
 --
--- Name: fighter_view; Type: VIEW; Schema: public; Owner: jean
+-- Name: fighter_view; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW fighter_view AS
     WITH i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.id, fighters.name, weightclass.name AS weightclass, i.datum AS camp, fightercontract.contract, fighterrating.rating, fightersource.source, weightclass.lbs AS weight, fighterrecords.record, fighternickname.nickname, country.name AS country FROM (((((((((fighters LEFT JOIN i ON ((fighters.id = i._grouping))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) LEFT JOIN fightercontract ON ((fighters.id = fightercontract.id))) LEFT JOIN fighterrecords ON ((fighters.id = fighterrecords.id))) LEFT JOIN fighternickname ON ((fighters.id = fighternickname.id))) LEFT JOIN fighterrating ON ((fighters.id = fighterrating.id))) LEFT JOIN fightercountry ON ((fighters.id = fightercountry.id))) LEFT JOIN fightersource ON ((fighters.source_id = fightersource.id))) LEFT JOIN country ON ((fightercountry.country = country.id)));
 
 
-ALTER TABLE public.fighter_view OWNER TO jean;
-
 --
--- Name: fighters_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
+-- Name: fighters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE fighters_id_seq
@@ -370,24 +324,22 @@ CREATE SEQUENCE fighters_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.fighters_id_seq OWNER TO jean;
-
 --
--- Name: fighters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+-- Name: fighters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE fighters_id_seq OWNED BY fighters.id;
 
 
 --
--- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+-- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('fighters_id_seq', 346, true);
 
 
 --
--- Name: fightersource_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
+-- Name: fightersource_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE fightersource_id_seq
@@ -398,24 +350,22 @@ CREATE SEQUENCE fightersource_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.fightersource_id_seq OWNER TO jean;
-
 --
--- Name: fightersource_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+-- Name: fightersource_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE fightersource_id_seq OWNED BY fightersource.id;
 
 
 --
--- Name: fightersource_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+-- Name: fightersource_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('fightersource_id_seq', 5, true);
 
 
 --
--- Name: move_move_requirements; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: move_move_requirements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE move_move_requirements (
@@ -424,10 +374,8 @@ CREATE TABLE move_move_requirements (
 );
 
 
-ALTER TABLE public.move_move_requirements OWNER TO jean;
-
 --
--- Name: move_skill_requirements; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: move_skill_requirements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE move_skill_requirements (
@@ -438,10 +386,8 @@ CREATE TABLE move_skill_requirements (
 );
 
 
-ALTER TABLE public.move_skill_requirements OWNER TO jean;
-
 --
--- Name: moves; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE moves (
@@ -451,10 +397,8 @@ CREATE TABLE moves (
 );
 
 
-ALTER TABLE public.moves OWNER TO jean;
-
 --
--- Name: moves_camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: moves_camps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE moves_camps (
@@ -463,10 +407,8 @@ CREATE TABLE moves_camps (
 );
 
 
-ALTER TABLE public.moves_camps OWNER TO jean;
-
 --
--- Name: positions; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: positions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE positions (
@@ -475,10 +417,8 @@ CREATE TABLE positions (
 );
 
 
-ALTER TABLE public.positions OWNER TO jean;
-
 --
--- Name: positions_moves; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: positions_moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE positions_moves (
@@ -488,10 +428,8 @@ CREATE TABLE positions_moves (
 );
 
 
-ALTER TABLE public.positions_moves OWNER TO jean;
-
 --
--- Name: skills; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: skills; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE skills (
@@ -500,40 +438,32 @@ CREATE TABLE skills (
 );
 
 
-ALTER TABLE public.skills OWNER TO jean;
-
 --
--- Name: position_move_camp_view; Type: VIEW; Schema: public; Owner: jean
+-- Name: position_move_camp_view; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW position_move_camp_view AS
     WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), h(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT combo.button_id, buttons.abbr FROM (combo JOIN buttons ON ((combo.button_id = buttons.id))) ORDER BY combo.seq) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.name AS move, h.datum AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisite_moves, i.datum AS prerequisite_skills FROM (((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN h ON ((moves.id = h._grouping))) ORDER BY a.id, moves.id, x._length;
 
 
-ALTER TABLE public.position_move_camp_view OWNER TO jean;
-
 --
--- Name: position_moves_view; Type: VIEW; Schema: public; Owner: jean
+-- Name: position_moves_view; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW position_moves_view AS
     WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
 
 
-ALTER TABLE public.position_moves_view OWNER TO jean;
-
 --
--- Name: reverse_position_moves_view; Type: VIEW; Schema: public; Owner: jean
+-- Name: reverse_position_moves_view; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW reverse_position_moves_view AS
     WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.end_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
 
 
-ALTER TABLE public.reverse_position_moves_view OWNER TO jean;
-
 --
--- Name: skill_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
+-- Name: skill_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE skill_id_seq
@@ -544,24 +474,22 @@ CREATE SEQUENCE skill_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.skill_id_seq OWNER TO jean;
-
 --
--- Name: skill_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
+-- Name: skill_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE skill_id_seq OWNED BY skills.id;
 
 
 --
--- Name: skill_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
+-- Name: skill_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('skill_id_seq', 16, true);
 
 
 --
--- Name: skillfocii; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
+-- Name: skillfocii; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE skillfocii (
@@ -570,62 +498,58 @@ CREATE TABLE skillfocii (
 );
 
 
-ALTER TABLE public.skillfocii OWNER TO jean;
-
 --
--- Name: transition_moves_view; Type: VIEW; Schema: public; Owner: jean
+-- Name: transition_moves_view; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW transition_moves_view AS
     WITH z(start_position, end_position, _length, moves) AS (WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text <> (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))) SELECT x.start_position, x.end_position, x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))), c(start_position, end_position, _length, moves) AS (WITH RECURSIVE a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text = (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT a.start_position, a.end_position, a._length, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number))) SELECT z.start_position, z.end_position, z._length AS move_count, z.moves FROM z UNION SELECT c.start_position, c.end_position, c._length AS move_count, c.moves FROM c ORDER BY 1, 2, 3;
 
 
-ALTER TABLE public.transition_moves_view OWNER TO jean;
-
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: jean
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE buttons ALTER COLUMN id SET DEFAULT nextval('buttons_id_seq'::regclass);
 
 
 --
--- Name: seq; Type: DEFAULT; Schema: public; Owner: jean
+-- Name: seq; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE combo ALTER COLUMN seq SET DEFAULT nextval('combo_seq_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: jean
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE country ALTER COLUMN id SET DEFAULT nextval('country_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: jean
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE fighters ALTER COLUMN id SET DEFAULT nextval('fighters_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: jean
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE fightersource ALTER COLUMN id SET DEFAULT nextval('fightersource_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: jean
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE skills ALTER COLUMN id SET DEFAULT nextval('skill_id_seq'::regclass);
 
 
 --
--- Data for Name: buttons; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: buttons; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY buttons (id, abbr, name) FROM stdin;
@@ -665,7 +589,7 @@ COPY buttons (id, abbr, name) FROM stdin;
 
 
 --
--- Data for Name: camps; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: camps; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY camps (id, name) FROM stdin;
@@ -700,7 +624,7 @@ COPY camps (id, name) FROM stdin;
 
 
 --
--- Data for Name: combo; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: combo; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY combo (move_id, button_id, seq) FROM stdin;
@@ -708,7 +632,7 @@ COPY combo (move_id, button_id, seq) FROM stdin;
 
 
 --
--- Data for Name: country; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: country; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY country (id, name) FROM stdin;
@@ -745,7 +669,7 @@ COPY country (id, name) FROM stdin;
 
 
 --
--- Data for Name: fighter_camps; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fighter_camps; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fighter_camps (fighter_id, camp_id) FROM stdin;
@@ -870,7 +794,7 @@ COPY fighter_camps (fighter_id, camp_id) FROM stdin;
 
 
 --
--- Data for Name: fighter_moves; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fighter_moves; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fighter_moves (fighter_id, move_id, level) FROM stdin;
@@ -878,7 +802,7 @@ COPY fighter_moves (fighter_id, move_id, level) FROM stdin;
 
 
 --
--- Data for Name: fightercontract; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fightercontract; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fightercontract (id, contract) FROM stdin;
@@ -1035,7 +959,7 @@ COPY fightercontract (id, contract) FROM stdin;
 
 
 --
--- Data for Name: fightercountry; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fightercountry; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fightercountry (id, country) FROM stdin;
@@ -1312,7 +1236,7 @@ COPY fightercountry (id, country) FROM stdin;
 
 
 --
--- Data for Name: fighternickname; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fighternickname; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fighternickname (id, nickname) FROM stdin;
@@ -1526,7 +1450,7 @@ COPY fighternickname (id, nickname) FROM stdin;
 
 
 --
--- Data for Name: fighterrating; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fighterrating; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fighterrating (id, rating) FROM stdin;
@@ -1634,7 +1558,7 @@ COPY fighterrating (id, rating) FROM stdin;
 
 
 --
--- Data for Name: fighterrecords; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fighterrecords; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fighterrecords (id, record) FROM stdin;
@@ -1910,7 +1834,7 @@ COPY fighterrecords (id, record) FROM stdin;
 
 
 --
--- Data for Name: fighters; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fighters; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fighters (id, name, weightclass, source_id) FROM stdin;
@@ -2264,7 +2188,7 @@ COPY fighters (id, name, weightclass, source_id) FROM stdin;
 
 
 --
--- Data for Name: fightersource; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: fightersource; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY fightersource (id, source) FROM stdin;
@@ -2275,7 +2199,7 @@ COPY fightersource (id, source) FROM stdin;
 
 
 --
--- Data for Name: move_move_requirements; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: move_move_requirements; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY move_move_requirements (move_id, req_move_id) FROM stdin;
@@ -2325,7 +2249,7 @@ COPY move_move_requirements (move_id, req_move_id) FROM stdin;
 
 
 --
--- Data for Name: move_skill_requirements; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: move_skill_requirements; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
@@ -2347,7 +2271,7 @@ COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
 
 
 --
--- Data for Name: moves; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: moves; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY moves (id, name, type) FROM stdin;
@@ -2671,7 +2595,7 @@ COPY moves (id, name, type) FROM stdin;
 
 
 --
--- Data for Name: moves_camps; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: moves_camps; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY moves_camps (move_id, camp_id) FROM stdin;
@@ -3765,7 +3689,7 @@ COPY moves_camps (move_id, camp_id) FROM stdin;
 
 
 --
--- Data for Name: positions; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: positions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY positions (id, name) FROM stdin;
@@ -3832,7 +3756,7 @@ COPY positions (id, name) FROM stdin;
 
 
 --
--- Data for Name: positions_moves; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: positions_moves; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
@@ -4156,7 +4080,7 @@ COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
 
 
 --
--- Data for Name: skillfocii; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: skillfocii; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY skillfocii (skill_id, focus) FROM stdin;
@@ -4182,7 +4106,7 @@ COPY skillfocii (skill_id, focus) FROM stdin;
 
 
 --
--- Data for Name: skills; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: skills; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY skills (id, name) FROM stdin;
@@ -4206,7 +4130,7 @@ COPY skills (id, name) FROM stdin;
 
 
 --
--- Data for Name: weightclass; Type: TABLE DATA; Schema: public; Owner: jean
+-- Data for Name: weightclass; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY weightclass (id, name, lbs) FROM stdin;
@@ -4221,7 +4145,7 @@ COPY weightclass (id, name, lbs) FROM stdin;
 
 
 --
--- Name: abbr_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: abbr_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY buttons
@@ -4229,7 +4153,7 @@ ALTER TABLE ONLY buttons
 
 
 --
--- Name: buttons_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: buttons_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY buttons
@@ -4237,7 +4161,7 @@ ALTER TABLE ONLY buttons
 
 
 --
--- Name: camps_name_key; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: camps_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY camps
@@ -4245,7 +4169,7 @@ ALTER TABLE ONLY camps
 
 
 --
--- Name: camps_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: camps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY camps
@@ -4253,7 +4177,7 @@ ALTER TABLE ONLY camps
 
 
 --
--- Name: combo_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: combo_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY combo
@@ -4261,7 +4185,7 @@ ALTER TABLE ONLY combo
 
 
 --
--- Name: country_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: country_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY country
@@ -4269,7 +4193,7 @@ ALTER TABLE ONLY country
 
 
 --
--- Name: fighter_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighter_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fighter_camps
@@ -4277,7 +4201,7 @@ ALTER TABLE ONLY fighter_camps
 
 
 --
--- Name: fighter_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighter_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fighter_moves
@@ -4285,7 +4209,7 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
--- Name: fightercontract_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fightercontract_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fightercontract
@@ -4293,7 +4217,7 @@ ALTER TABLE ONLY fightercontract
 
 
 --
--- Name: fightercountry_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fightercountry_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fightercountry
@@ -4301,7 +4225,7 @@ ALTER TABLE ONLY fightercountry
 
 
 --
--- Name: fighternickname_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighternickname_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fighternickname
@@ -4309,7 +4233,7 @@ ALTER TABLE ONLY fighternickname
 
 
 --
--- Name: fighterrating_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighterrating_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fighterrating
@@ -4317,7 +4241,7 @@ ALTER TABLE ONLY fighterrating
 
 
 --
--- Name: fighterrecords_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighterrecords_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fighterrecords
@@ -4325,7 +4249,7 @@ ALTER TABLE ONLY fighterrecords
 
 
 --
--- Name: fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fighters
@@ -4333,7 +4257,7 @@ ALTER TABLE ONLY fighters
 
 
 --
--- Name: fightersource_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: fightersource_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fightersource
@@ -4341,7 +4265,7 @@ ALTER TABLE ONLY fightersource
 
 
 --
--- Name: move_move_requirements_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: move_move_requirements_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY move_move_requirements
@@ -4349,7 +4273,7 @@ ALTER TABLE ONLY move_move_requirements
 
 
 --
--- Name: moves_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: moves_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY moves_camps
@@ -4357,7 +4281,7 @@ ALTER TABLE ONLY moves_camps
 
 
 --
--- Name: moves_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: moves_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY moves
@@ -4365,7 +4289,7 @@ ALTER TABLE ONLY moves
 
 
 --
--- Name: name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: name_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY country
@@ -4373,7 +4297,7 @@ ALTER TABLE ONLY country
 
 
 --
--- Name: positions_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: positions_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY positions_moves
@@ -4381,7 +4305,7 @@ ALTER TABLE ONLY positions_moves
 
 
 --
--- Name: positions_name_key; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: positions_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY positions
@@ -4389,7 +4313,7 @@ ALTER TABLE ONLY positions
 
 
 --
--- Name: positions_name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: positions_name_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY positions
@@ -4397,7 +4321,7 @@ ALTER TABLE ONLY positions
 
 
 --
--- Name: positions_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: positions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY positions
@@ -4405,7 +4329,7 @@ ALTER TABLE ONLY positions
 
 
 --
--- Name: skillfocii_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: skillfocii_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY skillfocii
@@ -4413,7 +4337,7 @@ ALTER TABLE ONLY skillfocii
 
 
 --
--- Name: skills_name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: skills_name_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY skills
@@ -4421,7 +4345,7 @@ ALTER TABLE ONLY skills
 
 
 --
--- Name: skills_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: skills_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY skills
@@ -4429,7 +4353,7 @@ ALTER TABLE ONLY skills
 
 
 --
--- Name: source_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: source_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fightersource
@@ -4437,7 +4361,7 @@ ALTER TABLE ONLY fightersource
 
 
 --
--- Name: unique_name; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: unique_name; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY fighters
@@ -4445,7 +4369,7 @@ ALTER TABLE ONLY fighters
 
 
 --
--- Name: weight_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: weight_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY weightclass
@@ -4453,7 +4377,7 @@ ALTER TABLE ONLY weightclass
 
 
 --
--- Name: weightclass_name_key; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: weightclass_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY weightclass
@@ -4461,7 +4385,7 @@ ALTER TABLE ONLY weightclass
 
 
 --
--- Name: weightclass_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
+-- Name: weightclass_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY weightclass
@@ -4469,7 +4393,7 @@ ALTER TABLE ONLY weightclass
 
 
 --
--- Name: button_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: button_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY combo
@@ -4477,7 +4401,7 @@ ALTER TABLE ONLY combo
 
 
 --
--- Name: camp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: camp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighter_camps
@@ -4485,7 +4409,7 @@ ALTER TABLE ONLY fighter_camps
 
 
 --
--- Name: end_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: end_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY positions_moves
@@ -4493,7 +4417,7 @@ ALTER TABLE ONLY positions_moves
 
 
 --
--- Name: fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighter_camps
@@ -4501,7 +4425,7 @@ ALTER TABLE ONLY fighter_camps
 
 
 --
--- Name: fighter_moves_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fighter_moves_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighter_moves
@@ -4509,7 +4433,7 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
--- Name: fightercontract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fightercontract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fightercontract
@@ -4517,7 +4441,7 @@ ALTER TABLE ONLY fightercontract
 
 
 --
--- Name: fightercountry_country_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fightercountry_country_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fightercountry
@@ -4525,7 +4449,7 @@ ALTER TABLE ONLY fightercountry
 
 
 --
--- Name: fightercountry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fightercountry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fightercountry
@@ -4533,7 +4457,7 @@ ALTER TABLE ONLY fightercountry
 
 
 --
--- Name: fighternickname_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fighternickname_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighternickname
@@ -4541,7 +4465,7 @@ ALTER TABLE ONLY fighternickname
 
 
 --
--- Name: fighterrating_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fighterrating_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighterrating
@@ -4549,7 +4473,7 @@ ALTER TABLE ONLY fighterrating
 
 
 --
--- Name: fighterrecords_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fighterrecords_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighterrecords
@@ -4557,7 +4481,7 @@ ALTER TABLE ONLY fighterrecords
 
 
 --
--- Name: fighters_source_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: fighters_source_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighters
@@ -4565,7 +4489,7 @@ ALTER TABLE ONLY fighters
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY move_skill_requirements
@@ -4573,7 +4497,7 @@ ALTER TABLE ONLY move_skill_requirements
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY move_move_requirements
@@ -4581,7 +4505,7 @@ ALTER TABLE ONLY move_move_requirements
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY combo
@@ -4589,7 +4513,7 @@ ALTER TABLE ONLY combo
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighter_moves
@@ -4597,7 +4521,7 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
--- Name: position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY positions_moves
@@ -4605,7 +4529,7 @@ ALTER TABLE ONLY positions_moves
 
 
 --
--- Name: req_move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: req_move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY move_move_requirements
@@ -4613,7 +4537,7 @@ ALTER TABLE ONLY move_move_requirements
 
 
 --
--- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY skillfocii
@@ -4621,7 +4545,7 @@ ALTER TABLE ONLY skillfocii
 
 
 --
--- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY move_skill_requirements
@@ -4629,7 +4553,7 @@ ALTER TABLE ONLY move_skill_requirements
 
 
 --
--- Name: valid_camp; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: valid_camp; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY moves_camps
@@ -4637,7 +4561,7 @@ ALTER TABLE ONLY moves_camps
 
 
 --
--- Name: valid_move; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: valid_move; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY moves_camps
@@ -4645,7 +4569,7 @@ ALTER TABLE ONLY moves_camps
 
 
 --
--- Name: valid_move; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: valid_move; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY positions_moves
@@ -4653,7 +4577,7 @@ ALTER TABLE ONLY positions_moves
 
 
 --
--- Name: valid_weightclass; Type: FK CONSTRAINT; Schema: public; Owner: jean
+-- Name: valid_weightclass; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighters
@@ -4661,7 +4585,7 @@ ALTER TABLE ONLY fighters
 
 
 --
--- Name: public; Type: ACL; Schema: -; Owner: postgres
+-- Name: public; Type: ACL; Schema: -; Owner: -
 --
 
 REVOKE ALL ON SCHEMA public FROM PUBLIC;
