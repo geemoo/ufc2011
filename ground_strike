@@ -1,25 +1,25 @@
        type        |                        move                        |            position            | id  | combo_list 
 -------------------+----------------------------------------------------+--------------------------------+-----+------------
- Ground Strike     | Strong Right Hook                                  | Back Mount Face Up Top         |  12 | 
- Ground Strike     | Strong Hook                                        | Back Mount Top                 |  19 | 
- Ground Strike     | Strong Hook                                        | Back Side Control Top          |  28 | 
- Ground Strike     | Strong Knee to Abdomen                             | Back Side Control Top          |  29 | 
- Ground Strike     | Elbow                                              | Half Guard Top                 | 193 | 
- Ground Strike     | Hammer Fist                                        | Half Guard Top                 | 194 | 
- Ground Strike     | Strong Hook                                        | Half Guard Top                 | 198 | 
- Ground Strike     | Ground Buster from Mount Down Top                  | Mount Down Top                 | 209 | 
- Ground Strike     | Elbow                                              | Mount Top                      | 214 | 
- Ground Strike     | Strong Hook                                        | Mount Top                      | 215 | 
- Ground Strike     | Elbow                                              | Open Guard Top                 | 248 | 
- Ground Strike     | Strong Hook                                        | Open Guard Top                 | 251 | 
- Ground Strike     | Elbow                                              | Sallaverry Top                 | 270 | 
- Ground Strike     | Elbow                                              | Side Control Top               | 281 | 
- Ground Strike     | Strong Left Knee to Abdomen                        | Side Control Top               | 283 | 
- Ground Strike     | Strong Right Knee to Abdomen                       | Side Control Top               | 284 | 
- Ground Strike     | Strong Hook                                        | Sprawl Top                     | 305 | 
- Ground Strike     | Left Superman Punch                                | Up/Down Far Top                | 307 | 
- Ground Strike     | Right Superman Punch                               | Up/Down Far Top                | 308 | 
- Ground Strike     | Up-Kick                                            | Up/Down Near Bottom            | 310 | 
- Ground Strike     | Left Axe Kick to Body                              | Up/Down Near Top               | 314 | 
- Ground Strike     | Left Superman Punch                                | Up/Down Near Top               | 315 | 
- Ground Strike     | Right Superman Punch                               | Up/Down Near Top               | 316 | 
+ Ground Strike     | Strong Right Hook                                  | Back Mount Face Up Top         |  12 | ls lb y
+ Ground Strike     | Strong Hook                                        | Back Mount Top                 |  19 | ls lb x, ls lb y
+ Ground Strike     | Strong Hook                                        | Back Side Control Top          |  28 | ls lb x, ls lb y
+ Ground Strike     | Strong Knee to Abdomen                             | Back Side Control Top          |  29 | ls lb a, ls lb b
+ Ground Strike     | Elbow                                              | Half Guard Top                 | 193 | lb x, lb y
+ Ground Strike     | Hammer Fist                                        | Half Guard Top                 | 194 | lb x, lb y
+ Ground Strike     | Strong Hook                                        | Half Guard Top                 | 198 | ls lb x, ls lb y
+ Ground Strike     | Ground Buster from Mount Down Top                  | Mount Down Top                 | 209 | lb muc, lb mdcc
+ Ground Strike     | Elbow                                              | Mount Top                      | 214 | lb x, lb y
+ Ground Strike     | Strong Hook                                        | Mount Top                      | 215 | ls lb x, ls lb y
+ Ground Strike     | Elbow                                              | Open Guard Top                 | 248 | lb x, lb y
+ Ground Strike     | Strong Hook                                        | Open Guard Top                 | 251 | ls lb x, ls lb y
+ Ground Strike     | Elbow                                              | Sallaverry Top                 | 270 | lb x
+ Ground Strike     | Elbow                                              | Side Control Top               | 281 | ls lb x
+ Ground Strike     | Strong Left Knee to Abdomen                        | Side Control Top               | 283 | ls lb a
+ Ground Strike     | Strong Right Knee to Abdomen                       | Side Control Top               | 284 | ls lb b
+ Ground Strike     | Strong Hook                                        | Sprawl Top                     | 305 | ls lb x, ls lb y
+ Ground Strike     | Left Superman Punch                                | Up/Down Far Top                | 307 | lb x
+ Ground Strike     | Right Superman Punch                               | Up/Down Far Top                | 308 | lb y
+ Ground Strike     | Up-Kick                                            | Up/Down Near Bottom            | 310 | lb a, lb b
+ Ground Strike     | Left Axe Kick to Body                              | Up/Down Near Top               | 314 | lb a
+ Ground Strike     | Left Superman Punch                                | Up/Down Near Top               | 315 | rfl x, rfu x, rfd x, rfr x
+ Ground Strike     | Right Superman Punch                               | Up/Down Near Top               | 316 | rfl y, rfu y, rfd y, rfr y

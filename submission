@@ -1,28 +1,28 @@
        type        |                        move                        |            position            | id  | combo_list 
 -------------------+----------------------------------------------------+--------------------------------+-----+------------
  Submission        | Armbar from Back Mount Face Up Top                 | Back Mount Face Up Top         |  10 | ls lb rsb
- Submission        | Arm Trap Rear Naked Choke                          | Back Mount Face Up Top         |   9 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Mount Face Up Top         |   9 | lb rsb
  Submission        | Rear Naked Choke                                   | Back Mount Face Up Top         |  11 | rsb
  Submission        | Rear Naked Choke from Back Mount Rocked            | Back Mount Rocked Top          |  15 | rsb
  Submission        | Armbar from Back Mount Top                         | Back Mount Top                 |  17 | rsb
- Submission        | Arm Trap Rear Naked Choke                          | Back Mount Top                 |  16 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Mount Top                 |  16 | lb rsb
  Submission        | Rear Naked Choke Facing Downward                   | Back Mount Top                 |  18 | rsb
- Submission        | Arm Trap Rear Naked Choke                          | Back Side Control Rocked Top   |  22 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Side Control Rocked Top   |  22 | lb rsb
  Submission        | Rear Naked Choke                                   | Back Side Control Rocked Top   |  23 | rsb
  Submission        | Armbar from Back Side Control Top                  | Back Side Control Top          |  25 | lb rsb
- Submission        | Arm Trap Rear Naked Choke                          | Back Side Control Top          |  24 | 
+ Submission        | Arm Trap Rear Naked Choke                          | Back Side Control Top          |  24 | ls lb rsb
  Submission        | Peruvian Neck Tie                                  | Back Side Control Top          |  26 | ls lb rsb
  Submission        | Rear Naked Choke                                   | Back Side Control Top          |  27 | rsb
  Submission        | Gogoplata from Butterfly Guard                     | Butterfly Guard Bottom         | 157 | lb rsb
- Submission        | Triangle Choke from Butterfly Guard                | Butterfly Guard Bottom         | 160 | 
- Submission        | Strike Catch to Armbar                             | Half Guard Bottom              | 175 | 
+ Submission        | Triangle Choke from Butterfly Guard                | Butterfly Guard Bottom         | 160 | rsb
+ Submission        | Strike Catch to Armbar                             | Half Guard Bottom              | 175 | rsb
  Submission        | Strike Catch to Kimura                             | Half Guard Bottom              | 176 | rsb
  Submission        | Kimura                                             | Half Guard Down Bottom         | 181 | rsb
  Submission        | Americana from Half Guard Top                      | Half Guard Down Top            | 185 | lb rsb
  Submission        | Kimura from Half Guard Top                         | Half Guard Down Top            | 186 | rsb
- Submission        | Americana from Half Guard Rocked Top               | Half Guard Rocked Top          | 189 | 
+ Submission        | Americana from Half Guard Rocked Top               | Half Guard Rocked Top          | 189 | lb rsb
  Submission        | D'arce Choke                                       | Half Guard Rocked Top          | 190 | lb rsb
- Submission        | Kimura from Half Guard Top                         | Half Guard Rocked Top          | 191 | 
+ Submission        | Kimura from Half Guard Top                         | Half Guard Rocked Top          | 191 | rsb
  Submission        | Americana from Half Guard Top                      | Half Guard Top                 | 192 | lb rsb
  Submission        | Kimura from Half Guard Top                         | Half Guard Top                 | 195 | rsb
  Submission        | Kneebar from Half Guard Top                        | Half Guard Top                 | 196 | ls rsb
@@ -31,13 +31,13 @@
  Submission        | Armbar from Mount Rocked Top                       | Mount Rocked Top               | 211 | rsb
  Submission        | Armbar from Mount Top                              | Mount Top                      | 213 | ls rsb
  Submission        | Arm Triangle Choke from Mount Top                  | Mount Top                      | 212 | rsb
- Submission        | Armbar from North/South Top                        | North/South Top                | 227 | 
+ Submission        | Armbar from North/South Top                        | North/South Top                | 227 | ls rsb
  Submission        | North/South Choke from North/South Top             | North/South Top                | 228 | rsb
- Submission        | Strike Catch to Armbar                             | Open Guard Bottom              | 230 | 
+ Submission        | Strike Catch to Armbar                             | Open Guard Bottom              | 230 | rsb
  Submission        | Strike Catch to Kimura                             | Open Guard Bottom              | 231 | rsb
  Submission        | Strike Catch to Omoplata                           | Open Guard Bottom              | 232 | lb rsb
  Submission        | Strike Catch to Triangle Choke                     | Open Guard Bottom              | 233 | lb rsb
- Submission        | Kimura                                             | Open Guard Down Bottom         | 236 | 
+ Submission        | Kimura                                             | Open Guard Down Bottom         | 236 | rsb
  Submission        | Omoplata                                           | Open Guard Down Bottom         | 237 | lb rsb
  Submission        | Triangle Choke                                     | Open Guard Down Bottom         | 240 | lb rsb
  Submission        | Achilles Lock                                      | Open Guard Rocked Top          | 243 | rsb
@@ -51,16 +51,16 @@
  Submission        | Gogoplata from Rubber Guard Bottom                 | Rubber Guard Bottom            | 262 | lb rsb
  Submission        | Omoplata from Rubber Guard Bottom                  | Rubber Guard Bottom            | 263 | lb rsb
  Submission        | Triangle Choke from Rubber Guard Bottom            | Rubber Guard Bottom            | 264 | rsb
- Submission        | Armbar from Salaverry Top                          | Sallaverry Bottom              | 267 | 
- Submission        | Americana from Side Control Top                    | Sallaverry Top                 | 269 | 
+ Submission        | Armbar from Salaverry Top                          | Sallaverry Bottom              | 267 | rsb
+ Submission        | Americana from Side Control Top                    | Sallaverry Top                 | 269 | lb rsb
  Submission        | Americana from Side Control Top                    | Side Control Rocked Top        | 277 | lb rsb
  Submission        | Armbar from Side Control Rocked Top                | Side Control Rocked Top        | 278 | rsb
  Submission        | Americana from Side Control Top                    | Side Control Top               | 279 | lb rsb
  Submission        | Arm Triangle Choke                                 | Side Control Top               | 280 | ls rsb
- Submission        | Kimura from Side Control Top                       | Side Control Top               | 282 | 
- Submission        | Guillotine Choke from Sprawl Rocked                | Sprawl Rocked Top              | 301 | 
+ Submission        | Kimura from Side Control Top                       | Side Control Top               | 282 | rsb
+ Submission        | Guillotine Choke from Sprawl Rocked                | Sprawl Rocked Top              | 301 | rsb
  Submission        | Anaconda Choke from Sprawl Top                     | Sprawl Top                     | 302 | lb rsb
- Submission        | Guillotine Choke from Sprawl Top                   | Sprawl Top                     | 303 | 
+ Submission        | Guillotine Choke from Sprawl Top                   | Sprawl Top                     | 303 | rsb
  Submission        | Peruvian Neck Tie from Sprawl Top                  | Sprawl Top                     | 304 | ls lb rsb
  Submission        | Kneebar from Up/Down Near Bottom                   | Up/Down Near Bottom            | 309 | lb rsb
  Submission        | Achilles Lock from Up/Down Near Top                | Up/Down Near Top               | 311 | rsb
