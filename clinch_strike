@@ -1,18 +1,18 @@
        type        |                        move                        |            position            | id  | combo_list 
 -------------------+----------------------------------------------------+--------------------------------+-----+------------
- Clinch Strike     | Rear Leg Knee                                      | Muay Thai Clinch Cage Offense  | 216 | 
- Clinch Strike     | Strong Knee                                        | Muay Thai Clinch Cage Offense  | 217 | 
- Clinch Strike     | Arcing Elbow                                       | Muay Thai Clinch Offense       | 220 | 
- Clinch Strike     | Knee                                               | Muay Thai Clinch Offense       | 221 | 
- Clinch Strike     | Knee to Body                                       | Muay Thai Clinch Offense       | 222 | 
- Clinch Strike     | Rear Leg Knee                                      | Muay Thai Clinch Offense       | 224 | 
- Clinch Strike     | Strong Knee                                        | Muay Thai Clinch Offense       | 225 | 
- Clinch Strike     | Uppercut                                           | Muay Thai Clinch Offense       | 226 | 
- Clinch Strike     | Crushing Knee                                      | Single Collar Tie Cage Offense | 288 | 
- Clinch Strike     | Downward Arcing Elbow                              | Single Collar Tie Cage Offense | 289 | 
- Clinch Strike     | Strong Hook                                        | Single Collar Tie Cage Offense | 290 | 
- Clinch Strike     | Strong Knee to Abdomen                             | Single Collar Tie Cage Offense | 291 | 
- Clinch Strike     | Strong Uppercut                                    | Single Collar Tie Cage Offense | 292 | 
- Clinch Strike     | Uppercut to Body                                   | Single Collar Tie Cage Offense | 293 | 
- Clinch Strike     | Strong Hook                                        | Single Collar Tie Offense      | 295 | 
- Clinch Strike     | Uppercut                                           | Single Collar Tie Offense      | 296 | 
+ Clinch Strike     | Rear Leg Knee                                      | Muay Thai Clinch Cage Offense  | 216 | lb tuc a, lb tdcc a, lb tuc b, lb tdcc b
+ Clinch Strike     | Strong Knee                                        | Muay Thai Clinch Cage Offense  | 217 | lb a, lb b
+ Clinch Strike     | Arcing Elbow                                       | Muay Thai Clinch Offense       | 220 | lb x, lb y
+ Clinch Strike     | Knee                                               | Muay Thai Clinch Offense       | 221 | lb a, lb b
+ Clinch Strike     | Knee to Body                                       | Muay Thai Clinch Offense       | 222 | a, b
+ Clinch Strike     | Rear Leg Knee                                      | Muay Thai Clinch Offense       | 224 | lb tuc a, lb tdcc a, lb tuc b, lb tdcc b
+ Clinch Strike     | Strong Knee                                        | Muay Thai Clinch Offense       | 225 | lb a, lb b
+ Clinch Strike     | Uppercut                                           | Muay Thai Clinch Offense       | 226 | lb x, lb y
+ Clinch Strike     | Crushing Knee                                      | Single Collar Tie Cage Offense | 288 | lb a, lb b
+ Clinch Strike     | Downward Arcing Elbow                              | Single Collar Tie Cage Offense | 289 | lb x, lb y
+ Clinch Strike     | Strong Hook                                        | Single Collar Tie Cage Offense | 290 | lb y
+ Clinch Strike     | Strong Knee to Abdomen                             | Single Collar Tie Cage Offense | 291 | lb a, lb b
+ Clinch Strike     | Strong Uppercut                                    | Single Collar Tie Cage Offense | 292 | lb x, lb y
+ Clinch Strike     | Uppercut to Body                                   | Single Collar Tie Cage Offense | 293 | lt y
+ Clinch Strike     | Strong Hook                                        | Single Collar Tie Offense      | 295 | lb y
+ Clinch Strike     | Uppercut                                           | Single Collar Tie Offense      | 296 | lb y
