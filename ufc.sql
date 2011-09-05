@@ -111,7 +111,7 @@ ALTER SEQUENCE buttons_id_seq OWNED BY buttons.id;
 -- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('buttons_id_seq', 32, true);
+SELECT pg_catalog.setval('buttons_id_seq', 38, true);
 
 
 --
@@ -131,7 +131,8 @@ CREATE TABLE camps (
 CREATE TABLE combo (
     move_id integer NOT NULL,
     button_id integer NOT NULL,
-    seq integer NOT NULL
+    seq integer NOT NULL,
+    variant integer NOT NULL
 );
 
 
@@ -335,7 +336,7 @@ ALTER SEQUENCE fighters_id_seq OWNED BY fighters.id;
 -- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('fighters_id_seq', 346, true);
+SELECT pg_catalog.setval('fighters_id_seq', 347, true);
 
 
 --
@@ -585,6 +586,11 @@ COPY buttons (id, abbr, name) FROM stdin;
 30	Mdcc	Major Transition Down and Counter Clockwise
 31	Mdc	Major Transition Down and Clockwise
 32	Mucc	Major Transition Up and Counter Clockwise
+34	rsu	Right Stick Up
+35	rsd	Right Stick Down
+36	rsl	Right Stick Left
+37	rsr	Right Stick Right
+38	cage	Cage
 \.
 
 
@@ -627,7 +633,7 @@ COPY camps (id, name) FROM stdin;
 -- Data for Name: combo; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY combo (move_id, button_id, seq) FROM stdin;
+COPY combo (move_id, button_id, seq, variant) FROM stdin;
 \.
 
 
@@ -790,6 +796,7 @@ COPY fighter_camps (fighter_id, camp_id) FROM stdin;
 336	6
 336	16
 336	1
+347	21
 \.
 
 
@@ -1446,6 +1453,7 @@ COPY fighternickname (id, nickname) FROM stdin;
 56	The Answer
 148	Ace
 149	Suga
+347	The Hurricane
 \.
 
 
@@ -1839,6 +1847,7 @@ COPY fighterrecords (id, record) FROM stdin;
 
 COPY fighters (id, name, weightclass, source_id) FROM stdin;
 30	Kyle Noke	5	5
+347	Jorge Horvat	3	4
 46	Yves Edwards	3	5
 22	Rousimar Palhares	5	5
 29	Jorge Santiago	5	5
@@ -2254,7 +2263,6 @@ COPY move_move_requirements (move_id, req_move_id) FROM stdin;
 
 COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
 207	13	60
-210	13	60
 287	13	60
 157	15	70
 232	15	60
@@ -2277,7 +2285,6 @@ COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
 COPY moves (id, name, type) FROM stdin;
 3	Pummel to Double Underhook Defense	Clinch Transition
 207	Transition to Open Guard Down Top	Transition
-210	Transition to Open Guard Down Top	Transition
 158	Transition to Open Guard Down Bottom	Transition
 159	Transition to Up/Down Bottom	Transition
 161	Transition to Half Guard Down Top	Transition
@@ -3251,7 +3258,6 @@ COPY moves_camps (move_id, camp_id) FROM stdin;
 209	13
 209	16
 209	19
-210	1
 211	3
 211	6
 211	10
@@ -3684,7 +3690,8 @@ COPY moves_camps (move_id, camp_id) FROM stdin;
 317	16
 317	17
 317	18
-21	20
+207	1
+24	19
 \.
 
 
@@ -3839,7 +3846,6 @@ COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
 24	184	58
 27	200	30
 28	204	29
-30	210	39
 35	223	38
 36	229	30
 37	234	38
