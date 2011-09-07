@@ -9,6 +9,13 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 SET escape_string_warning = off;
 
+--
+-- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: -
+--
+
+CREATE PROCEDURAL LANGUAGE plpgsql;
+
+
 SET search_path = public, pg_catalog;
 
 --
@@ -64,15 +71,6 @@ CREATE TYPE technique_type AS ENUM (
 );
 
 
---
--- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) RETURNS record
-    LANGUAGE sql
-    AS $_$ select start_position, move, camp from position_move_camp_view where move like $1 $_$;
-
-
 SET default_tablespace = '';
 
 SET default_with_oids = false;
@@ -86,6 +84,70 @@ CREATE TABLE buttons (
     abbr character varying NOT NULL,
     name character varying NOT NULL
 );
+
+
+--
+-- Name: combo; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE combo (
+    move_id integer NOT NULL,
+    button_id integer NOT NULL,
+    seq integer NOT NULL,
+    variant integer NOT NULL
+);
+
+
+--
+-- Name: v_combo_buttons; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_combo_buttons AS
+    SELECT combo.seq, combo.move_id, combo.variant, buttons.abbr FROM (combo JOIN buttons ON ((combo.button_id = buttons.id)));
+
+
+--
+-- Name: f_combos(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION f_combos() RETURNS SETOF v_combo_buttons
+    LANGUAGE plpgsql STABLE
+    AS $$
+        DECLARE
+                my_move_id v_combo_buttons.move_id%TYPE := 0;
+                my_variant v_combo_buttons.variant%TYPE := 0;
+                my_combo v_combo_buttons.abbr%TYPE := '';
+                rec v_combo_buttons%ROWTYPE;
+        BEGIN
+                FOR rec IN SELECT * FROM v_combo_buttons ORDER BY seq 
+                LOOP
+                        IF my_move_id <> rec.move_id THEN
+                                RETURN QUERY SELECT rec.seq, my_move_id, my_variant, my_combo;
+                                my_move_id := rec.move_id;
+                                my_variant := rec.variant;
+                                my_combo := rec.abbr;
+                        ELSIF my_variant <> rec.variant THEN
+                                RETURN QUERY SELECT rec.seq, my_move_id, my_variant, my_combo;
+                                my_variant := rec.variant;
+                                my_combo := rec.abbr;
+                        ELSE
+                                my_combo := my_combo || ' + ' || rec.abbr;
+                        END IF;
+                END LOOP;
+
+                RETURN QUERY SELECT rec.seq, my_move_id, my_variant, my_combo;
+                RETURN;
+        END;
+$$;
+
+
+--
+-- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) RETURNS record
+    LANGUAGE sql
+    AS $_$ select start_position, move, camp from position_move_camp_view where move like $1 $_$;
 
 
 --
@@ -121,18 +183,6 @@ SELECT pg_catalog.setval('buttons_id_seq', 39, true);
 CREATE TABLE camps (
     id integer NOT NULL,
     name character varying NOT NULL
-);
-
-
---
--- Name: combo; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE combo (
-    move_id integer NOT NULL,
-    button_id integer NOT NULL,
-    seq integer NOT NULL,
-    variant integer NOT NULL
 );
 
 
@@ -440,11 +490,27 @@ CREATE TABLE skills (
 
 
 --
+-- Name: v_combos; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_combos AS
+    SELECT f_combos.seq, f_combos.move_id, f_combos.variant, f_combos.abbr FROM f_combos() f_combos(seq, move_id, variant, abbr) OFFSET 1;
+
+
+--
+-- Name: v_combos_aggregate; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_combos_aggregate AS
+    WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (SELECT v_combos.move_id, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, v_combos.abbr FROM v_combos WINDOW grouping_window AS (PARTITION BY v_combos.move_id)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping AS move_id, k.datum AS abbr FROM k WHERE ((k._count = k._length) AND (k._count = k._number));
+
+
+--
 -- Name: position_move_camp_view; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW position_move_camp_view AS
-    WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), h(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT combo.button_id, buttons.abbr FROM (combo JOIN buttons ON ((combo.button_id = buttons.id))) ORDER BY combo.seq) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.name AS move, h.datum AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisite_moves, i.datum AS prerequisite_skills FROM (((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN h ON ((moves.id = h._grouping))) ORDER BY a.id, moves.id, x._length;
+    WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.name AS move, v_combos_aggregate.abbr AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisite_moves, i.datum AS prerequisite_skills FROM (((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN v_combos_aggregate ON ((moves.id = v_combos_aggregate.move_id))) ORDER BY a.id, moves.id, x._length;
 
 
 --
