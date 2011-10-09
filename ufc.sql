@@ -142,38 +142,79 @@ $$;
 
 
 --
--- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_v_combos_aggregate_insert(integer, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE FUNCTION move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) RETURNS record
-    LANGUAGE sql
-    AS $_$ select start_position, move, camp from position_move_camp_view where move like $1 $_$;
+CREATE FUNCTION f_v_combos_aggregate_insert(move_id_ integer, move_ text) RETURNS void
+    LANGUAGE plpgsql STABLE
+    AS $$
+        DECLARE
+                abbreviation RECORD;
+                variant_ RECORD;
+                var INTEGER;
+        BEGIN
+                FOR variant_ IN SELECT regexp_split_to_table AS t FROM regexp_split_to_table(move_, E'[[:space:]]*,[[:space:]]*') LOOP
+                        var := COALESCE((SELECT max(variant) FROM combo WHERE move_id = move_id_ GROUP BY move_id), 1);
+                        FOR abbreviation IN SELECT regexp_split_to_table AS t FROM regexp_split_to_table(variant_.t, E'[[:space:]]*\+[[:space:]]*') LOOP
+                                INSERT INTO combo (move_id, button_id, variant) VALUES (
+                                        move_id_,
+                                        (SELECT id FROM buttons WHERE abbr = abbreviation.t),
+                                        var
+                                );
+                                var := var + 1;
+                        END LOOP;
+                END LOOP;
+        END;
+$$;
 
 
 --
--- Name: buttons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: f_v_fighter_camps_insert(integer, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE buttons_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
+CREATE FUNCTION f_v_fighter_camps_insert(fighter_id integer, camp_ text) RETURNS void
+    LANGUAGE plpgsql STABLE
+    AS $_$
+        DECLARE
+                rec RECORD;
+        BEGIN
+                FOR rec IN SELECT regexp_split_to_table AS camp FROM regexp_split_to_table(camp_, E',[[:space:]]*')
+                LOOP
+                        IF NOT EXISTS (SELECT id FROM camps WHERE name = rec.camp) THEN
+                                INSERT INTO camps (name) VALUES (rec.camp);
+                        END IF;
+                        IF NOT EXISTS (SELECT id FROM fighter_camps WHERE fighter_camps.fighter_id = $1 AND camp_id = (SELECT id FROM camps WHERE name = rec.camp)) THEN
+                                INSERT INTO fighter_camps VALUES (
+                                        fighter_id,
+                                        (SELECT id FROM camps WHERE name = rec.camp)
+                                );
+                        END IF;
+                END LOOP;
+        END;
+$_$;
 
 
 --
--- Name: buttons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: f_v_fighter_moves_insert(integer, text); Type: FUNCTION; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE buttons_id_seq OWNED BY buttons.id;
-
-
---
--- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
---
-
-SELECT pg_catalog.setval('buttons_id_seq', 39, true);
+CREATE FUNCTION f_v_fighter_moves_insert(fighter_id integer, move_ text) RETURNS void
+    LANGUAGE plpgsql STABLE
+    AS $_$
+        DECLARE
+                rec RECORD;
+        BEGIN
+                FOR rec IN SELECT regexp_split_to_table AS move FROM regexp_split_to_table(move_, E',[[:space:]]*')
+                LOOP
+                        IF NOT EXISTS (SELECT id FROM fighter_moves WHERE fighter_moves.fighter_id = $1 AND move_id = (SELECT id FROM moves WHERE name = rec.move)) THEN
+                                INSERT INTO fighter_moves VALUES (
+                                        fighter_id,
+                                        (SELECT id FROM moves WHERE name = rec.move)
+                                );
+                        END IF;
+                END LOOP;
+        END;
+$_$;
 
 
 --
@@ -187,32 +228,6 @@ CREATE TABLE camps (
 
 
 --
--- Name: combo_seq_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE combo_seq_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-
---
--- Name: combo_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE combo_seq_seq OWNED BY combo.seq;
-
-
---
--- Name: combo_seq_seq; Type: SEQUENCE SET; Schema: public; Owner: -
---
-
-SELECT pg_catalog.setval('combo_seq_seq', 1515, true);
-
-
---
 -- Name: country; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -223,51 +238,12 @@ CREATE TABLE country (
 
 
 --
--- Name: country_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE country_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MAXVALUE
-    NO MINVALUE
-    CACHE 1;
-
-
---
--- Name: country_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE country_id_seq OWNED BY country.id;
-
-
---
--- Name: country_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
---
-
-SELECT pg_catalog.setval('country_id_seq', 29, true);
-
-
---
 -- Name: fighter_camps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE TABLE fighter_camps (
     fighter_id integer NOT NULL,
     camp_id integer NOT NULL
-);
-
-
---
--- Name: fighter_moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE fighter_moves (
-    fighter_id integer NOT NULL,
-    move_id integer NOT NULL,
-    level integer DEFAULT 1 NOT NULL,
-    CONSTRAINT leve_range CHECK (((level >= 0) AND (level <= 3))),
-    CONSTRAINT valid_level CHECK (((level >= 1) AND (level <= 3)))
 );
 
 
@@ -335,6 +311,224 @@ CREATE TABLE fighters (
 
 
 --
+-- Name: fightersource; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE fightersource (
+    id integer NOT NULL,
+    source character varying NOT NULL
+);
+
+
+--
+-- Name: v_fighter_camps; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_fighter_camps AS
+    WITH RECURSIVE i(id, camp) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.id, fighters.name, i.camp FROM (fighters LEFT JOIN i ON ((fighters.id = i.id)));
+
+
+--
+-- Name: weightclass; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE weightclass (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    lbs integer NOT NULL
+);
+
+
+--
+-- Name: v_fighters; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_fighters AS
+    SELECT fighters.id, fighters.name, weightclass.name AS weightclass, v_fighter_camps.camp, fightercontract.contract, fighterrating.rating, fightersource.source, weightclass.lbs AS weight, fighterrecords.record, fighternickname.nickname, country.name AS country FROM (((((((((fighters LEFT JOIN v_fighter_camps ON ((fighters.id = v_fighter_camps.id))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) LEFT JOIN fightercontract ON ((fighters.id = fightercontract.id))) LEFT JOIN fighterrecords ON ((fighters.id = fighterrecords.id))) LEFT JOIN fighternickname ON ((fighters.id = fighternickname.id))) LEFT JOIN fighterrating ON ((fighters.id = fighterrating.id))) LEFT JOIN fightercountry ON ((fighters.id = fightercountry.id))) LEFT JOIN fightersource ON ((fighters.source_id = fightersource.id))) LEFT JOIN country ON ((fightercountry.country = country.id)));
+
+
+--
+-- Name: f_v_fighters_insert(v_fighters); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION f_v_fighters_insert(data v_fighters) RETURNS void
+    LANGUAGE plpgsql STABLE
+    AS $$
+        DECLARE
+                fighter_id INTEGER;
+        BEGIN
+                INSERT INTO fighters (name, weightclass, source_id) VALUES (
+	                data.name,
+	                (SELECT id FROM weightclass WHERE name = data.weightclass),
+	                (SELECT id FROM fightersource WHERE source = data.source)
+	        ) 
+                RETURNING id INTO fighter_id;
+	        IF data.rating IS NOT NULL THEN
+	                INSERT INTO fighterrating VALUES ( fighter_id, data.rating);
+	        END IF;
+	        IF data.record IS NOT NULL THEN
+	                INSERT INTO fighterrecords VALUES ( fighter_id, data.record);
+	        END IF;
+	        IF data.contract IS NOT NULL THEN
+	                INSERT INTO fightercontract VALUES ( fighter_id, data.contract);
+	        END IF;
+	        IF data.nickname IS NOT NULL THEN
+	                INSERT INTO fighternickname VALUES ( fighter_id, data.nickname);
+	        END IF;
+	        IF data.country IS NOT NULL THEN
+	                IF NOT EXISTS (SELECT id FROM country WHERE name = data.country) THEN
+	                        INSERT INTO country (name) VALUES (data.country);
+	                END IF;
+	                INSERT INTO fightercountry VALUES (
+	                        fighter_id,
+	                        (SELECT id FROM country WHERE name = data.country)
+	                );
+	        END IF;
+                SELECT f_v_fighter_camps_insert(fighter_id, data.camp);
+        END;
+$$;
+
+
+--
+-- Name: f_v_fighters_update(v_fighters); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION f_v_fighters_update(data v_fighters) RETURNS void
+    LANGUAGE plpgsql STABLE
+    AS $$
+        DECLARE
+                fighter_id INTEGER := (SELECT id FROM fighters WHERE name = data.name);
+        BEGIN
+	        IF data.weightclass IS NOT NULL THEN
+                        UPDATE fighters SET weightclass = (SELECT id FROM weightclass WHERE name = data.weightclass) WHERE id = fighter_id;
+	        END IF;
+	        IF data.source IS NOT NULL THEN
+                        UPDATE fighters SET source_id = (SELECT id FROM fightersource WHERE name = data.source) WHERE id = fighter_id;
+	        END IF;
+	        IF data.rating IS NOT NULL THEN
+	                UPDATE fighterrating SET rating = data.rating WHERE id = fighter_id;
+	        END IF;
+	        IF data.record IS NOT NULL THEN
+	                UPDATE fighterrecords SET record = data.record WHERE id = fighter_id;
+	        END IF;
+	        IF data.contract IS NOT NULL THEN
+	                UPDATE fightercontract SET contract = data.contract WHERE id = fighter_id;
+	        END IF;
+	        IF data.nickname IS NOT NULL THEN
+	                UPDATE fighternickname SET nickname = data.nickname WHERE id = fighter_id;
+	        END IF;
+	        IF data.country IS NOT NULL THEN
+	                IF NOT EXISTS (SELECT id FROM country WHERE name = data.country) THEN
+	                        INSERT INTO country (name) VALUES (data.country);
+	                END IF;
+	                UPDATE fightercountry SET country = (SELECT id FROM country WHERE name = data.country) WHERE id = fighter_id;
+	        END IF;
+                SELECT f_v_fighter_camps_insert(fighter_id, data.camp);
+        END;
+$$;
+
+
+--
+-- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) RETURNS record
+    LANGUAGE sql
+    AS $_$ select start_position, move, camp from position_move_camp_view where move like $1 $_$;
+
+
+--
+-- Name: buttons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE buttons_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: buttons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE buttons_id_seq OWNED BY buttons.id;
+
+
+--
+-- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('buttons_id_seq', 39, true);
+
+
+--
+-- Name: combo_seq_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE combo_seq_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: combo_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE combo_seq_seq OWNED BY combo.seq;
+
+
+--
+-- Name: combo_seq_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('combo_seq_seq', 1515, true);
+
+
+--
+-- Name: country_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE country_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MAXVALUE
+    NO MINVALUE
+    CACHE 1;
+
+
+--
+-- Name: country_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE country_id_seq OWNED BY country.id;
+
+
+--
+-- Name: country_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('country_id_seq', 29, true);
+
+
+--
+-- Name: fighter_moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE fighter_moves (
+    fighter_id integer NOT NULL,
+    move_id integer NOT NULL,
+    level integer DEFAULT 1 NOT NULL,
+    CONSTRAINT leve_range CHECK (((level >= 0) AND (level <= 3))),
+    CONSTRAINT valid_level CHECK (((level >= 1) AND (level <= 3)))
+);
+
+
+--
 -- Name: fighters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -358,16 +552,6 @@ ALTER SEQUENCE fighters_id_seq OWNED BY fighters.id;
 --
 
 SELECT pg_catalog.setval('fighters_id_seq', 349, true);
-
-
---
--- Name: fightersource; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE fightersource (
-    id integer NOT NULL,
-    source character varying NOT NULL
-);
 
 
 --
@@ -471,46 +655,6 @@ CREATE TABLE skills (
 
 
 --
--- Name: v_combos; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW v_combos AS
-    SELECT f_combos.seq, f_combos.move_id, f_combos.variant, f_combos.abbr FROM f_combos() f_combos(seq, move_id, variant, abbr) OFFSET 1;
-
-
---
--- Name: v_combos_aggregate; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW v_combos_aggregate AS
-    WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (SELECT v_combos.move_id, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, v_combos.abbr FROM v_combos WINDOW grouping_window AS (PARTITION BY v_combos.move_id)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping AS move_id, k.datum AS abbr FROM k WHERE ((k._count = k._length) AND (k._count = k._number));
-
-
---
--- Name: position_move_camp_view; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW position_move_camp_view AS
-    WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.name AS move, v_combos_aggregate.abbr AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisite_moves, i.datum AS prerequisite_skills FROM (((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN v_combos_aggregate ON ((moves.id = v_combos_aggregate.move_id))) ORDER BY a.id, moves.id, x._length;
-
-
---
--- Name: position_moves_view; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW position_moves_view AS
-    WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
-
-
---
--- Name: reverse_position_moves_view; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW reverse_position_moves_view AS
-    WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WINDOW position_window AS (PARTITION BY position_move_camp_view.end_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
-
-
---
 -- Name: skill_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -547,30 +691,59 @@ CREATE TABLE skillfocii (
 
 
 --
--- Name: transition_moves_view; Type: VIEW; Schema: public; Owner: -
+-- Name: v_combos; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE VIEW transition_moves_view AS
-    WITH z(start_position, end_position, _length, moves) AS (WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text <> (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))) SELECT x.start_position, x.end_position, x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))), c(start_position, end_position, _length, moves) AS (WITH RECURSIVE a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text = (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT a.start_position, a.end_position, a._length, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number))) SELECT z.start_position, z.end_position, z._length AS move_count, z.moves FROM z UNION SELECT c.start_position, c.end_position, c._length AS move_count, c.moves FROM c ORDER BY 1, 2, 3;
-
-
---
--- Name: weightclass; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE weightclass (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    lbs integer NOT NULL
-);
+CREATE VIEW v_combos AS
+    SELECT f_combos.seq, f_combos.move_id, f_combos.variant, f_combos.abbr FROM f_combos() f_combos(seq, move_id, variant, abbr) OFFSET 1;
 
 
 --
--- Name: v_fighters; Type: VIEW; Schema: public; Owner: -
+-- Name: v_combos_aggregate; Type: VIEW; Schema: public; Owner: -
 --
 
-CREATE VIEW v_fighters AS
-    WITH i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.id, fighters.name, weightclass.name AS weightclass, i.datum AS camp, fightercontract.contract, fighterrating.rating, fightersource.source, weightclass.lbs AS weight, fighterrecords.record, fighternickname.nickname, country.name AS country FROM (((((((((fighters LEFT JOIN i ON ((fighters.id = i._grouping))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) LEFT JOIN fightercontract ON ((fighters.id = fightercontract.id))) LEFT JOIN fighterrecords ON ((fighters.id = fighterrecords.id))) LEFT JOIN fighternickname ON ((fighters.id = fighternickname.id))) LEFT JOIN fighterrating ON ((fighters.id = fighterrating.id))) LEFT JOIN fightercountry ON ((fighters.id = fightercountry.id))) LEFT JOIN fightersource ON ((fighters.source_id = fightersource.id))) LEFT JOIN country ON ((fightercountry.country = country.id)));
+CREATE VIEW v_combos_aggregate AS
+    WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (SELECT v_combos.move_id, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, v_combos.abbr FROM v_combos WINDOW grouping_window AS (PARTITION BY v_combos.move_id)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping AS move_id, k.datum AS abbr FROM k WHERE ((k._count = k._length) AND (k._count = k._number));
+
+
+--
+-- Name: v_fighter_moves; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_fighter_moves AS
+    SELECT fighters.id, fighter_moves.move_id, fighters.name, moves.name AS move, fighter_moves.level, moves.type FROM ((fighters LEFT JOIN fighter_moves ON ((fighters.id = fighter_moves.fighter_id))) LEFT JOIN moves ON ((fighter_moves.move_id = moves.id)));
+
+
+--
+-- Name: v_moves; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_moves AS
+    WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.id, moves.name AS move, v_combos_aggregate.abbr AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisit_moves, i.datum AS prerequisit_skills FROM (((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN v_combos_aggregate ON ((moves.id = v_combos_aggregate.move_id))) ORDER BY a.id, moves.id, x._length;
+
+
+--
+-- Name: v_position_moves; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_position_moves AS
+    WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT v_moves.start_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WINDOW position_window AS (PARTITION BY v_moves.start_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
+
+
+--
+-- Name: v_reverse_position_moves; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_reverse_position_moves AS
+    WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT v_moves.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WINDOW position_window AS (PARTITION BY v_moves.end_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
+
+
+--
+-- Name: v_transition_moves; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_transition_moves AS
+    WITH z(start_position, end_position, _length, moves) AS (WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT v_moves.start_position, v_moves.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WHERE ((v_moves.start_position)::text <> (v_moves.end_position)::text) WINDOW position_window AS (PARTITION BY v_moves.start_position, v_moves.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))) SELECT x.start_position, x.end_position, x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))), c(start_position, end_position, _length, moves) AS (WITH RECURSIVE a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT v_moves.start_position, v_moves.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WHERE ((v_moves.start_position)::text = (v_moves.end_position)::text) WINDOW position_window AS (PARTITION BY v_moves.start_position, v_moves.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT a.start_position, a.end_position, a._length, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number))) SELECT z.start_position, z.end_position, z._length AS move_count, z.moves FROM z UNION SELECT c.start_position, c.end_position, c._length AS move_count, c.moves FROM c ORDER BY 1, 2, 3;
 
 
 --
@@ -5342,6 +5515,55 @@ ALTER TABLE ONLY weightclass
 
 
 --
+-- Name: v_combos_aggregate_insert; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE v_combos_aggregate_insert AS ON INSERT TO v_combos_aggregate DO INSTEAD SELECT f_v_combos_aggregate_insert((SELECT moves.id FROM moves WHERE ((moves.name)::name = (new.*)::name)), (new.abbr)::text) AS f_v_combos_aggregate_insert;
+
+
+--
+-- Name: v_fighter_camps_insert; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE v_fighter_camps_insert AS ON INSERT TO v_fighter_camps DO INSTEAD SELECT f_v_fighter_camps_insert((SELECT fighters.id FROM fighters WHERE ((fighters.name)::text = (new.name)::text)), (new.camp)::text) AS f_v_fighter_camps_insert;
+
+
+--
+-- Name: v_fighter_camps_update; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE v_fighter_camps_update AS ON UPDATE TO v_fighter_camps DO INSTEAD SELECT f_v_fighter_camps_insert((SELECT fighters.id FROM fighters WHERE ((fighters.name)::text = (new.name)::text)), (new.camp)::text) AS f_v_fighter_camps_insert;
+
+
+--
+-- Name: v_fighter_moves_insert; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE v_fighter_moves_insert AS ON INSERT TO v_fighter_moves DO INSTEAD SELECT f_v_fighter_moves_insert((SELECT fighters.id FROM fighters WHERE ((fighters.name)::text = (new.name)::text)), (new.move)::text) AS f_v_fighter_moves_insert;
+
+
+--
+-- Name: v_fighters_delete; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE v_fighters_delete AS ON DELETE TO v_fighters DO INSTEAD DELETE FROM fighters WHERE ((fighters.name)::text = (old.name)::text);
+
+
+--
+-- Name: v_fighters_insert; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE v_fighters_insert AS ON INSERT TO v_fighters DO INSTEAD SELECT f_v_fighters_insert(new.*) AS f_v_fighters_insert;
+
+
+--
+-- Name: v_fighters_update; Type: RULE; Schema: public; Owner: -
+--
+
+CREATE RULE v_fighters_update AS ON UPDATE TO v_fighters DO INSTEAD SELECT f_v_fighters_update(new.*) AS f_v_fighters_update;
+
+
+--
 -- Name: button_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -5366,11 +5588,11 @@ ALTER TABLE ONLY positions_moves
 
 
 --
--- Name: fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fighter_camps_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY fighter_camps
-    ADD CONSTRAINT fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id);
+    ADD CONSTRAINT fighter_camps_fighter_id_fkey FOREIGN KEY (fighter_id) REFERENCES fighters(id) ON DELETE CASCADE;
 
 
 --
@@ -5386,7 +5608,7 @@ ALTER TABLE ONLY fighter_moves
 --
 
 ALTER TABLE ONLY fightercontract
-    ADD CONSTRAINT fightercontract_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+    ADD CONSTRAINT fightercontract_id_fkey FOREIGN KEY (id) REFERENCES fighters(id) ON DELETE CASCADE;
 
 
 --
@@ -5402,7 +5624,7 @@ ALTER TABLE ONLY fightercountry
 --
 
 ALTER TABLE ONLY fightercountry
-    ADD CONSTRAINT fightercountry_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+    ADD CONSTRAINT fightercountry_id_fkey FOREIGN KEY (id) REFERENCES fighters(id) ON DELETE CASCADE;
 
 
 --
@@ -5410,7 +5632,7 @@ ALTER TABLE ONLY fightercountry
 --
 
 ALTER TABLE ONLY fighternickname
-    ADD CONSTRAINT fighternickname_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+    ADD CONSTRAINT fighternickname_id_fkey FOREIGN KEY (id) REFERENCES fighters(id) ON DELETE CASCADE;
 
 
 --
@@ -5418,7 +5640,7 @@ ALTER TABLE ONLY fighternickname
 --
 
 ALTER TABLE ONLY fighterrating
-    ADD CONSTRAINT fighterrating_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+    ADD CONSTRAINT fighterrating_id_fkey FOREIGN KEY (id) REFERENCES fighters(id) ON DELETE CASCADE;
 
 
 --
@@ -5426,7 +5648,7 @@ ALTER TABLE ONLY fighterrating
 --
 
 ALTER TABLE ONLY fighterrecords
-    ADD CONSTRAINT fighterrecords_id_fkey FOREIGN KEY (id) REFERENCES fighters(id);
+    ADD CONSTRAINT fighterrecords_id_fkey FOREIGN KEY (id) REFERENCES fighters(id) ON DELETE CASCADE;
 
 
 --
@@ -5574,16 +5796,6 @@ GRANT SELECT ON TABLE v_combo_buttons TO apache;
 
 
 --
--- Name: buttons_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE buttons_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE buttons_id_seq FROM jean;
-GRANT ALL ON SEQUENCE buttons_id_seq TO jean;
-GRANT SELECT ON SEQUENCE buttons_id_seq TO apache;
-
-
---
 -- Name: camps; Type: ACL; Schema: public; Owner: -
 --
 
@@ -5591,16 +5803,6 @@ REVOKE ALL ON TABLE camps FROM PUBLIC;
 REVOKE ALL ON TABLE camps FROM jean;
 GRANT ALL ON TABLE camps TO jean;
 GRANT SELECT ON TABLE camps TO apache;
-
-
---
--- Name: combo_seq_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE combo_seq_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE combo_seq_seq FROM jean;
-GRANT ALL ON SEQUENCE combo_seq_seq TO jean;
-GRANT SELECT ON SEQUENCE combo_seq_seq TO apache;
 
 
 --
@@ -5614,16 +5816,6 @@ GRANT SELECT ON TABLE country TO apache;
 
 
 --
--- Name: country_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE country_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE country_id_seq FROM jean;
-GRANT ALL ON SEQUENCE country_id_seq TO jean;
-GRANT SELECT ON SEQUENCE country_id_seq TO apache;
-
-
---
 -- Name: fighter_camps; Type: ACL; Schema: public; Owner: -
 --
 
@@ -5631,16 +5823,6 @@ REVOKE ALL ON TABLE fighter_camps FROM PUBLIC;
 REVOKE ALL ON TABLE fighter_camps FROM jean;
 GRANT ALL ON TABLE fighter_camps TO jean;
 GRANT SELECT ON TABLE fighter_camps TO apache;
-
-
---
--- Name: fighter_moves; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fighter_moves FROM PUBLIC;
-REVOKE ALL ON TABLE fighter_moves FROM jean;
-GRANT ALL ON TABLE fighter_moves TO jean;
-GRANT SELECT ON TABLE fighter_moves TO apache;
 
 
 --
@@ -5704,16 +5886,6 @@ GRANT SELECT ON TABLE fighters TO apache;
 
 
 --
--- Name: fighters_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE fighters_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE fighters_id_seq FROM jean;
-GRANT ALL ON SEQUENCE fighters_id_seq TO jean;
-GRANT SELECT ON SEQUENCE fighters_id_seq TO apache;
-
-
---
 -- Name: fightersource; Type: ACL; Schema: public; Owner: -
 --
 
@@ -5721,6 +5893,76 @@ REVOKE ALL ON TABLE fightersource FROM PUBLIC;
 REVOKE ALL ON TABLE fightersource FROM jean;
 GRANT ALL ON TABLE fightersource TO jean;
 GRANT SELECT ON TABLE fightersource TO apache;
+
+
+--
+-- Name: weightclass; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE weightclass FROM PUBLIC;
+REVOKE ALL ON TABLE weightclass FROM jean;
+GRANT ALL ON TABLE weightclass TO jean;
+GRANT SELECT ON TABLE weightclass TO apache;
+
+
+--
+-- Name: v_fighters; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE v_fighters FROM PUBLIC;
+REVOKE ALL ON TABLE v_fighters FROM jean;
+GRANT ALL ON TABLE v_fighters TO jean;
+GRANT SELECT ON TABLE v_fighters TO apache;
+
+
+--
+-- Name: buttons_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE buttons_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE buttons_id_seq FROM jean;
+GRANT ALL ON SEQUENCE buttons_id_seq TO jean;
+GRANT SELECT ON SEQUENCE buttons_id_seq TO apache;
+
+
+--
+-- Name: combo_seq_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE combo_seq_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE combo_seq_seq FROM jean;
+GRANT ALL ON SEQUENCE combo_seq_seq TO jean;
+GRANT SELECT ON SEQUENCE combo_seq_seq TO apache;
+
+
+--
+-- Name: country_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE country_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE country_id_seq FROM jean;
+GRANT ALL ON SEQUENCE country_id_seq TO jean;
+GRANT SELECT ON SEQUENCE country_id_seq TO apache;
+
+
+--
+-- Name: fighter_moves; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fighter_moves FROM PUBLIC;
+REVOKE ALL ON TABLE fighter_moves FROM jean;
+GRANT ALL ON TABLE fighter_moves TO jean;
+GRANT SELECT ON TABLE fighter_moves TO apache;
+
+
+--
+-- Name: fighters_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE fighters_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE fighters_id_seq FROM jean;
+GRANT ALL ON SEQUENCE fighters_id_seq TO jean;
+GRANT SELECT ON SEQUENCE fighters_id_seq TO apache;
 
 
 --
@@ -5804,56 +6046,6 @@ GRANT SELECT ON TABLE skills TO apache;
 
 
 --
--- Name: v_combos; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE v_combos FROM PUBLIC;
-REVOKE ALL ON TABLE v_combos FROM jean;
-GRANT ALL ON TABLE v_combos TO jean;
-GRANT SELECT ON TABLE v_combos TO apache;
-
-
---
--- Name: v_combos_aggregate; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE v_combos_aggregate FROM PUBLIC;
-REVOKE ALL ON TABLE v_combos_aggregate FROM jean;
-GRANT ALL ON TABLE v_combos_aggregate TO jean;
-GRANT SELECT ON TABLE v_combos_aggregate TO apache;
-
-
---
--- Name: position_move_camp_view; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE position_move_camp_view FROM PUBLIC;
-REVOKE ALL ON TABLE position_move_camp_view FROM jean;
-GRANT ALL ON TABLE position_move_camp_view TO jean;
-GRANT SELECT ON TABLE position_move_camp_view TO apache;
-
-
---
--- Name: position_moves_view; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE position_moves_view FROM PUBLIC;
-REVOKE ALL ON TABLE position_moves_view FROM jean;
-GRANT ALL ON TABLE position_moves_view TO jean;
-GRANT SELECT ON TABLE position_moves_view TO apache;
-
-
---
--- Name: reverse_position_moves_view; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE reverse_position_moves_view FROM PUBLIC;
-REVOKE ALL ON TABLE reverse_position_moves_view FROM jean;
-GRANT ALL ON TABLE reverse_position_moves_view TO jean;
-GRANT SELECT ON TABLE reverse_position_moves_view TO apache;
-
-
---
 -- Name: skill_id_seq; Type: ACL; Schema: public; Owner: -
 --
 
@@ -5874,33 +6066,23 @@ GRANT SELECT ON TABLE skillfocii TO apache;
 
 
 --
--- Name: transition_moves_view; Type: ACL; Schema: public; Owner: -
+-- Name: v_combos; Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON TABLE transition_moves_view FROM PUBLIC;
-REVOKE ALL ON TABLE transition_moves_view FROM jean;
-GRANT ALL ON TABLE transition_moves_view TO jean;
-GRANT SELECT ON TABLE transition_moves_view TO apache;
-
-
---
--- Name: weightclass; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE weightclass FROM PUBLIC;
-REVOKE ALL ON TABLE weightclass FROM jean;
-GRANT ALL ON TABLE weightclass TO jean;
-GRANT SELECT ON TABLE weightclass TO apache;
+REVOKE ALL ON TABLE v_combos FROM PUBLIC;
+REVOKE ALL ON TABLE v_combos FROM jean;
+GRANT ALL ON TABLE v_combos TO jean;
+GRANT SELECT ON TABLE v_combos TO apache;
 
 
 --
--- Name: v_fighters; Type: ACL; Schema: public; Owner: -
+-- Name: v_combos_aggregate; Type: ACL; Schema: public; Owner: -
 --
 
-REVOKE ALL ON TABLE v_fighters FROM PUBLIC;
-REVOKE ALL ON TABLE v_fighters FROM jean;
-GRANT ALL ON TABLE v_fighters TO jean;
-GRANT SELECT ON TABLE v_fighters TO apache;
+REVOKE ALL ON TABLE v_combos_aggregate FROM PUBLIC;
+REVOKE ALL ON TABLE v_combos_aggregate FROM jean;
+GRANT ALL ON TABLE v_combos_aggregate TO jean;
+GRANT SELECT ON TABLE v_combos_aggregate TO apache;
 
 
 --
