@@ -335,35 +335,6 @@ CREATE TABLE fighters (
 
 
 --
--- Name: fightersource; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE fightersource (
-    id integer NOT NULL,
-    source character varying NOT NULL
-);
-
-
---
--- Name: weightclass; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE weightclass (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    lbs integer NOT NULL
-);
-
-
---
--- Name: fighter_view; Type: VIEW; Schema: public; Owner: -
---
-
-CREATE VIEW fighter_view AS
-    WITH i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.id, fighters.name, weightclass.name AS weightclass, i.datum AS camp, fightercontract.contract, fighterrating.rating, fightersource.source, weightclass.lbs AS weight, fighterrecords.record, fighternickname.nickname, country.name AS country FROM (((((((((fighters LEFT JOIN i ON ((fighters.id = i._grouping))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) LEFT JOIN fightercontract ON ((fighters.id = fightercontract.id))) LEFT JOIN fighterrecords ON ((fighters.id = fighterrecords.id))) LEFT JOIN fighternickname ON ((fighters.id = fighternickname.id))) LEFT JOIN fighterrating ON ((fighters.id = fighterrating.id))) LEFT JOIN fightercountry ON ((fighters.id = fightercountry.id))) LEFT JOIN fightersource ON ((fighters.source_id = fightersource.id))) LEFT JOIN country ON ((fightercountry.country = country.id)));
-
-
---
 -- Name: fighters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -386,7 +357,17 @@ ALTER SEQUENCE fighters_id_seq OWNED BY fighters.id;
 -- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('fighters_id_seq', 347, true);
+SELECT pg_catalog.setval('fighters_id_seq', 349, true);
+
+
+--
+-- Name: fightersource; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE fightersource (
+    id integer NOT NULL,
+    source character varying NOT NULL
+);
 
 
 --
@@ -571,6 +552,25 @@ CREATE TABLE skillfocii (
 
 CREATE VIEW transition_moves_view AS
     WITH z(start_position, end_position, _length, moves) AS (WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text <> (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))) SELECT x.start_position, x.end_position, x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))), c(start_position, end_position, _length, moves) AS (WITH RECURSIVE a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT position_move_camp_view.start_position, position_move_camp_view.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, position_move_camp_view.move FROM position_move_camp_view WHERE ((position_move_camp_view.start_position)::text = (position_move_camp_view.end_position)::text) WINDOW position_window AS (PARTITION BY position_move_camp_view.start_position, position_move_camp_view.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT a.start_position, a.end_position, a._length, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number))) SELECT z.start_position, z.end_position, z._length AS move_count, z.moves FROM z UNION SELECT c.start_position, c.end_position, c._length AS move_count, c.moves FROM c ORDER BY 1, 2, 3;
+
+
+--
+-- Name: weightclass; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE weightclass (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    lbs integer NOT NULL
+);
+
+
+--
+-- Name: v_fighters; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW v_fighters AS
+    WITH i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.id, fighters.name, weightclass.name AS weightclass, i.datum AS camp, fightercontract.contract, fighterrating.rating, fightersource.source, weightclass.lbs AS weight, fighterrecords.record, fighternickname.nickname, country.name AS country FROM (((((((((fighters LEFT JOIN i ON ((fighters.id = i._grouping))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) LEFT JOIN fightercontract ON ((fighters.id = fightercontract.id))) LEFT JOIN fighterrecords ON ((fighters.id = fighterrecords.id))) LEFT JOIN fighternickname ON ((fighters.id = fighternickname.id))) LEFT JOIN fighterrating ON ((fighters.id = fighterrating.id))) LEFT JOIN fightercountry ON ((fighters.id = fightercountry.id))) LEFT JOIN fightersource ON ((fighters.source_id = fightersource.id))) LEFT JOIN country ON ((fightercountry.country = country.id)));
 
 
 --
@@ -1728,6 +1728,14 @@ COPY fighter_camps (fighter_id, camp_id) FROM stdin;
 336	16
 336	1
 347	21
+348	4
+348	11
+347	6
+347	20
+349	6
+349	21
+349	4
+349	9
 \.
 
 
@@ -2385,6 +2393,8 @@ COPY fighternickname (id, nickname) FROM stdin;
 148	Ace
 149	Suga
 347	The Hurricane
+348	Savage
+349	The Dragon
 \.
 
 
@@ -2780,6 +2790,7 @@ COPY fighters (id, name, weightclass, source_id) FROM stdin;
 30	Kyle Noke	5	5
 347	Jorge Horvat	3	4
 46	Yves Edwards	3	5
+349	Hiroshi Nakamura	4	4
 22	Rousimar Palhares	5	5
 29	Jorge Santiago	5	5
 32	Rafael Natal	5	5
@@ -2928,6 +2939,7 @@ COPY fighters (id, name, weightclass, source_id) FROM stdin;
 259	Jonathan Brookins	2	5
 260	Nam Phan	2	5
 263	Mike Lullo	2	5
+348	Sergei Vilanova	3	4
 141	Papy Abedi	4	5
 62	Danny Castillo	3	5
 68	Ben Henderson	3	5
@@ -5529,6 +5541,366 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- Name: buttons; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE buttons FROM PUBLIC;
+REVOKE ALL ON TABLE buttons FROM jean;
+GRANT ALL ON TABLE buttons TO jean;
+GRANT SELECT ON TABLE buttons TO apache;
+
+
+--
+-- Name: combo; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE combo FROM PUBLIC;
+REVOKE ALL ON TABLE combo FROM jean;
+GRANT ALL ON TABLE combo TO jean;
+GRANT SELECT ON TABLE combo TO apache;
+
+
+--
+-- Name: v_combo_buttons; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE v_combo_buttons FROM PUBLIC;
+REVOKE ALL ON TABLE v_combo_buttons FROM jean;
+GRANT ALL ON TABLE v_combo_buttons TO jean;
+GRANT SELECT ON TABLE v_combo_buttons TO apache;
+
+
+--
+-- Name: buttons_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE buttons_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE buttons_id_seq FROM jean;
+GRANT ALL ON SEQUENCE buttons_id_seq TO jean;
+GRANT SELECT ON SEQUENCE buttons_id_seq TO apache;
+
+
+--
+-- Name: camps; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE camps FROM PUBLIC;
+REVOKE ALL ON TABLE camps FROM jean;
+GRANT ALL ON TABLE camps TO jean;
+GRANT SELECT ON TABLE camps TO apache;
+
+
+--
+-- Name: combo_seq_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE combo_seq_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE combo_seq_seq FROM jean;
+GRANT ALL ON SEQUENCE combo_seq_seq TO jean;
+GRANT SELECT ON SEQUENCE combo_seq_seq TO apache;
+
+
+--
+-- Name: country; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE country FROM PUBLIC;
+REVOKE ALL ON TABLE country FROM jean;
+GRANT ALL ON TABLE country TO jean;
+GRANT SELECT ON TABLE country TO apache;
+
+
+--
+-- Name: country_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE country_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE country_id_seq FROM jean;
+GRANT ALL ON SEQUENCE country_id_seq TO jean;
+GRANT SELECT ON SEQUENCE country_id_seq TO apache;
+
+
+--
+-- Name: fighter_camps; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fighter_camps FROM PUBLIC;
+REVOKE ALL ON TABLE fighter_camps FROM jean;
+GRANT ALL ON TABLE fighter_camps TO jean;
+GRANT SELECT ON TABLE fighter_camps TO apache;
+
+
+--
+-- Name: fighter_moves; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fighter_moves FROM PUBLIC;
+REVOKE ALL ON TABLE fighter_moves FROM jean;
+GRANT ALL ON TABLE fighter_moves TO jean;
+GRANT SELECT ON TABLE fighter_moves TO apache;
+
+
+--
+-- Name: fightercontract; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fightercontract FROM PUBLIC;
+REVOKE ALL ON TABLE fightercontract FROM jean;
+GRANT ALL ON TABLE fightercontract TO jean;
+GRANT SELECT ON TABLE fightercontract TO apache;
+
+
+--
+-- Name: fightercountry; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fightercountry FROM PUBLIC;
+REVOKE ALL ON TABLE fightercountry FROM jean;
+GRANT ALL ON TABLE fightercountry TO jean;
+GRANT SELECT ON TABLE fightercountry TO apache;
+
+
+--
+-- Name: fighternickname; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fighternickname FROM PUBLIC;
+REVOKE ALL ON TABLE fighternickname FROM jean;
+GRANT ALL ON TABLE fighternickname TO jean;
+GRANT SELECT ON TABLE fighternickname TO apache;
+
+
+--
+-- Name: fighterrating; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fighterrating FROM PUBLIC;
+REVOKE ALL ON TABLE fighterrating FROM jean;
+GRANT ALL ON TABLE fighterrating TO jean;
+GRANT SELECT ON TABLE fighterrating TO apache;
+
+
+--
+-- Name: fighterrecords; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fighterrecords FROM PUBLIC;
+REVOKE ALL ON TABLE fighterrecords FROM jean;
+GRANT ALL ON TABLE fighterrecords TO jean;
+GRANT SELECT ON TABLE fighterrecords TO apache;
+
+
+--
+-- Name: fighters; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fighters FROM PUBLIC;
+REVOKE ALL ON TABLE fighters FROM jean;
+GRANT ALL ON TABLE fighters TO jean;
+GRANT SELECT ON TABLE fighters TO apache;
+
+
+--
+-- Name: fighters_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE fighters_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE fighters_id_seq FROM jean;
+GRANT ALL ON SEQUENCE fighters_id_seq TO jean;
+GRANT SELECT ON SEQUENCE fighters_id_seq TO apache;
+
+
+--
+-- Name: fightersource; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE fightersource FROM PUBLIC;
+REVOKE ALL ON TABLE fightersource FROM jean;
+GRANT ALL ON TABLE fightersource TO jean;
+GRANT SELECT ON TABLE fightersource TO apache;
+
+
+--
+-- Name: fightersource_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE fightersource_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE fightersource_id_seq FROM jean;
+GRANT ALL ON SEQUENCE fightersource_id_seq TO jean;
+GRANT SELECT ON SEQUENCE fightersource_id_seq TO apache;
+
+
+--
+-- Name: move_move_requirements; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE move_move_requirements FROM PUBLIC;
+REVOKE ALL ON TABLE move_move_requirements FROM jean;
+GRANT ALL ON TABLE move_move_requirements TO jean;
+GRANT SELECT ON TABLE move_move_requirements TO apache;
+
+
+--
+-- Name: move_skill_requirements; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE move_skill_requirements FROM PUBLIC;
+REVOKE ALL ON TABLE move_skill_requirements FROM jean;
+GRANT ALL ON TABLE move_skill_requirements TO jean;
+GRANT SELECT ON TABLE move_skill_requirements TO apache;
+
+
+--
+-- Name: moves; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE moves FROM PUBLIC;
+REVOKE ALL ON TABLE moves FROM jean;
+GRANT ALL ON TABLE moves TO jean;
+GRANT SELECT ON TABLE moves TO apache;
+
+
+--
+-- Name: moves_camps; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE moves_camps FROM PUBLIC;
+REVOKE ALL ON TABLE moves_camps FROM jean;
+GRANT ALL ON TABLE moves_camps TO jean;
+GRANT SELECT ON TABLE moves_camps TO apache;
+
+
+--
+-- Name: positions; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE positions FROM PUBLIC;
+REVOKE ALL ON TABLE positions FROM jean;
+GRANT ALL ON TABLE positions TO jean;
+GRANT SELECT ON TABLE positions TO apache;
+
+
+--
+-- Name: positions_moves; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE positions_moves FROM PUBLIC;
+REVOKE ALL ON TABLE positions_moves FROM jean;
+GRANT ALL ON TABLE positions_moves TO jean;
+GRANT SELECT ON TABLE positions_moves TO apache;
+
+
+--
+-- Name: skills; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE skills FROM PUBLIC;
+REVOKE ALL ON TABLE skills FROM jean;
+GRANT ALL ON TABLE skills TO jean;
+GRANT SELECT ON TABLE skills TO apache;
+
+
+--
+-- Name: v_combos; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE v_combos FROM PUBLIC;
+REVOKE ALL ON TABLE v_combos FROM jean;
+GRANT ALL ON TABLE v_combos TO jean;
+GRANT SELECT ON TABLE v_combos TO apache;
+
+
+--
+-- Name: v_combos_aggregate; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE v_combos_aggregate FROM PUBLIC;
+REVOKE ALL ON TABLE v_combos_aggregate FROM jean;
+GRANT ALL ON TABLE v_combos_aggregate TO jean;
+GRANT SELECT ON TABLE v_combos_aggregate TO apache;
+
+
+--
+-- Name: position_move_camp_view; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE position_move_camp_view FROM PUBLIC;
+REVOKE ALL ON TABLE position_move_camp_view FROM jean;
+GRANT ALL ON TABLE position_move_camp_view TO jean;
+GRANT SELECT ON TABLE position_move_camp_view TO apache;
+
+
+--
+-- Name: position_moves_view; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE position_moves_view FROM PUBLIC;
+REVOKE ALL ON TABLE position_moves_view FROM jean;
+GRANT ALL ON TABLE position_moves_view TO jean;
+GRANT SELECT ON TABLE position_moves_view TO apache;
+
+
+--
+-- Name: reverse_position_moves_view; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE reverse_position_moves_view FROM PUBLIC;
+REVOKE ALL ON TABLE reverse_position_moves_view FROM jean;
+GRANT ALL ON TABLE reverse_position_moves_view TO jean;
+GRANT SELECT ON TABLE reverse_position_moves_view TO apache;
+
+
+--
+-- Name: skill_id_seq; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON SEQUENCE skill_id_seq FROM PUBLIC;
+REVOKE ALL ON SEQUENCE skill_id_seq FROM jean;
+GRANT ALL ON SEQUENCE skill_id_seq TO jean;
+GRANT SELECT ON SEQUENCE skill_id_seq TO apache;
+
+
+--
+-- Name: skillfocii; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE skillfocii FROM PUBLIC;
+REVOKE ALL ON TABLE skillfocii FROM jean;
+GRANT ALL ON TABLE skillfocii TO jean;
+GRANT SELECT ON TABLE skillfocii TO apache;
+
+
+--
+-- Name: transition_moves_view; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE transition_moves_view FROM PUBLIC;
+REVOKE ALL ON TABLE transition_moves_view FROM jean;
+GRANT ALL ON TABLE transition_moves_view TO jean;
+GRANT SELECT ON TABLE transition_moves_view TO apache;
+
+
+--
+-- Name: weightclass; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE weightclass FROM PUBLIC;
+REVOKE ALL ON TABLE weightclass FROM jean;
+GRANT ALL ON TABLE weightclass TO jean;
+GRANT SELECT ON TABLE weightclass TO apache;
+
+
+--
+-- Name: v_fighters; Type: ACL; Schema: public; Owner: -
+--
+
+REVOKE ALL ON TABLE v_fighters FROM PUBLIC;
+REVOKE ALL ON TABLE v_fighters FROM jean;
+GRANT ALL ON TABLE v_fighters TO jean;
+GRANT SELECT ON TABLE v_fighters TO apache;
 
 
 --
