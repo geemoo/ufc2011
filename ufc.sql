@@ -10,16 +10,18 @@ SET client_min_messages = warning;
 SET escape_string_warning = off;
 
 --
--- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: -
+-- Name: plpgsql; Type: PROCEDURAL LANGUAGE; Schema: -; Owner: postgres
 --
 
 CREATE PROCEDURAL LANGUAGE plpgsql;
 
 
+ALTER PROCEDURAL LANGUAGE plpgsql OWNER TO postgres;
+
 SET search_path = public, pg_catalog;
 
 --
--- Name: contract; Type: TYPE; Schema: public; Owner: -
+-- Name: contract; Type: TYPE; Schema: public; Owner: jean
 --
 
 CREATE TYPE contract AS ENUM (
@@ -30,8 +32,10 @@ CREATE TYPE contract AS ENUM (
 );
 
 
+ALTER TYPE public.contract OWNER TO jean;
+
 --
--- Name: focusgroup; Type: TYPE; Schema: public; Owner: -
+-- Name: focusgroup; Type: TYPE; Schema: public; Owner: jean
 --
 
 CREATE TYPE focusgroup AS ENUM (
@@ -43,8 +47,10 @@ CREATE TYPE focusgroup AS ENUM (
 );
 
 
+ALTER TYPE public.focusgroup OWNER TO jean;
+
 --
--- Name: move_type; Type: TYPE; Schema: public; Owner: -
+-- Name: move_type; Type: TYPE; Schema: public; Owner: jean
 --
 
 CREATE TYPE move_type AS ENUM (
@@ -55,8 +61,10 @@ CREATE TYPE move_type AS ENUM (
 );
 
 
+ALTER TYPE public.move_type OWNER TO jean;
+
 --
--- Name: technique_type; Type: TYPE; Schema: public; Owner: -
+-- Name: technique_type; Type: TYPE; Schema: public; Owner: jean
 --
 
 CREATE TYPE technique_type AS ENUM (
@@ -71,12 +79,14 @@ CREATE TYPE technique_type AS ENUM (
 );
 
 
+ALTER TYPE public.technique_type OWNER TO jean;
+
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: buttons; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: buttons; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE buttons (
@@ -86,8 +96,10 @@ CREATE TABLE buttons (
 );
 
 
+ALTER TABLE public.buttons OWNER TO jean;
+
 --
--- Name: combo; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: combo; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE combo (
@@ -98,16 +110,20 @@ CREATE TABLE combo (
 );
 
 
+ALTER TABLE public.combo OWNER TO jean;
+
 --
--- Name: v_combo_buttons; Type: VIEW; Schema: public; Owner: -
+-- Name: v_combo_buttons; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_combo_buttons AS
     SELECT combo.seq, combo.move_id, combo.variant, buttons.abbr FROM (combo JOIN buttons ON ((combo.button_id = buttons.id)));
 
 
+ALTER TABLE public.v_combo_buttons OWNER TO jean;
+
 --
--- Name: f_combos(); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_combos(); Type: FUNCTION; Schema: public; Owner: jean
 --
 
 CREATE FUNCTION f_combos() RETURNS SETOF v_combo_buttons
@@ -141,35 +157,39 @@ CREATE FUNCTION f_combos() RETURNS SETOF v_combo_buttons
 $$;
 
 
+ALTER FUNCTION public.f_combos() OWNER TO jean;
+
 --
--- Name: f_v_combos_aggregate_insert(integer, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_v_combos_aggregate_insert(integer, text, integer); Type: FUNCTION; Schema: public; Owner: jean
 --
 
-CREATE FUNCTION f_v_combos_aggregate_insert(move_id_ integer, move_ text) RETURNS void
+CREATE FUNCTION f_v_combos_aggregate_insert(move_id_ integer, move_ text, variant_in integer DEFAULT NULL::integer) RETURNS void
     LANGUAGE plpgsql STABLE
     AS $$
         DECLARE
                 abbreviation RECORD;
                 variant_ RECORD;
-                var INTEGER;
+                variant_out INTEGER;
         BEGIN
                 FOR variant_ IN SELECT regexp_split_to_table AS t FROM regexp_split_to_table(move_, E'[[:space:]]*,[[:space:]]*') LOOP
-                        var := COALESCE((SELECT max(variant) FROM combo WHERE move_id = move_id_ GROUP BY move_id), 1);
+                        variant_out := COALESCE(variant_in, (SELECT max(variant) FROM combo WHERE move_id = move_id_ GROUP BY move_id) + 1, 1);
                         FOR abbreviation IN SELECT regexp_split_to_table AS t FROM regexp_split_to_table(variant_.t, E'[[:space:]]*\+[[:space:]]*') LOOP
                                 INSERT INTO combo (move_id, button_id, variant) VALUES (
                                         move_id_,
                                         (SELECT id FROM buttons WHERE abbr = abbreviation.t),
-                                        var
+                                        variant_out
                                 );
-                                var := var + 1;
+                                variant_out := variant_out + 1;
                         END LOOP;
                 END LOOP;
         END;
 $$;
 
 
+ALTER FUNCTION public.f_v_combos_aggregate_insert(move_id_ integer, move_ text, variant_in integer) OWNER TO jean;
+
 --
--- Name: f_v_fighter_camps_insert(integer, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_v_fighter_camps_insert(integer, text); Type: FUNCTION; Schema: public; Owner: jean
 --
 
 CREATE FUNCTION f_v_fighter_camps_insert(fighter_id integer, camp_ text) RETURNS void
@@ -194,8 +214,10 @@ CREATE FUNCTION f_v_fighter_camps_insert(fighter_id integer, camp_ text) RETURNS
 $_$;
 
 
+ALTER FUNCTION public.f_v_fighter_camps_insert(fighter_id integer, camp_ text) OWNER TO jean;
+
 --
--- Name: f_v_fighter_moves_insert(integer, text); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_v_fighter_moves_insert(integer, text); Type: FUNCTION; Schema: public; Owner: jean
 --
 
 CREATE FUNCTION f_v_fighter_moves_insert(fighter_id integer, move_ text) RETURNS void
@@ -217,8 +239,10 @@ CREATE FUNCTION f_v_fighter_moves_insert(fighter_id integer, move_ text) RETURNS
 $_$;
 
 
+ALTER FUNCTION public.f_v_fighter_moves_insert(fighter_id integer, move_ text) OWNER TO jean;
+
 --
--- Name: camps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE camps (
@@ -227,8 +251,10 @@ CREATE TABLE camps (
 );
 
 
+ALTER TABLE public.camps OWNER TO jean;
+
 --
--- Name: country; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: country; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE country (
@@ -237,8 +263,10 @@ CREATE TABLE country (
 );
 
 
+ALTER TABLE public.country OWNER TO jean;
+
 --
--- Name: fighter_camps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fighter_camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fighter_camps (
@@ -247,8 +275,10 @@ CREATE TABLE fighter_camps (
 );
 
 
+ALTER TABLE public.fighter_camps OWNER TO jean;
+
 --
--- Name: fightercontract; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fightercontract; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fightercontract (
@@ -257,8 +287,10 @@ CREATE TABLE fightercontract (
 );
 
 
+ALTER TABLE public.fightercontract OWNER TO jean;
+
 --
--- Name: fightercountry; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fightercountry; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fightercountry (
@@ -267,8 +299,10 @@ CREATE TABLE fightercountry (
 );
 
 
+ALTER TABLE public.fightercountry OWNER TO jean;
+
 --
--- Name: fighternickname; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fighternickname; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fighternickname (
@@ -277,8 +311,10 @@ CREATE TABLE fighternickname (
 );
 
 
+ALTER TABLE public.fighternickname OWNER TO jean;
+
 --
--- Name: fighterrating; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fighterrating; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fighterrating (
@@ -288,8 +324,10 @@ CREATE TABLE fighterrating (
 );
 
 
+ALTER TABLE public.fighterrating OWNER TO jean;
+
 --
--- Name: fighterrecords; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fighterrecords; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fighterrecords (
@@ -298,8 +336,10 @@ CREATE TABLE fighterrecords (
 );
 
 
+ALTER TABLE public.fighterrecords OWNER TO jean;
+
 --
--- Name: fighters; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fighters; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fighters (
@@ -310,8 +350,10 @@ CREATE TABLE fighters (
 );
 
 
+ALTER TABLE public.fighters OWNER TO jean;
+
 --
--- Name: fightersource; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fightersource; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fightersource (
@@ -320,16 +362,20 @@ CREATE TABLE fightersource (
 );
 
 
+ALTER TABLE public.fightersource OWNER TO jean;
+
 --
--- Name: v_fighter_camps; Type: VIEW; Schema: public; Owner: -
+-- Name: v_fighter_camps; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_fighter_camps AS
     WITH RECURSIVE i(id, camp) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT fighter_camps.fighter_id, camps.name FROM (fighter_camps JOIN camps ON ((fighter_camps.camp_id = camps.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT fighters.id, fighters.name, i.camp FROM (fighters LEFT JOIN i ON ((fighters.id = i.id)));
 
 
+ALTER TABLE public.v_fighter_camps OWNER TO jean;
+
 --
--- Name: weightclass; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: weightclass; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE weightclass (
@@ -339,16 +385,20 @@ CREATE TABLE weightclass (
 );
 
 
+ALTER TABLE public.weightclass OWNER TO jean;
+
 --
--- Name: v_fighters; Type: VIEW; Schema: public; Owner: -
+-- Name: v_fighters; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_fighters AS
     SELECT fighters.id, fighters.name, weightclass.name AS weightclass, v_fighter_camps.camp, fightercontract.contract, fighterrating.rating, fightersource.source, weightclass.lbs AS weight, fighterrecords.record, fighternickname.nickname, country.name AS country FROM (((((((((fighters LEFT JOIN v_fighter_camps ON ((fighters.id = v_fighter_camps.id))) LEFT JOIN weightclass ON ((fighters.weightclass = weightclass.id))) LEFT JOIN fightercontract ON ((fighters.id = fightercontract.id))) LEFT JOIN fighterrecords ON ((fighters.id = fighterrecords.id))) LEFT JOIN fighternickname ON ((fighters.id = fighternickname.id))) LEFT JOIN fighterrating ON ((fighters.id = fighterrating.id))) LEFT JOIN fightercountry ON ((fighters.id = fightercountry.id))) LEFT JOIN fightersource ON ((fighters.source_id = fightersource.id))) LEFT JOIN country ON ((fightercountry.country = country.id)));
 
 
+ALTER TABLE public.v_fighters OWNER TO jean;
+
 --
--- Name: f_v_fighters_insert(v_fighters); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_v_fighters_insert(v_fighters); Type: FUNCTION; Schema: public; Owner: jean
 --
 
 CREATE FUNCTION f_v_fighters_insert(data v_fighters) RETURNS void
@@ -389,8 +439,10 @@ CREATE FUNCTION f_v_fighters_insert(data v_fighters) RETURNS void
 $$;
 
 
+ALTER FUNCTION public.f_v_fighters_insert(data v_fighters) OWNER TO jean;
+
 --
--- Name: f_v_fighters_update(v_fighters); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_v_fighters_update(v_fighters); Type: FUNCTION; Schema: public; Owner: jean
 --
 
 CREATE FUNCTION f_v_fighters_update(data v_fighters) RETURNS void
@@ -428,8 +480,44 @@ CREATE FUNCTION f_v_fighters_update(data v_fighters) RETURNS void
 $$;
 
 
+ALTER FUNCTION public.f_v_fighters_update(data v_fighters) OWNER TO jean;
+
 --
--- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: -
+-- Name: f_v_moves_insert(integer, text, text, text); Type: FUNCTION; Schema: public; Owner: jean
+--
+
+CREATE FUNCTION f_v_moves_insert(move_id integer, camp text, prerequisit_moves text, prerequisit_skills text) RETURNS void
+    LANGUAGE plpgsql STABLE
+    AS $$
+        DECLARE 
+                skill TEXT[];
+                camps_ RECORD;
+        BEGIN
+                FOR camps_ IN SELECT regexp_split_to_table AS t FROM regexp_split_to_table(camp, E'[[:space:]]*,[[:space:]]*') LOOP
+                        INSERT INTO moves_camps VALUES (
+                                move_id,
+                                (SELECT id FROM camps WHERE name = camps_.t)
+                        );
+                END LOOP;
+                IF prerequisit_moves IS NOT NULL THEN
+                        INSERT INTO move_move_requirements VALUES ( move_id, (SELECT id FROM moves WHERE name = prerequisit_moves) );
+                END IF;
+                IF prerequisit_skills IS NOT NULL THEN
+                        skill := regexp_split_to_array(prerequisit_skills, E'\\(|\\)');
+                        INSERT INTO move_skill_requirements VALUES ( 
+                                move_id,
+                                (SELECT id FROM skills WHERE name = skill[1]),
+                                (SELECT * FROM to_number(skill[2], '99')) 
+                        );
+                END IF;
+        END;
+$$;
+
+
+ALTER FUNCTION public.f_v_moves_insert(move_id integer, camp text, prerequisit_moves text, prerequisit_skills text) OWNER TO jean;
+
+--
+-- Name: move_search(character varying); Type: FUNCTION; Schema: public; Owner: jean
 --
 
 CREATE FUNCTION move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) RETURNS record
@@ -437,8 +525,10 @@ CREATE FUNCTION move_search(character varying, OUT start_position character vary
     AS $_$ select start_position, move, camp from position_move_camp_view where move like $1 $_$;
 
 
+ALTER FUNCTION public.move_search(character varying, OUT start_position character varying, OUT move character varying, OUT camp character varying) OWNER TO jean;
+
 --
--- Name: buttons_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: buttons_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
 CREATE SEQUENCE buttons_id_seq
@@ -449,22 +539,24 @@ CREATE SEQUENCE buttons_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.buttons_id_seq OWNER TO jean;
+
 --
--- Name: buttons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: buttons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
 --
 
 ALTER SEQUENCE buttons_id_seq OWNED BY buttons.id;
 
 
 --
--- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: buttons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
 SELECT pg_catalog.setval('buttons_id_seq', 39, true);
 
 
 --
--- Name: combo_seq_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: combo_seq_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
 CREATE SEQUENCE combo_seq_seq
@@ -475,22 +567,24 @@ CREATE SEQUENCE combo_seq_seq
     CACHE 1;
 
 
+ALTER TABLE public.combo_seq_seq OWNER TO jean;
+
 --
--- Name: combo_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: combo_seq_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
 --
 
 ALTER SEQUENCE combo_seq_seq OWNED BY combo.seq;
 
 
 --
--- Name: combo_seq_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: combo_seq_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
 SELECT pg_catalog.setval('combo_seq_seq', 1515, true);
 
 
 --
--- Name: country_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: country_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
 CREATE SEQUENCE country_id_seq
@@ -501,22 +595,24 @@ CREATE SEQUENCE country_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.country_id_seq OWNER TO jean;
+
 --
--- Name: country_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: country_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
 --
 
 ALTER SEQUENCE country_id_seq OWNED BY country.id;
 
 
 --
--- Name: country_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: country_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
 SELECT pg_catalog.setval('country_id_seq', 29, true);
 
 
 --
--- Name: fighter_moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: fighter_moves; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE fighter_moves (
@@ -528,8 +624,10 @@ CREATE TABLE fighter_moves (
 );
 
 
+ALTER TABLE public.fighter_moves OWNER TO jean;
+
 --
--- Name: fighters_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: fighters_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
 CREATE SEQUENCE fighters_id_seq
@@ -540,22 +638,24 @@ CREATE SEQUENCE fighters_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.fighters_id_seq OWNER TO jean;
+
 --
--- Name: fighters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: fighters_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
 --
 
 ALTER SEQUENCE fighters_id_seq OWNED BY fighters.id;
 
 
 --
--- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: fighters_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
 SELECT pg_catalog.setval('fighters_id_seq', 349, true);
 
 
 --
--- Name: fightersource_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: fightersource_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
 CREATE SEQUENCE fightersource_id_seq
@@ -566,22 +666,24 @@ CREATE SEQUENCE fightersource_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.fightersource_id_seq OWNER TO jean;
+
 --
--- Name: fightersource_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: fightersource_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
 --
 
 ALTER SEQUENCE fightersource_id_seq OWNED BY fightersource.id;
 
 
 --
--- Name: fightersource_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: fightersource_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
 SELECT pg_catalog.setval('fightersource_id_seq', 5, true);
 
 
 --
--- Name: move_move_requirements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: move_move_requirements; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE move_move_requirements (
@@ -590,8 +692,10 @@ CREATE TABLE move_move_requirements (
 );
 
 
+ALTER TABLE public.move_move_requirements OWNER TO jean;
+
 --
--- Name: move_skill_requirements; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: move_skill_requirements; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE move_skill_requirements (
@@ -602,19 +706,25 @@ CREATE TABLE move_skill_requirements (
 );
 
 
+ALTER TABLE public.move_skill_requirements OWNER TO jean;
+
 --
--- Name: moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: moves; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE moves (
     id integer NOT NULL,
     name character varying NOT NULL,
-    type technique_type
+    type technique_type,
+    start_position_id integer NOT NULL,
+    end_position_id integer NOT NULL
 );
 
 
+ALTER TABLE public.moves OWNER TO jean;
+
 --
--- Name: moves_camps; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: moves_camps; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE moves_camps (
@@ -623,8 +733,10 @@ CREATE TABLE moves_camps (
 );
 
 
+ALTER TABLE public.moves_camps OWNER TO jean;
+
 --
--- Name: positions; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: positions; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE positions (
@@ -633,19 +745,10 @@ CREATE TABLE positions (
 );
 
 
---
--- Name: positions_moves; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE positions_moves (
-    position_id integer NOT NULL,
-    move_id integer NOT NULL,
-    end_position_id integer NOT NULL
-);
-
+ALTER TABLE public.positions OWNER TO jean;
 
 --
--- Name: skills; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: skills; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE skills (
@@ -654,8 +757,10 @@ CREATE TABLE skills (
 );
 
 
+ALTER TABLE public.skills OWNER TO jean;
+
 --
--- Name: skill_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: skill_id_seq; Type: SEQUENCE; Schema: public; Owner: jean
 --
 
 CREATE SEQUENCE skill_id_seq
@@ -666,22 +771,24 @@ CREATE SEQUENCE skill_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.skill_id_seq OWNER TO jean;
+
 --
--- Name: skill_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: skill_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: jean
 --
 
 ALTER SEQUENCE skill_id_seq OWNED BY skills.id;
 
 
 --
--- Name: skill_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+-- Name: skill_id_seq; Type: SEQUENCE SET; Schema: public; Owner: jean
 --
 
 SELECT pg_catalog.setval('skill_id_seq', 16, true);
 
 
 --
--- Name: skillfocii; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+-- Name: skillfocii; Type: TABLE; Schema: public; Owner: jean; Tablespace: 
 --
 
 CREATE TABLE skillfocii (
@@ -690,106 +797,122 @@ CREATE TABLE skillfocii (
 );
 
 
+ALTER TABLE public.skillfocii OWNER TO jean;
+
 --
--- Name: v_combos; Type: VIEW; Schema: public; Owner: -
+-- Name: v_combos; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_combos AS
     SELECT f_combos.seq, f_combos.move_id, f_combos.variant, f_combos.abbr FROM f_combos() f_combos(seq, move_id, variant, abbr) OFFSET 1;
 
 
+ALTER TABLE public.v_combos OWNER TO jean;
+
 --
--- Name: v_combos_aggregate; Type: VIEW; Schema: public; Owner: -
+-- Name: v_combos_aggregate; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_combos_aggregate AS
     WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (SELECT v_combos.move_id, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, v_combos.abbr FROM v_combos WINDOW grouping_window AS (PARTITION BY v_combos.move_id)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, (((k.datum)::text || ', '::text) || (lb.datum)::text) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping AS move_id, k.datum AS abbr FROM k WHERE ((k._count = k._length) AND (k._count = k._number));
 
 
+ALTER TABLE public.v_combos_aggregate OWNER TO jean;
+
 --
--- Name: v_fighter_moves; Type: VIEW; Schema: public; Owner: -
+-- Name: v_fighter_moves; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_fighter_moves AS
     SELECT fighters.id, fighter_moves.move_id, fighters.name, moves.name AS move, fighter_moves.level, moves.type FROM ((fighters LEFT JOIN fighter_moves ON ((fighters.id = fighter_moves.fighter_id))) LEFT JOIN moves ON ((fighter_moves.move_id = moves.id)));
 
 
+ALTER TABLE public.v_fighter_moves OWNER TO jean;
+
 --
--- Name: v_moves; Type: VIEW; Schema: public; Owner: -
+-- Name: v_moves; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_moves AS
-    WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM (((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions_moves ON ((positions_moves.move_id = moves.id))) JOIN positions ON ((positions_moves.position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.id, moves.name AS move, v_combos_aggregate.abbr AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisit_moves, i.datum AS prerequisit_skills FROM (((((((positions_moves JOIN moves ON ((positions_moves.move_id = moves.id))) JOIN positions a ON ((positions_moves.position_id = a.id))) JOIN positions b ON ((positions_moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN v_combos_aggregate ON ((moves.id = v_combos_aggregate.move_id))) ORDER BY a.id, moves.id, x._length;
+    WITH x(_move, _length, camp) AS (WITH RECURSIVE z(_move, _length, _count, _number, camp) AS (WITH y(_move, _length, _count, _number, camp) AS (WITH move_camp(move, camp) AS (SELECT moves_camps.move_id, camps.name FROM (moves_camps JOIN camps ON ((moves_camps.camp_id = camps.id)))) SELECT move_camp.move, 1, count(*) OVER (move_window) AS count, row_number() OVER (move_window) AS row_number, move_camp.camp FROM move_camp WINDOW move_window AS (PARTITION BY move_camp.move)) SELECT y._move, y._length, y._count, y._number, y.camp FROM y UNION SELECT z._move, (z._length + 1), z._count, z._number, (((z.camp)::text || ', '::text) || (y.camp)::text) FROM (z JOIN y ON (((y._move = z._move) AND (z._length = y._number))))) SELECT z._move, z._length, z.camp FROM z WHERE ((z._count = z._length) AND (z._count = z._number))), j(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_move_requirements.move_id, ((((moves.name)::text || ' ('::text) || (positions.name)::text) || ')'::text) FROM ((move_move_requirements JOIN moves ON ((move_move_requirements.req_move_id = moves.id))) JOIN positions ON ((moves.start_position_id = positions.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))), i(_grouping, datum) AS (WITH RECURSIVE k(_grouping, _length, _count, _number, datum) AS (WITH lb(_grouping, _length, _count, _number, datum) AS (WITH grouping_datum(grouping, datum) AS (SELECT move_skill_requirements.move_id, ((((skills.name)::text || '('::text) || move_skill_requirements.level) || ')'::text) FROM (move_skill_requirements JOIN skills ON ((move_skill_requirements.skill_id = skills.id)))) SELECT grouping_datum.grouping, 1, count(*) OVER (grouping_window) AS count, row_number() OVER (grouping_window) AS row_number, grouping_datum.datum FROM grouping_datum WINDOW grouping_window AS (PARTITION BY grouping_datum.grouping)) SELECT lb._grouping, lb._length, lb._count, lb._number, lb.datum FROM lb UNION SELECT k._grouping, (k._length + 1), k._count, k._number, ((k.datum || ', '::text) || lb.datum) FROM (k JOIN lb ON (((lb._grouping = k._grouping) AND (k._length = lb._number))))) SELECT k._grouping, k.datum FROM k WHERE ((k._count = k._length) AND (k._count = k._number))) SELECT moves.id, moves.name AS move, v_combos_aggregate.abbr AS key_combo, moves.type, a.name AS start_position, b.name AS end_position, x.camp, x._length AS camp_count, j.datum AS prerequisit_moves, i.datum AS prerequisit_skills FROM ((((((moves JOIN positions a ON ((moves.start_position_id = a.id))) JOIN positions b ON ((moves.end_position_id = b.id))) LEFT JOIN x ON ((moves.id = x._move))) LEFT JOIN j ON ((moves.id = j._grouping))) LEFT JOIN i ON ((moves.id = i._grouping))) LEFT JOIN v_combos_aggregate ON ((moves.id = v_combos_aggregate.move_id))) ORDER BY a.id, moves.id, x._length;
 
+
+ALTER TABLE public.v_moves OWNER TO jean;
 
 --
--- Name: v_position_moves; Type: VIEW; Schema: public; Owner: -
+-- Name: v_position_moves; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_position_moves AS
     WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT v_moves.start_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WINDOW position_window AS (PARTITION BY v_moves.start_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
 
 
+ALTER TABLE public.v_position_moves OWNER TO jean;
+
 --
--- Name: v_reverse_position_moves; Type: VIEW; Schema: public; Owner: -
+-- Name: v_reverse_position_moves; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_reverse_position_moves AS
     WITH z("position", _length, moves) AS (WITH RECURSIVE x("position", _length, _count, _number, moves) AS (WITH y("position", _length, _count, _number, moves) AS (SELECT v_moves.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WINDOW position_window AS (PARTITION BY v_moves.end_position)) SELECT y."position", y._length, y._count, y._number, y.moves FROM y UNION SELECT x."position", (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y."position")::text = (x."position")::text) AND (x._length = y._number))))) SELECT x."position", x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))) SELECT z."position", z._length AS move_count, z.moves FROM z ORDER BY z."position", z._length;
 
 
+ALTER TABLE public.v_reverse_position_moves OWNER TO jean;
+
 --
--- Name: v_transition_moves; Type: VIEW; Schema: public; Owner: -
+-- Name: v_transition_moves; Type: VIEW; Schema: public; Owner: jean
 --
 
 CREATE VIEW v_transition_moves AS
     WITH z(start_position, end_position, _length, moves) AS (WITH RECURSIVE x(start_position, end_position, _length, _count, _number, moves) AS (WITH y(start_position, end_position, _length, _count, _number, moves) AS (SELECT v_moves.start_position, v_moves.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WHERE ((v_moves.start_position)::text <> (v_moves.end_position)::text) WINDOW position_window AS (PARTITION BY v_moves.start_position, v_moves.end_position)) SELECT y.start_position, y.end_position, y._length, y._count, y._number, y.moves FROM y UNION SELECT x.start_position, x.end_position, (x._length + 1), x._count, x._number, (((x.moves)::text || ', '::text) || (y.moves)::text) FROM (x JOIN y ON ((((y.start_position)::text = (x.start_position)::text) AND (x._length = y._number))))) SELECT x.start_position, x.end_position, x._length, x.moves FROM x WHERE ((x._count = x._length) AND (x._count = x._number))), c(start_position, end_position, _length, moves) AS (WITH RECURSIVE a(start_position, end_position, _length, _count, _number, moves) AS (WITH b(start_position, end_position, _length, _count, _number, moves) AS (SELECT v_moves.start_position, v_moves.end_position, 1, count(*) OVER (position_window) AS count, row_number() OVER (position_window) AS row_number, v_moves.move FROM v_moves WHERE ((v_moves.start_position)::text = (v_moves.end_position)::text) WINDOW position_window AS (PARTITION BY v_moves.start_position, v_moves.end_position)) SELECT b.start_position, b.end_position, b._length, b._count, b._number, b.moves FROM b UNION SELECT a.start_position, a.end_position, (a._length + 1), a._count, a._number, (((a.moves)::text || ', '::text) || (b.moves)::text) FROM (a JOIN b ON ((((b.start_position)::text = (a.start_position)::text) AND (a._length = b._number))))) SELECT a.start_position, a.end_position, a._length, a.moves FROM a WHERE ((a._count = a._length) AND (a._count = a._number))) SELECT z.start_position, z.end_position, z._length AS move_count, z.moves FROM z UNION SELECT c.start_position, c.end_position, c._length AS move_count, c.moves FROM c ORDER BY 1, 2, 3;
 
 
+ALTER TABLE public.v_transition_moves OWNER TO jean;
+
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: jean
 --
 
 ALTER TABLE buttons ALTER COLUMN id SET DEFAULT nextval('buttons_id_seq'::regclass);
 
 
 --
--- Name: seq; Type: DEFAULT; Schema: public; Owner: -
+-- Name: seq; Type: DEFAULT; Schema: public; Owner: jean
 --
 
 ALTER TABLE combo ALTER COLUMN seq SET DEFAULT nextval('combo_seq_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: jean
 --
 
 ALTER TABLE country ALTER COLUMN id SET DEFAULT nextval('country_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: jean
 --
 
 ALTER TABLE fighters ALTER COLUMN id SET DEFAULT nextval('fighters_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: jean
 --
 
 ALTER TABLE fightersource ALTER COLUMN id SET DEFAULT nextval('fightersource_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: id; Type: DEFAULT; Schema: public; Owner: jean
 --
 
 ALTER TABLE skills ALTER COLUMN id SET DEFAULT nextval('skill_id_seq'::regclass);
 
 
 --
--- Data for Name: buttons; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: buttons; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY buttons (id, abbr, name) FROM stdin;
@@ -835,7 +958,7 @@ COPY buttons (id, abbr, name) FROM stdin;
 
 
 --
--- Data for Name: camps; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: camps; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY camps (id, name) FROM stdin;
@@ -870,7 +993,7 @@ COPY camps (id, name) FROM stdin;
 
 
 --
--- Data for Name: combo; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: combo; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY combo (move_id, button_id, seq, variant) FROM stdin;
@@ -1742,7 +1865,7 @@ COPY combo (move_id, button_id, seq, variant) FROM stdin;
 
 
 --
--- Data for Name: country; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: country; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY country (id, name) FROM stdin;
@@ -1779,7 +1902,7 @@ COPY country (id, name) FROM stdin;
 
 
 --
--- Data for Name: fighter_camps; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fighter_camps; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fighter_camps (fighter_id, camp_id) FROM stdin;
@@ -1913,7 +2036,7 @@ COPY fighter_camps (fighter_id, camp_id) FROM stdin;
 
 
 --
--- Data for Name: fighter_moves; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fighter_moves; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fighter_moves (fighter_id, move_id, level) FROM stdin;
@@ -1921,7 +2044,7 @@ COPY fighter_moves (fighter_id, move_id, level) FROM stdin;
 
 
 --
--- Data for Name: fightercontract; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fightercontract; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fightercontract (id, contract) FROM stdin;
@@ -2078,7 +2201,7 @@ COPY fightercontract (id, contract) FROM stdin;
 
 
 --
--- Data for Name: fightercountry; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fightercountry; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fightercountry (id, country) FROM stdin;
@@ -2355,7 +2478,7 @@ COPY fightercountry (id, country) FROM stdin;
 
 
 --
--- Data for Name: fighternickname; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fighternickname; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fighternickname (id, nickname) FROM stdin;
@@ -2572,7 +2695,7 @@ COPY fighternickname (id, nickname) FROM stdin;
 
 
 --
--- Data for Name: fighterrating; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fighterrating; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fighterrating (id, rating) FROM stdin;
@@ -2680,7 +2803,7 @@ COPY fighterrating (id, rating) FROM stdin;
 
 
 --
--- Data for Name: fighterrecords; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fighterrecords; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fighterrecords (id, record) FROM stdin;
@@ -2956,7 +3079,7 @@ COPY fighterrecords (id, record) FROM stdin;
 
 
 --
--- Data for Name: fighters; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fighters; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fighters (id, name, weightclass, source_id) FROM stdin;
@@ -3313,7 +3436,7 @@ COPY fighters (id, name, weightclass, source_id) FROM stdin;
 
 
 --
--- Data for Name: fightersource; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: fightersource; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY fightersource (id, source) FROM stdin;
@@ -3324,7 +3447,7 @@ COPY fightersource (id, source) FROM stdin;
 
 
 --
--- Data for Name: move_move_requirements; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: move_move_requirements; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY move_move_requirements (move_id, req_move_id) FROM stdin;
@@ -3374,7 +3497,7 @@ COPY move_move_requirements (move_id, req_move_id) FROM stdin;
 
 
 --
--- Data for Name: move_skill_requirements; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: move_skill_requirements; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
@@ -3395,330 +3518,330 @@ COPY move_skill_requirements (move_id, skill_id, level) FROM stdin;
 
 
 --
--- Data for Name: moves; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: moves; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
-COPY moves (id, name, type) FROM stdin;
-3	Pummel to Double Underhook Defense	Clinch Transition
-207	Transition to Open Guard Down Top	Transition
-158	Transition to Open Guard Down Bottom	Transition
-159	Transition to Up/Down Bottom	Transition
-161	Transition to Half Guard Down Top	Transition
-162	Transition to Open Guard Top	Transition
-205	Cage Transition to Mount Down Top	Transition
-272	Cage Transition to Side Control Top	Transition
-124	Right Karate Front Kick	Kick
-130	Right MMA Back Spin Kick	Kick
-131	Right Muay Thai Head Kick	Kick
-132	Right Muay Thai Leg Kick	Kick
-163	Transition to Side Control Top	Transition
-4	Transition to Both Standing	Transition
-160	Triangle Choke from Butterfly Guard	Submission
-264	Triangle Choke from Rubber Guard Bottom	Submission
-184	Transition to Up/Down Bottom	Transition
-187	Transition to Mount Down Top	Transition
-190	D'arce Choke	Submission
-208	Arm Triangle Choke from Mount Top	Submission
-212	Arm Triangle Choke from Mount Top	Submission
-228	North/South Choke from North/South Top	Submission
-233	Strike Catch to Triangle Choke	Submission
-240	Triangle Choke	Submission
-243	Achilles Lock	Submission
-231	Strike Catch to Kimura	Submission
-236	Kimura	Submission
-188	Transition to Side Control Top	Transition
-200	Transition to Mount Down Top	Transition
-133	Right Muay Thai Push Kick	Kick
-134	Right Muay Thai Snap Kick	Kick
-138	Right Spinning Back Kick	Kick
-150	Strong Left Leg Kick	Kick
-151	Strong Right Leg Kick	Kick
-152	Switch Left Head Kick	Kick
-155	Two Step Right Middle Kick	Kick
-41	Left Muay Thai Elbow	Strike
-43	Right Chopping Hook	Strike
-58	Ducking Right Hook	Strike
-47	Right Short Uppercut from Sway Forward	Strike
-50	Backstep Right Hook from Switch Stance	Strike
-46	Right Muay Thai Elbow	Strike
-57	Ducking Left Hook	Strike
-70	Left Guarded Hook	Strike
-73	Left Hook from Sway Back	Strike
-74	Left Hook from Sway Forward	Strike
-76	Left Hook from Sway Right	Strike
-83	Left Over Hook	Strike
-84	Left Over Strong Hook	Strike
-89	Left Sidestepping Upper Jab	Strike
-92	Left Strong Uppercut	Strike
-201	Transition to Mount Top	Transition
-202	Transition to Side Control Top	Transition
-203	Transition to Half Guard Bottom	Transition
-204	Transition to Mount Down Bottom	Transition
-206	Transition to Half Guard Down Bottom	Transition
-229	Transition to Mount Down Top	Transition
-234	Transition to Open Guard Down Bottom	Transition
-235	Transition to Up/Down Bottom	Transition
-238	Transition to Rubber Guard Down Bottom	Transition
-239	Transition to Up/Down Bottom	Transition
-241	Transition to Half Guard Down Top	Transition
-242	Transition to Side Control Top	Transition
-253	Transition to Half Guard Down Top	Transition
-254	Transition to Half Guard Top	Transition
-255	Transition to Side Control Top	Transition
-273	Transition to Both Standing	Transition
-274	Transition to Butterfly Guard Bottom	Transition
-275	Transition to Half Guard Down Bottom	Transition
-93	Left Undercut	Strike
-95	Left Uppercut	Strike
-94	Left Upper Jab	Strike
-96	Lunging Left Hook	Strike
-97	Lunging Right Hook	Strike
-103	Overhand Left from Sway Forward	Strike
-232	Strike Catch to Omoplata	Submission
-237	Omoplata	Submission
-157	Gogoplata from Butterfly Guard	Submission
-245	Kneebar	Submission
-265	Transition to Half Guard Down Top	Transition
-266	Transition to Open Guard Top	Transition
-268	Transition to Both Standing	Transition
-271	Transition to Mount Top	Transition
-1	German Suplex to Back Side Control Offense	Takedown
-6	German Suplex to Back Side Control Offense	Takedown
-2	Lift Up Slam to Side Control Offense	Takedown
-164	Slam to Open Guard Down Offense	Takedown
-7	Pull to Side Control	Takedown
-5	Back Throw to Side Control Right Offense	Takedown
-144	Shoot to Double Leg Takedown	Takedown
-71	Left Head Kick	Kick
-72	Left High Front Kick	Kick
-114	Right Flying Knee	Kick
-145	Step Right Knee	Kick
-153	Two Step Left Flying Knee	Kick
-154	Two Step Right Flying Knee	Kick
-62	Hendo's Right Back Fist	Strike
-64	Jardine's Right Superman Punch	Strike
-65	Jon Jones' Right Back Fist	Strike
-77	Left Jab to Sway Back	Strike
-99	Lyoto's Right Straight	Strike
-100	Lyoto's Stepping Straight	Strike
-104	Overhand Right	Strike
-105	Overhand Right from Sway Forward	Strike
-106	Overhand Right Hook from Sway Forward	Strike
-112	Right Ducking Uppercut to Head	Strike
-116	Right Guarded Hook	Strike
-120	Right Hook from Sway Back	Strike
-121	Right Hook from Sway Left	Strike
-122	Right Hook From Sway Right	Strike
-125	Right Karate Straight	Strike
-126	Right Long Straight	Strike
-128	Right Long Uppercut	Strike
-129	Right Over Hook	Strike
-136	Right Spinning Back Elbow	Strike
-139	Right Strong Straight	Strike
-140	Right Strong Uppercut	Strike
-142	Right Uppercut	Strike
-143	Shogun's Stepping Left Hook	Strike
-146	Stepping Heavy Jab	Strike
-147	Stepping Over Left Hook	Strike
-148	Stepping Right Undercut	Strike
-149	Stepping Right Uppercut	Strike
-156	Weaving Overhand Right	Strike
-26	Peruvian Neck Tie	Submission
-9	Arm Trap Rear Naked Choke	Submission
-16	Arm Trap Rear Naked Choke	Submission
-22	Arm Trap Rear Naked Choke	Submission
-24	Arm Trap Rear Naked Choke	Submission
-262	Gogoplata from Rubber Guard Bottom	Submission
-263	Omoplata from Rubber Guard Bottom	Submission
-269	Americana from Side Control Top	Submission
-267	Armbar from Salaverry Top	Submission
-258	Takedown to Half Guard Down Offense	Takedown
-259	Hip Throw to Side Control Offense	Takedown
-260	Pull Guard to Open Guard Down Defense	Takedown
-256	Ouchi Gari to Open Guard Down Offense	Takedown
-78	Left Jumping Front Kick	Kick
-80	Left Muay Thai Head Kick	Kick
-81	Left Muay Thai Leg Kick	Kick
-82	Left Muay Thai Push Kick	Kick
-87	Left Side Kick	Kick
-88	Left Side Kick to Body	Kick
-91	Left Spinning Back Kick	Kick
-98	Lyoto's Left Head Kick	Kick
-42	Left Short Uppercut From Sway Forward	Strike
-67	Left Back Fist	Strike
-90	Left Spinning Back Fist	Strike
-109	Right Back Fist	Strike
-137	Right Spinning Back Fist	Strike
-59	Forrest's Left Front Kick	Kick
-60	Forrest's Left Head Kick	Kick
-247	Achilles Lock from Open Guard Top	Submission
-250	Kneebar from Open Guard Top	Submission
-10	Armbar from Back Mount Face Up Top	Submission
-17	Armbar from Back Mount Top	Submission
-25	Armbar from Back Side Control Top	Submission
-11	Rear Naked Choke	Submission
-15	Rear Naked Choke from Back Mount Rocked	Submission
-18	Rear Naked Choke Facing Downward	Submission
-23	Rear Naked Choke	Submission
-27	Rear Naked Choke	Submission
-175	Strike Catch to Armbar	Submission
-211	Armbar from Mount Rocked Top	Submission
-213	Armbar from Mount Top	Submission
-227	Armbar from North/South Top	Submission
-230	Strike Catch to Armbar	Submission
-278	Armbar from Side Control Rocked Top	Submission
-38	Inside Left Uppercut	Strike
-39	Inside Right Uppercut	Strike
-51	Backstepping Right Straight	Strike
-52	Brock's Right Straight	Strike
-56	Chuck's Right Straight	Strike
-63	Hendo's Right Strong Straight	Strike
-69	Left Flicking Jab	Strike
-75	Left Hook from Sway Left	Strike
-79	Left Long Superman Punch	Strike
-85	Left Punch from Kick Catch	Strike
-86	Left Quick Superman Punch	Strike
-127	Right Long Superman Punch	Strike
-135	Right Punch from Kick Catch	Strike
-277	Americana from Side Control Top	Submission
-279	Americana from Side Control Top	Submission
-246	Toe Hold	Submission
-252	Toe Hold from Open Guard Top	Submission
-276	Transition to Open Guard Down Bottom	Transition
-8	Transition to Both Standing	Transition
-13	Transition to Back Mount Face Up Body Triangle Top	Transition
-14	Transition to Mount Top	Transition
-20	Transition to Both Standing	Transition
-21	Transition to Open Guard Bottom	Transition
-30	Transition to Back Mount Face Up Top	Transition
-31	Transition to Back Mount Top	Transition
-177	Transition to Half Guard Down Bottom	Transition
-178	Transition to Open Guard Bottom	Transition
-179	Transition to Up/Down Bottom	Transition
-182	Transition to Butterfly Guard Bottom	Transition
-183	Transition to Open Guard Down Bottom	Transition
-219	Pummel to Over/Under Hook	Clinch Transition
-257	Pummel to Double Underhook Cage Offense	Clinch Transition
-261	Pummel to Double Underhook Offense	Clinch Transition
-180	Cage Transition to Half Guard Down Bottom	Transition
-40	Left Leg Kick	Kick
-44	Right Dodge Knee to the Body	Kick
-45	Right Leg Kick	Kick
-48	Strong Left Leg Kick	Kick
-49	Strong Right Leg Kick	Kick
-53	Caol's Back Spin Kick	Kick
-54	Caol's Left Side Kick	Kick
-55	Check Head Kick	Kick
-61	GSP's Head Kick	Kick
-66	Left Axe Kick	Kick
-68	Left Front Upward Kick	Kick
-101	Napao's Right Head Kick	Kick
-102	One Feint Head Kick	Kick
-107	Quick Head Kick	Kick
-108	Right Axe Kick	Kick
-110	Right Back Kick	Kick
-111	Right Brazilian Head Kick	Kick
-113	Right Flying Head Kick	Kick
-115	Right Front Upper Kick	Kick
-117	Right Head Kick	Kick
-118	Right High Front Kick	Kick
-119	Right High Kick	Kick
-123	Right Karate Back Spin Kick	Kick
-141	Right Superman Punch	Strike
-244	Heel Hook	Submission
-249	Heel Hook from Open Guard Top	Submission
-19	Strong Hook	Ground Strike
-28	Strong Hook	Ground Strike
-29	Strong Knee to Abdomen	Ground Strike
-12	Strong Right Hook	Ground Strike
-251	Strong Hook	Ground Strike
-198	Strong Hook	Ground Strike
-215	Strong Hook	Ground Strike
-196	Kneebar from Half Guard Top	Submission
-185	Americana from Half Guard Top	Submission
-189	Americana from Half Guard Rocked Top	Submission
-192	Americana from Half Guard Top	Submission
-199	Toe Hold from Half Guard Top	Submission
-176	Strike Catch to Kimura	Submission
-181	Kimura	Submission
-186	Kimura from Half Guard Top	Submission
-191	Kimura from Half Guard Top	Submission
-195	Kimura from Half Guard Top	Submission
-170	Pummel to Double Underhook Offense	Clinch Transition
-171	Pummel to Single Collar Tie	Clinch Transition
-218	Pummel to Muay Thai Clinch Offense	Clinch Transition
-166	Clinch to Body Lock Cage Offense	Clinch Transition
-172	Clinch to Body Lock Offense	Clinch Transition
-165	Left Turn Off to Double Underhook Defense	Clinch Transition
-168	Suplex to Side Control Offense	Takedown
-174	Suplex to Side Control Offense	Takedown
-169	Judo Hip Throw to Side Control Offense	Takedown
-167	Pull Guard to Open Guard Down Defense	Takedown
-173	Pull Guard to Open Guard Down Defense	Takedown
-223	Pull Guard to Open Guard Down Defense	Takedown
-248	Elbow	Ground Strike
-270	Elbow	Ground Strike
-193	Elbow	Ground Strike
-194	Hammer Fist	Ground Strike
-209	Ground Buster from Mount Down Top	Ground Strike
-214	Elbow	Ground Strike
-216	Rear Leg Knee	Clinch Strike
-217	Strong Knee	Clinch Strike
-220	Arcing Elbow	Clinch Strike
-221	Knee	Clinch Strike
-222	Knee to Body	Clinch Strike
-224	Rear Leg Knee	Clinch Strike
-225	Strong Knee	Clinch Strike
-226	Uppercut	Clinch Strike
-304	Peruvian Neck Tie from Sprawl Top	Submission
-280	Arm Triangle Choke	Submission
-301	Guillotine Choke from Sprawl Rocked	Submission
-302	Anaconda Choke from Sprawl Top	Submission
-303	Guillotine Choke from Sprawl Top	Submission
-311	Achilles Lock from Up/Down Near Top	Submission
-309	Kneebar from Up/Down Near Bottom	Submission
-313	Kneebar from Up/Down Near Top	Submission
-317	Toe Hold from Up/Down Near Top	Submission
-282	Kimura from Side Control Top	Submission
-287	Transition to Salaverry Top	Transition
-285	Transition to Mount Down Top	Transition
-286	Transition to Mount Top	Transition
-299	Transition to Both Standing	Transition
-300	Transition to Open Guard Down Bottom	Transition
-306	Transition to Back Mount Top	Transition
-33	Suplex to Side Control Offense	Takedown
-36	Suplex to Half Guard Down Offense	Takedown
-37	Suplex to Side Control Offense	Takedown
-34	Judo Hip Throw to Side Control Offense	Takedown
-32	Pull Guard to Open Guard Down Defense	Takedown
-35	Pull Guard to Open Guard Down Defense	Takedown
-297	Slam to Open Guard Down Offense	Takedown
-298	Slam to Side Control Offense	Takedown
-294	Pull Guard to Open Guard Down Defense	Takedown
-312	Heel Hook from Up/Down Near Top	Submission
-281	Elbow	Ground Strike
-283	Strong Left Knee to Abdomen	Ground Strike
-284	Strong Right Knee to Abdomen	Ground Strike
-305	Strong Hook	Ground Strike
-307	Left Superman Punch	Ground Strike
-308	Right Superman Punch	Ground Strike
-314	Left Axe Kick to Body	Ground Strike
-315	Left Superman Punch	Ground Strike
-316	Right Superman Punch	Ground Strike
-310	Up-Kick	Ground Strike
-289	Downward Arcing Elbow	Clinch Strike
-290	Strong Hook	Clinch Strike
-291	Strong Knee to Abdomen	Clinch Strike
-293	Uppercut to Body	Clinch Strike
-295	Strong Hook	Clinch Strike
-296	Uppercut	Clinch Strike
-288	Crushing Knee	Clinch Strike
-292	Strong Uppercut	Clinch Strike
+COPY moves (id, name, type, start_position_id, end_position_id) FROM stdin;
+3	Pummel to Double Underhook Defense	Clinch Transition	2	21
+207	Transition to Open Guard Down Top	Transition	29	39
+158	Transition to Open Guard Down Bottom	Transition	16	38
+159	Transition to Up/Down Bottom	Transition	16	58
+161	Transition to Half Guard Down Top	Transition	17	25
+162	Transition to Open Guard Top	Transition	17	41
+205	Cage Transition to Mount Down Top	Transition	29	30
+272	Cage Transition to Side Control Top	Transition	48	50
+124	Right Karate Front Kick	Kick	15	15
+130	Right MMA Back Spin Kick	Kick	15	15
+131	Right Muay Thai Head Kick	Kick	15	15
+132	Right Muay Thai Leg Kick	Kick	15	15
+163	Transition to Side Control Top	Transition	17	50
+4	Transition to Both Standing	Transition	2	15
+160	Triangle Choke from Butterfly Guard	Submission	16	16
+264	Triangle Choke from Rubber Guard Bottom	Submission	44	44
+184	Transition to Up/Down Bottom	Transition	24	58
+187	Transition to Mount Down Top	Transition	25	30
+190	D'arce Choke	Submission	26	26
+208	Arm Triangle Choke from Mount Top	Submission	30	30
+212	Arm Triangle Choke from Mount Top	Submission	32	32
+228	North/South Choke from North/South Top	Submission	36	36
+233	Strike Catch to Triangle Choke	Submission	37	37
+240	Triangle Choke	Submission	38	38
+243	Achilles Lock	Submission	40	40
+231	Strike Catch to Kimura	Submission	37	37
+236	Kimura	Submission	38	38
+188	Transition to Side Control Top	Transition	25	50
+200	Transition to Mount Down Top	Transition	27	30
+133	Right Muay Thai Push Kick	Kick	15	15
+134	Right Muay Thai Snap Kick	Kick	15	15
+138	Right Spinning Back Kick	Kick	15	15
+150	Strong Left Leg Kick	Kick	15	15
+151	Strong Right Leg Kick	Kick	15	15
+152	Switch Left Head Kick	Kick	15	15
+155	Two Step Right Middle Kick	Kick	15	15
+41	Left Muay Thai Elbow	Strike	14	14
+43	Right Chopping Hook	Strike	14	14
+58	Ducking Right Hook	Strike	15	15
+47	Right Short Uppercut from Sway Forward	Strike	14	14
+50	Backstep Right Hook from Switch Stance	Strike	15	15
+46	Right Muay Thai Elbow	Strike	14	14
+57	Ducking Left Hook	Strike	15	15
+70	Left Guarded Hook	Strike	15	15
+73	Left Hook from Sway Back	Strike	15	15
+74	Left Hook from Sway Forward	Strike	15	15
+76	Left Hook from Sway Right	Strike	15	15
+83	Left Over Hook	Strike	15	15
+84	Left Over Strong Hook	Strike	15	15
+89	Left Sidestepping Upper Jab	Strike	15	15
+92	Left Strong Uppercut	Strike	15	15
+201	Transition to Mount Top	Transition	27	32
+202	Transition to Side Control Top	Transition	27	50
+203	Transition to Half Guard Bottom	Transition	28	23
+204	Transition to Mount Down Bottom	Transition	28	29
+206	Transition to Half Guard Down Bottom	Transition	29	24
+229	Transition to Mount Down Top	Transition	36	30
+234	Transition to Open Guard Down Bottom	Transition	37	38
+235	Transition to Up/Down Bottom	Transition	37	58
+238	Transition to Rubber Guard Down Bottom	Transition	38	44
+239	Transition to Up/Down Bottom	Transition	38	58
+241	Transition to Half Guard Down Top	Transition	39	25
+242	Transition to Side Control Top	Transition	39	50
+253	Transition to Half Guard Down Top	Transition	41	25
+254	Transition to Half Guard Top	Transition	41	27
+255	Transition to Side Control Top	Transition	41	50
+273	Transition to Both Standing	Transition	48	15
+274	Transition to Butterfly Guard Bottom	Transition	48	16
+275	Transition to Half Guard Down Bottom	Transition	48	24
+93	Left Undercut	Strike	15	15
+164	Slam to Open Guard Down Offense	Takedown	18	39
+7	Pull to Side Control	Takedown	3	50
+5	Back Throw to Side Control Right Offense	Takedown	3	50
+144	Shoot to Double Leg Takedown	Takedown	15	39
+71	Left Head Kick	Kick	15	15
+72	Left High Front Kick	Kick	15	15
+114	Right Flying Knee	Kick	15	15
+145	Step Right Knee	Kick	15	15
+153	Two Step Left Flying Knee	Kick	15	15
+154	Two Step Right Flying Knee	Kick	15	15
+62	Hendo's Right Back Fist	Strike	15	15
+64	Jardine's Right Superman Punch	Strike	15	15
+65	Jon Jones' Right Back Fist	Strike	15	15
+77	Left Jab to Sway Back	Strike	15	15
+99	Lyoto's Right Straight	Strike	15	15
+100	Lyoto's Stepping Straight	Strike	15	15
+104	Overhand Right	Strike	15	15
+105	Overhand Right from Sway Forward	Strike	15	15
+106	Overhand Right Hook from Sway Forward	Strike	15	15
+112	Right Ducking Uppercut to Head	Strike	15	15
+116	Right Guarded Hook	Strike	15	15
+120	Right Hook from Sway Back	Strike	15	15
+121	Right Hook from Sway Left	Strike	15	15
+59	Forrest's Left Front Kick	Kick	15	15
+60	Forrest's Left Head Kick	Kick	15	15
+247	Achilles Lock from Open Guard Top	Submission	41	41
+250	Kneebar from Open Guard Top	Submission	41	41
+10	Armbar from Back Mount Face Up Top	Submission	5	5
+17	Armbar from Back Mount Top	Submission	7	7
+25	Armbar from Back Side Control Top	Submission	10	10
+11	Rear Naked Choke	Submission	5	5
+15	Rear Naked Choke from Back Mount Rocked	Submission	6	6
+18	Rear Naked Choke Facing Downward	Submission	7	7
+23	Rear Naked Choke	Submission	9	9
+27	Rear Naked Choke	Submission	10	10
+175	Strike Catch to Armbar	Submission	23	23
+211	Armbar from Mount Rocked Top	Submission	31	31
+213	Armbar from Mount Top	Submission	32	32
+227	Armbar from North/South Top	Submission	36	36
+230	Strike Catch to Armbar	Submission	37	37
+278	Armbar from Side Control Rocked Top	Submission	49	49
+38	Inside Left Uppercut	Strike	14	14
+39	Inside Right Uppercut	Strike	14	14
+51	Backstepping Right Straight	Strike	15	15
+52	Brock's Right Straight	Strike	15	15
+56	Chuck's Right Straight	Strike	15	15
+63	Hendo's Right Strong Straight	Strike	15	15
+69	Left Flicking Jab	Strike	15	15
+246	Toe Hold	Submission	40	40
+21	Transition to Open Guard Bottom	Transition	8	38
+30	Transition to Back Mount Face Up Top	Transition	10	5
+31	Transition to Back Mount Top	Transition	10	7
+177	Transition to Half Guard Down Bottom	Transition	23	24
+178	Transition to Open Guard Bottom	Transition	23	37
+179	Transition to Up/Down Bottom	Transition	23	58
+182	Transition to Butterfly Guard Bottom	Transition	24	16
+183	Transition to Open Guard Down Bottom	Transition	24	38
+219	Pummel to Over/Under Hook	Clinch Transition	34	43
+257	Pummel to Double Underhook Cage Offense	Clinch Transition	42	20
+261	Pummel to Double Underhook Offense	Clinch Transition	43	22
+180	Cage Transition to Half Guard Down Bottom	Transition	24	24
+40	Left Leg Kick	Kick	14	14
+44	Right Dodge Knee to the Body	Kick	14	14
+45	Right Leg Kick	Kick	14	14
+48	Strong Left Leg Kick	Kick	14	14
+49	Strong Right Leg Kick	Kick	14	14
+53	Caol's Back Spin Kick	Kick	15	15
+54	Caol's Left Side Kick	Kick	15	15
+55	Check Head Kick	Kick	15	15
+61	GSP's Head Kick	Kick	15	15
+66	Left Axe Kick	Kick	15	15
+68	Left Front Upward Kick	Kick	15	15
+101	Napao's Right Head Kick	Kick	15	15
+102	One Feint Head Kick	Kick	15	15
+107	Quick Head Kick	Kick	15	15
+108	Right Axe Kick	Kick	15	15
+110	Right Back Kick	Kick	15	15
+111	Right Brazilian Head Kick	Kick	15	15
+113	Right Flying Head Kick	Kick	15	15
+216	Rear Leg Knee	Clinch Strike	33	33
+217	Strong Knee	Clinch Strike	33	33
+220	Arcing Elbow	Clinch Strike	35	35
+221	Knee	Clinch Strike	35	35
+222	Knee to Body	Clinch Strike	35	35
+224	Rear Leg Knee	Clinch Strike	35	35
+225	Strong Knee	Clinch Strike	35	35
+226	Uppercut	Clinch Strike	35	35
+304	Peruvian Neck Tie from Sprawl Top	Submission	56	56
+280	Arm Triangle Choke	Submission	50	50
+301	Guillotine Choke from Sprawl Rocked	Submission	55	55
+302	Anaconda Choke from Sprawl Top	Submission	56	56
+303	Guillotine Choke from Sprawl Top	Submission	56	56
+311	Achilles Lock from Up/Down Near Top	Submission	59	59
+309	Kneebar from Up/Down Near Bottom	Submission	58	58
+313	Kneebar from Up/Down Near Top	Submission	59	59
+317	Toe Hold from Up/Down Near Top	Submission	59	59
+282	Kimura from Side Control Top	Submission	50	50
+287	Transition to Salaverry Top	Transition	50	47
+285	Transition to Mount Down Top	Transition	50	30
+286	Transition to Mount Top	Transition	50	32
+299	Transition to Both Standing	Transition	54	15
+300	Transition to Open Guard Down Bottom	Transition	54	38
+306	Transition to Back Mount Top	Transition	56	7
+33	Suplex to Side Control Offense	Takedown	11	50
+36	Suplex to Half Guard Down Offense	Takedown	13	25
+37	Suplex to Side Control Offense	Takedown	13	50
+34	Judo Hip Throw to Side Control Offense	Takedown	12	50
+32	Pull Guard to Open Guard Down Defense	Takedown	11	38
+35	Pull Guard to Open Guard Down Defense	Takedown	13	38
+297	Slam to Open Guard Down Offense	Takedown	53	39
+298	Slam to Side Control Offense	Takedown	53	50
+294	Pull Guard to Open Guard Down Defense	Takedown	52	38
+312	Heel Hook from Up/Down Near Top	Submission	59	59
+281	Elbow	Ground Strike	50	50
+283	Strong Left Knee to Abdomen	Ground Strike	50	50
+284	Strong Right Knee to Abdomen	Ground Strike	50	50
+305	Strong Hook	Ground Strike	56	56
+95	Left Uppercut	Strike	15	15
+94	Left Upper Jab	Strike	15	15
+96	Lunging Left Hook	Strike	15	15
+97	Lunging Right Hook	Strike	15	15
+103	Overhand Left from Sway Forward	Strike	15	15
+232	Strike Catch to Omoplata	Submission	37	37
+237	Omoplata	Submission	38	38
+157	Gogoplata from Butterfly Guard	Submission	16	16
+245	Kneebar	Submission	40	40
+265	Transition to Half Guard Down Top	Transition	45	25
+266	Transition to Open Guard Top	Transition	45	41
+268	Transition to Both Standing	Transition	46	15
+271	Transition to Mount Top	Transition	47	32
+1	German Suplex to Back Side Control Offense	Takedown	1	10
+6	German Suplex to Back Side Control Offense	Takedown	3	10
+2	Lift Up Slam to Side Control Offense	Takedown	1	50
+122	Right Hook From Sway Right	Strike	15	15
+125	Right Karate Straight	Strike	15	15
+126	Right Long Straight	Strike	15	15
+128	Right Long Uppercut	Strike	15	15
+129	Right Over Hook	Strike	15	15
+136	Right Spinning Back Elbow	Strike	15	15
+139	Right Strong Straight	Strike	15	15
+140	Right Strong Uppercut	Strike	15	15
+142	Right Uppercut	Strike	15	15
+143	Shogun's Stepping Left Hook	Strike	15	15
+146	Stepping Heavy Jab	Strike	15	15
+147	Stepping Over Left Hook	Strike	15	15
+148	Stepping Right Undercut	Strike	15	15
+149	Stepping Right Uppercut	Strike	15	15
+156	Weaving Overhand Right	Strike	15	15
+26	Peruvian Neck Tie	Submission	10	10
+9	Arm Trap Rear Naked Choke	Submission	5	5
+16	Arm Trap Rear Naked Choke	Submission	7	7
+22	Arm Trap Rear Naked Choke	Submission	9	9
+24	Arm Trap Rear Naked Choke	Submission	10	10
+262	Gogoplata from Rubber Guard Bottom	Submission	44	44
+263	Omoplata from Rubber Guard Bottom	Submission	44	44
+269	Americana from Side Control Top	Submission	47	47
+267	Armbar from Salaverry Top	Submission	46	46
+258	Takedown to Half Guard Down Offense	Takedown	42	25
+259	Hip Throw to Side Control Offense	Takedown	43	50
+260	Pull Guard to Open Guard Down Defense	Takedown	43	38
+256	Ouchi Gari to Open Guard Down Offense	Takedown	42	39
+78	Left Jumping Front Kick	Kick	15	15
+80	Left Muay Thai Head Kick	Kick	15	15
+81	Left Muay Thai Leg Kick	Kick	15	15
+82	Left Muay Thai Push Kick	Kick	15	15
+87	Left Side Kick	Kick	15	15
+88	Left Side Kick to Body	Kick	15	15
+91	Left Spinning Back Kick	Kick	15	15
+98	Lyoto's Left Head Kick	Kick	15	15
+42	Left Short Uppercut From Sway Forward	Strike	14	14
+67	Left Back Fist	Strike	15	15
+90	Left Spinning Back Fist	Strike	15	15
+109	Right Back Fist	Strike	15	15
+137	Right Spinning Back Fist	Strike	15	15
+75	Left Hook from Sway Left	Strike	15	15
+79	Left Long Superman Punch	Strike	15	15
+85	Left Punch from Kick Catch	Strike	15	15
+86	Left Quick Superman Punch	Strike	15	15
+127	Right Long Superman Punch	Strike	15	15
+135	Right Punch from Kick Catch	Strike	15	15
+277	Americana from Side Control Top	Submission	49	49
+279	Americana from Side Control Top	Submission	50	50
+252	Toe Hold from Open Guard Top	Submission	41	41
+276	Transition to Open Guard Down Bottom	Transition	48	38
+8	Transition to Both Standing	Transition	4	15
+13	Transition to Back Mount Face Up Body Triangle Top	Transition	5	5
+14	Transition to Mount Top	Transition	5	32
+20	Transition to Both Standing	Transition	8	15
+115	Right Front Upper Kick	Kick	15	15
+117	Right Head Kick	Kick	15	15
+118	Right High Front Kick	Kick	15	15
+119	Right High Kick	Kick	15	15
+123	Right Karate Back Spin Kick	Kick	15	15
+141	Right Superman Punch	Strike	15	15
+244	Heel Hook	Submission	40	40
+249	Heel Hook from Open Guard Top	Submission	41	41
+19	Strong Hook	Ground Strike	7	7
+28	Strong Hook	Ground Strike	10	10
+29	Strong Knee to Abdomen	Ground Strike	10	10
+12	Strong Right Hook	Ground Strike	5	5
+251	Strong Hook	Ground Strike	41	41
+198	Strong Hook	Ground Strike	27	27
+215	Strong Hook	Ground Strike	32	32
+196	Kneebar from Half Guard Top	Submission	27	27
+185	Americana from Half Guard Top	Submission	25	25
+189	Americana from Half Guard Rocked Top	Submission	26	26
+192	Americana from Half Guard Top	Submission	27	27
+199	Toe Hold from Half Guard Top	Submission	27	27
+176	Strike Catch to Kimura	Submission	23	23
+181	Kimura	Submission	24	24
+186	Kimura from Half Guard Top	Submission	25	25
+191	Kimura from Half Guard Top	Submission	26	26
+195	Kimura from Half Guard Top	Submission	27	27
+170	Pummel to Double Underhook Offense	Clinch Transition	21	22
+171	Pummel to Single Collar Tie	Clinch Transition	21	52
+218	Pummel to Muay Thai Clinch Offense	Clinch Transition	34	35
+166	Clinch to Body Lock Cage Offense	Clinch Transition	20	11
+172	Clinch to Body Lock Offense	Clinch Transition	22	13
+165	Left Turn Off to Double Underhook Defense	Clinch Transition	19	21
+168	Suplex to Side Control Offense	Takedown	20	50
+174	Suplex to Side Control Offense	Takedown	22	50
+169	Judo Hip Throw to Side Control Offense	Takedown	21	50
+167	Pull Guard to Open Guard Down Defense	Takedown	20	38
+173	Pull Guard to Open Guard Down Defense	Takedown	22	38
+223	Pull Guard to Open Guard Down Defense	Takedown	35	38
+248	Elbow	Ground Strike	41	41
+270	Elbow	Ground Strike	47	47
+193	Elbow	Ground Strike	27	27
+194	Hammer Fist	Ground Strike	27	27
+209	Ground Buster from Mount Down Top	Ground Strike	30	30
+214	Elbow	Ground Strike	32	32
+307	Left Superman Punch	Ground Strike	57	57
+308	Right Superman Punch	Ground Strike	57	57
+314	Left Axe Kick to Body	Ground Strike	59	59
+315	Left Superman Punch	Ground Strike	59	59
+316	Right Superman Punch	Ground Strike	59	59
+310	Up-Kick	Ground Strike	58	58
+289	Downward Arcing Elbow	Clinch Strike	51	51
+290	Strong Hook	Clinch Strike	51	51
+291	Strong Knee to Abdomen	Clinch Strike	51	51
+293	Uppercut to Body	Clinch Strike	51	51
+295	Strong Hook	Clinch Strike	52	52
+296	Uppercut	Clinch Strike	52	52
+288	Crushing Knee	Clinch Strike	51	51
+292	Strong Uppercut	Clinch Strike	51	51
 \.
 
 
 --
--- Data for Name: moves_camps; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: moves_camps; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY moves_camps (move_id, camp_id) FROM stdin;
@@ -4812,7 +4935,7 @@ COPY moves_camps (move_id, camp_id) FROM stdin;
 
 
 --
--- Data for Name: positions; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: positions; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY positions (id, name) FROM stdin;
@@ -4879,330 +5002,7 @@ COPY positions (id, name) FROM stdin;
 
 
 --
--- Data for Name: positions_moves; Type: TABLE DATA; Schema: public; Owner: -
---
-
-COPY positions_moves (position_id, move_id, end_position_id) FROM stdin;
-24	180	24
-1	1	10
-1	2	50
-2	4	15
-3	5	50
-3	6	10
-4	8	15
-5	13	5
-5	14	32
-8	21	38
-10	30	5
-11	32	38
-11	33	50
-12	34	50
-13	36	25
-13	37	50
-15	144	39
-16	159	58
-17	161	25
-17	163	50
-18	164	39
-19	165	21
-20	167	38
-20	168	50
-21	169	50
-21	171	52
-22	172	13
-22	174	50
-23	177	24
-23	178	37
-24	182	16
-24	183	38
-25	187	30
-25	188	50
-27	201	32
-27	202	50
-28	203	23
-29	205	30
-29	206	24
-29	207	39
-34	218	35
-34	219	43
-5	10	5
-5	9	5
-5	11	5
-6	15	6
-7	17	7
-7	16	7
-7	19	7
-9	22	9
-10	25	10
-10	24	10
-10	26	10
-10	28	10
-10	29	10
-14	38	14
-14	40	14
-14	41	14
-14	43	14
-14	44	14
-14	45	14
-14	47	14
-14	48	14
-14	49	14
-15	50	15
-2	3	21
-3	7	50
-8	20	15
-10	31	7
-13	35	38
-16	158	38
-17	162	41
-20	166	11
-21	170	22
-22	173	38
-23	179	58
-24	184	58
-27	200	30
-28	204	29
-35	223	38
-36	229	30
-37	234	38
-37	235	58
-38	238	44
-38	239	58
-39	241	25
-39	242	50
-41	253	25
-41	254	27
-41	255	50
-42	256	39
-42	257	20
-42	258	25
-43	259	50
-43	260	38
-43	261	22
-45	265	25
-45	266	41
-46	268	15
-47	271	32
-48	272	50
-48	273	15
-48	274	16
-48	275	24
-48	276	38
-50	285	30
-50	286	32
-50	287	47
-52	294	38
-53	297	39
-53	298	50
-54	299	15
-54	300	38
-56	306	7
-5	12	5
-7	18	7
-9	23	9
-10	27	10
-14	39	14
-14	42	14
-14	46	14
-15	51	15
-15	52	15
-15	53	15
-15	54	15
-15	55	15
-15	56	15
-15	57	15
-15	58	15
-15	59	15
-15	60	15
-15	61	15
-15	62	15
-15	63	15
-15	64	15
-15	65	15
-15	66	15
-15	67	15
-15	69	15
-15	68	15
-15	70	15
-15	71	15
-15	72	15
-15	73	15
-15	74	15
-15	75	15
-15	76	15
-15	77	15
-15	78	15
-15	79	15
-15	80	15
-15	81	15
-15	82	15
-15	83	15
-15	84	15
-15	85	15
-15	86	15
-15	87	15
-15	88	15
-15	89	15
-15	90	15
-15	91	15
-15	92	15
-15	93	15
-15	95	15
-15	94	15
-15	96	15
-15	97	15
-15	98	15
-15	99	15
-15	100	15
-15	101	15
-15	102	15
-15	103	15
-15	104	15
-15	105	15
-15	106	15
-15	107	15
-15	108	15
-15	109	15
-15	110	15
-15	111	15
-15	112	15
-15	113	15
-15	114	15
-15	115	15
-15	116	15
-15	117	15
-15	118	15
-15	119	15
-15	120	15
-15	121	15
-15	122	15
-15	123	15
-15	124	15
-15	125	15
-15	126	15
-15	127	15
-15	128	15
-36	228	36
-37	230	37
-37	231	37
-37	233	37
-38	236	38
-38	237	38
-40	243	40
-40	244	40
-40	246	40
-41	247	41
-41	248	41
-41	250	41
-41	251	41
-41	252	41
-44	263	44
-44	264	44
-47	269	47
-47	270	47
-49	277	49
-50	279	50
-50	280	50
-50	281	50
-50	283	50
-50	284	50
-51	289	51
-51	290	51
-51	291	51
-51	293	51
-52	295	52
-52	296	52
-56	302	56
-56	303	56
-56	305	56
-57	307	57
-57	308	57
-58	310	58
-59	311	59
-59	312	59
-59	314	59
-59	315	59
-59	317	59
-15	130	15
-15	131	15
-15	132	15
-15	133	15
-15	134	15
-15	129	15
-15	135	15
-15	136	15
-15	137	15
-15	138	15
-15	139	15
-15	140	15
-15	141	15
-15	142	15
-15	143	15
-15	146	15
-15	147	15
-15	148	15
-15	149	15
-15	145	15
-15	150	15
-15	151	15
-15	152	15
-15	153	15
-15	154	15
-15	155	15
-15	156	15
-16	157	16
-16	160	16
-23	175	23
-23	176	23
-24	181	24
-25	185	25
-25	186	25
-26	189	26
-26	190	26
-26	191	26
-27	192	27
-27	193	27
-27	194	27
-27	195	27
-27	196	27
-27	198	27
-27	199	27
-30	208	30
-30	209	30
-31	211	31
-32	213	32
-32	212	32
-32	214	32
-32	215	32
-33	216	33
-33	217	33
-35	220	35
-35	221	35
-35	222	35
-35	224	35
-35	225	35
-35	226	35
-36	227	36
-37	232	37
-38	240	38
-40	245	40
-41	249	41
-44	262	44
-46	267	46
-49	278	49
-50	282	50
-51	288	51
-51	292	51
-55	301	55
-56	304	56
-58	309	58
-59	313	59
-59	316	59
-\.
-
-
---
--- Data for Name: skillfocii; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: skillfocii; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY skillfocii (skill_id, focus) FROM stdin;
@@ -5228,7 +5028,7 @@ COPY skillfocii (skill_id, focus) FROM stdin;
 
 
 --
--- Data for Name: skills; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: skills; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY skills (id, name) FROM stdin;
@@ -5252,7 +5052,7 @@ COPY skills (id, name) FROM stdin;
 
 
 --
--- Data for Name: weightclass; Type: TABLE DATA; Schema: public; Owner: -
+-- Data for Name: weightclass; Type: TABLE DATA; Schema: public; Owner: jean
 --
 
 COPY weightclass (id, name, lbs) FROM stdin;
@@ -5267,7 +5067,7 @@ COPY weightclass (id, name, lbs) FROM stdin;
 
 
 --
--- Name: abbr_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: abbr_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY buttons
@@ -5275,7 +5075,7 @@ ALTER TABLE ONLY buttons
 
 
 --
--- Name: buttons_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: buttons_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY buttons
@@ -5283,7 +5083,7 @@ ALTER TABLE ONLY buttons
 
 
 --
--- Name: camps_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: camps_name_key; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY camps
@@ -5291,7 +5091,7 @@ ALTER TABLE ONLY camps
 
 
 --
--- Name: camps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: camps_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY camps
@@ -5299,7 +5099,7 @@ ALTER TABLE ONLY camps
 
 
 --
--- Name: combo_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: combo_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY combo
@@ -5307,7 +5107,7 @@ ALTER TABLE ONLY combo
 
 
 --
--- Name: country_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: country_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY country
@@ -5315,7 +5115,7 @@ ALTER TABLE ONLY country
 
 
 --
--- Name: fighter_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fighter_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighter_camps
@@ -5323,7 +5123,7 @@ ALTER TABLE ONLY fighter_camps
 
 
 --
--- Name: fighter_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fighter_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighter_moves
@@ -5331,7 +5131,7 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
--- Name: fightercontract_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fightercontract_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fightercontract
@@ -5339,7 +5139,7 @@ ALTER TABLE ONLY fightercontract
 
 
 --
--- Name: fightercountry_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fightercountry_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fightercountry
@@ -5347,7 +5147,7 @@ ALTER TABLE ONLY fightercountry
 
 
 --
--- Name: fighternickname_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fighternickname_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighternickname
@@ -5355,7 +5155,7 @@ ALTER TABLE ONLY fighternickname
 
 
 --
--- Name: fighterrating_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fighterrating_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighterrating
@@ -5363,7 +5163,7 @@ ALTER TABLE ONLY fighterrating
 
 
 --
--- Name: fighterrecords_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fighterrecords_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighterrecords
@@ -5371,7 +5171,7 @@ ALTER TABLE ONLY fighterrecords
 
 
 --
--- Name: fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fighters_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighters
@@ -5379,7 +5179,7 @@ ALTER TABLE ONLY fighters
 
 
 --
--- Name: fightersource_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: fightersource_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fightersource
@@ -5387,7 +5187,7 @@ ALTER TABLE ONLY fightersource
 
 
 --
--- Name: move_move_requirements_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: move_move_requirements_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY move_move_requirements
@@ -5395,7 +5195,7 @@ ALTER TABLE ONLY move_move_requirements
 
 
 --
--- Name: moves_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: moves_camps_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY moves_camps
@@ -5403,7 +5203,7 @@ ALTER TABLE ONLY moves_camps
 
 
 --
--- Name: moves_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: moves_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY moves
@@ -5411,7 +5211,7 @@ ALTER TABLE ONLY moves
 
 
 --
--- Name: name_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY country
@@ -5419,15 +5219,7 @@ ALTER TABLE ONLY country
 
 
 --
--- Name: positions_moves_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
---
-
-ALTER TABLE ONLY positions_moves
-    ADD CONSTRAINT positions_moves_pkey PRIMARY KEY (position_id, move_id);
-
-
---
--- Name: positions_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: positions_name_key; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY positions
@@ -5435,7 +5227,7 @@ ALTER TABLE ONLY positions
 
 
 --
--- Name: positions_name_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: positions_name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY positions
@@ -5443,7 +5235,7 @@ ALTER TABLE ONLY positions
 
 
 --
--- Name: positions_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: positions_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY positions
@@ -5451,7 +5243,7 @@ ALTER TABLE ONLY positions
 
 
 --
--- Name: skillfocii_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: skillfocii_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY skillfocii
@@ -5459,7 +5251,7 @@ ALTER TABLE ONLY skillfocii
 
 
 --
--- Name: skills_name_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: skills_name_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY skills
@@ -5467,7 +5259,7 @@ ALTER TABLE ONLY skills
 
 
 --
--- Name: skills_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: skills_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY skills
@@ -5475,7 +5267,7 @@ ALTER TABLE ONLY skills
 
 
 --
--- Name: source_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: source_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fightersource
@@ -5483,7 +5275,7 @@ ALTER TABLE ONLY fightersource
 
 
 --
--- Name: unique_name; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: unique_name; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY fighters
@@ -5491,7 +5283,7 @@ ALTER TABLE ONLY fighters
 
 
 --
--- Name: weight_unique; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: weight_unique; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY weightclass
@@ -5499,7 +5291,7 @@ ALTER TABLE ONLY weightclass
 
 
 --
--- Name: weightclass_name_key; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: weightclass_name_key; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY weightclass
@@ -5507,7 +5299,7 @@ ALTER TABLE ONLY weightclass
 
 
 --
--- Name: weightclass_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+-- Name: weightclass_pkey; Type: CONSTRAINT; Schema: public; Owner: jean; Tablespace: 
 --
 
 ALTER TABLE ONLY weightclass
@@ -5515,56 +5307,91 @@ ALTER TABLE ONLY weightclass
 
 
 --
--- Name: v_combos_aggregate_insert; Type: RULE; Schema: public; Owner: -
+-- Name: v_combos_aggregate_delete; Type: RULE; Schema: public; Owner: jean
 --
 
-CREATE RULE v_combos_aggregate_insert AS ON INSERT TO v_combos_aggregate DO INSTEAD SELECT f_v_combos_aggregate_insert((SELECT moves.id FROM moves WHERE ((moves.name)::name = (new.*)::name)), (new.abbr)::text) AS f_v_combos_aggregate_insert;
+CREATE RULE v_combos_aggregate_delete AS ON DELETE TO v_combos_aggregate DO INSTEAD DELETE FROM combo WHERE ((combo.move_id = old.move_id) AND (combo.variant IN (SELECT v_combos.variant FROM v_combos WHERE ((v_combos.move_id = old.move_id) AND ((v_combos.abbr)::text IN (SELECT regexp_split_to_table.regexp_split_to_table FROM regexp_split_to_table((old.abbr)::text, '[[:space:]]*,[[:space:]]*'::text) regexp_split_to_table(regexp_split_to_table)))))));
 
 
 --
--- Name: v_fighter_camps_insert; Type: RULE; Schema: public; Owner: -
+-- Name: v_combos_aggregate_insert; Type: RULE; Schema: public; Owner: jean
+--
+
+CREATE RULE v_combos_aggregate_insert AS ON INSERT TO v_combos_aggregate DO INSTEAD SELECT f_v_combos_aggregate_insert(new.move_id, (new.abbr)::text) AS f_v_combos_aggregate_insert;
+
+
+--
+-- Name: v_combos_aggregate_update; Type: RULE; Schema: public; Owner: jean
+--
+
+CREATE RULE v_combos_aggregate_update AS ON UPDATE TO v_combos_aggregate DO INSTEAD (DELETE FROM v_combos_aggregate WHERE ((v_combos_aggregate.move_id = old.move_id) AND ((v_combos_aggregate.abbr)::text = (old.abbr)::text)); INSERT INTO v_combos_aggregate (move_id, abbr) VALUES (new.move_id, new.abbr); );
+
+
+--
+-- Name: v_fighter_camps_insert; Type: RULE; Schema: public; Owner: jean
 --
 
 CREATE RULE v_fighter_camps_insert AS ON INSERT TO v_fighter_camps DO INSTEAD SELECT f_v_fighter_camps_insert((SELECT fighters.id FROM fighters WHERE ((fighters.name)::text = (new.name)::text)), (new.camp)::text) AS f_v_fighter_camps_insert;
 
 
 --
--- Name: v_fighter_camps_update; Type: RULE; Schema: public; Owner: -
+-- Name: v_fighter_camps_update; Type: RULE; Schema: public; Owner: jean
 --
 
 CREATE RULE v_fighter_camps_update AS ON UPDATE TO v_fighter_camps DO INSTEAD SELECT f_v_fighter_camps_insert((SELECT fighters.id FROM fighters WHERE ((fighters.name)::text = (new.name)::text)), (new.camp)::text) AS f_v_fighter_camps_insert;
 
 
 --
--- Name: v_fighter_moves_insert; Type: RULE; Schema: public; Owner: -
+-- Name: v_fighter_moves_insert; Type: RULE; Schema: public; Owner: jean
 --
 
 CREATE RULE v_fighter_moves_insert AS ON INSERT TO v_fighter_moves DO INSTEAD SELECT f_v_fighter_moves_insert((SELECT fighters.id FROM fighters WHERE ((fighters.name)::text = (new.name)::text)), (new.move)::text) AS f_v_fighter_moves_insert;
 
 
 --
--- Name: v_fighters_delete; Type: RULE; Schema: public; Owner: -
+-- Name: v_fighters_delete; Type: RULE; Schema: public; Owner: jean
 --
 
 CREATE RULE v_fighters_delete AS ON DELETE TO v_fighters DO INSTEAD DELETE FROM fighters WHERE ((fighters.name)::text = (old.name)::text);
 
 
 --
--- Name: v_fighters_insert; Type: RULE; Schema: public; Owner: -
+-- Name: v_fighters_insert; Type: RULE; Schema: public; Owner: jean
 --
 
 CREATE RULE v_fighters_insert AS ON INSERT TO v_fighters DO INSTEAD SELECT f_v_fighters_insert(new.*) AS f_v_fighters_insert;
 
 
 --
--- Name: v_fighters_update; Type: RULE; Schema: public; Owner: -
+-- Name: v_fighters_update; Type: RULE; Schema: public; Owner: jean
 --
 
 CREATE RULE v_fighters_update AS ON UPDATE TO v_fighters DO INSTEAD SELECT f_v_fighters_update(new.*) AS f_v_fighters_update;
 
 
 --
--- Name: button_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: v_moves_delete; Type: RULE; Schema: public; Owner: jean
+--
+
+CREATE RULE v_moves_delete AS ON DELETE TO v_moves DO INSTEAD DELETE FROM moves WHERE ((moves.name)::text = (old.move)::text);
+
+
+--
+-- Name: v_moves_insert; Type: RULE; Schema: public; Owner: jean
+--
+
+CREATE RULE v_moves_insert AS ON INSERT TO v_moves DO INSTEAD (INSERT INTO moves (id, name, type, start_position_id, end_position_id) VALUES (new.id, new.move, new.type, (SELECT positions.id FROM positions WHERE ((positions.name)::text = (new.start_position)::text)), (SELECT positions.id FROM positions WHERE ((positions.name)::text = (new.end_position)::text))); INSERT INTO v_combos_aggregate (move_id, abbr) VALUES (new.id, new.key_combo); SELECT f_v_moves_insert(new.id, (new.camp)::text, new.prerequisit_moves, new.prerequisit_skills) AS f_v_moves_insert; );
+
+
+--
+-- Name: v_moves_update; Type: RULE; Schema: public; Owner: jean
+--
+
+CREATE RULE v_moves_update AS ON UPDATE TO v_moves DO INSTEAD (DELETE FROM v_moves WHERE ((v_moves.move)::name = (old.*)::name); INSERT INTO v_moves (id, move, key_combo, type, start_position, end_position, camp, camp_count, prerequisit_moves, prerequisit_skills) VALUES (new.id, new.move, new.key_combo, new.type, new.start_position, new.end_position, new.camp, new.camp_count, new.prerequisit_moves, new.prerequisit_skills); );
+
+
+--
+-- Name: button_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY combo
@@ -5572,7 +5399,7 @@ ALTER TABLE ONLY combo
 
 
 --
--- Name: camp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: camp_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighter_camps
@@ -5580,15 +5407,7 @@ ALTER TABLE ONLY fighter_camps
 
 
 --
--- Name: end_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY positions_moves
-    ADD CONSTRAINT end_position_id_fkey FOREIGN KEY (end_position_id) REFERENCES positions(id);
-
-
---
--- Name: fighter_camps_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fighter_camps_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighter_camps
@@ -5596,7 +5415,7 @@ ALTER TABLE ONLY fighter_camps
 
 
 --
--- Name: fighter_moves_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fighter_moves_fighter_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighter_moves
@@ -5604,7 +5423,7 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
--- Name: fightercontract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fightercontract_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fightercontract
@@ -5612,7 +5431,7 @@ ALTER TABLE ONLY fightercontract
 
 
 --
--- Name: fightercountry_country_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fightercountry_country_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fightercountry
@@ -5620,7 +5439,7 @@ ALTER TABLE ONLY fightercountry
 
 
 --
--- Name: fightercountry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fightercountry_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fightercountry
@@ -5628,7 +5447,7 @@ ALTER TABLE ONLY fightercountry
 
 
 --
--- Name: fighternickname_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fighternickname_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighternickname
@@ -5636,7 +5455,7 @@ ALTER TABLE ONLY fighternickname
 
 
 --
--- Name: fighterrating_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fighterrating_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighterrating
@@ -5644,7 +5463,7 @@ ALTER TABLE ONLY fighterrating
 
 
 --
--- Name: fighterrecords_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fighterrecords_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighterrecords
@@ -5652,7 +5471,7 @@ ALTER TABLE ONLY fighterrecords
 
 
 --
--- Name: fighters_source_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: fighters_source_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighters
@@ -5660,7 +5479,7 @@ ALTER TABLE ONLY fighters
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY move_skill_requirements
@@ -5668,7 +5487,7 @@ ALTER TABLE ONLY move_skill_requirements
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY move_move_requirements
@@ -5676,7 +5495,7 @@ ALTER TABLE ONLY move_move_requirements
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY combo
@@ -5684,7 +5503,7 @@ ALTER TABLE ONLY combo
 
 
 --
--- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighter_moves
@@ -5692,15 +5511,23 @@ ALTER TABLE ONLY fighter_moves
 
 
 --
--- Name: position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: moves_end_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
-ALTER TABLE ONLY positions_moves
-    ADD CONSTRAINT position_id_fkey FOREIGN KEY (position_id) REFERENCES positions(id);
+ALTER TABLE ONLY moves
+    ADD CONSTRAINT moves_end_position_id_fkey FOREIGN KEY (end_position_id) REFERENCES positions(id);
 
 
 --
--- Name: req_move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: moves_start_position_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
+--
+
+ALTER TABLE ONLY moves
+    ADD CONSTRAINT moves_start_position_id_fkey FOREIGN KEY (start_position_id) REFERENCES positions(id);
+
+
+--
+-- Name: req_move_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY move_move_requirements
@@ -5708,7 +5535,7 @@ ALTER TABLE ONLY move_move_requirements
 
 
 --
--- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY skillfocii
@@ -5716,7 +5543,7 @@ ALTER TABLE ONLY skillfocii
 
 
 --
--- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: skill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY move_skill_requirements
@@ -5724,7 +5551,7 @@ ALTER TABLE ONLY move_skill_requirements
 
 
 --
--- Name: valid_camp; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: valid_camp; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY moves_camps
@@ -5732,7 +5559,7 @@ ALTER TABLE ONLY moves_camps
 
 
 --
--- Name: valid_move; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: valid_move; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY moves_camps
@@ -5740,349 +5567,11 @@ ALTER TABLE ONLY moves_camps
 
 
 --
--- Name: valid_move; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY positions_moves
-    ADD CONSTRAINT valid_move FOREIGN KEY (move_id) REFERENCES moves(id);
-
-
---
--- Name: valid_weightclass; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: valid_weightclass; Type: FK CONSTRAINT; Schema: public; Owner: jean
 --
 
 ALTER TABLE ONLY fighters
     ADD CONSTRAINT valid_weightclass FOREIGN KEY (weightclass) REFERENCES weightclass(id);
-
-
---
--- Name: public; Type: ACL; Schema: -; Owner: -
---
-
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM postgres;
-GRANT ALL ON SCHEMA public TO postgres;
-GRANT ALL ON SCHEMA public TO PUBLIC;
-
-
---
--- Name: buttons; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE buttons FROM PUBLIC;
-REVOKE ALL ON TABLE buttons FROM jean;
-GRANT ALL ON TABLE buttons TO jean;
-GRANT SELECT ON TABLE buttons TO apache;
-
-
---
--- Name: combo; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE combo FROM PUBLIC;
-REVOKE ALL ON TABLE combo FROM jean;
-GRANT ALL ON TABLE combo TO jean;
-GRANT SELECT ON TABLE combo TO apache;
-
-
---
--- Name: v_combo_buttons; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE v_combo_buttons FROM PUBLIC;
-REVOKE ALL ON TABLE v_combo_buttons FROM jean;
-GRANT ALL ON TABLE v_combo_buttons TO jean;
-GRANT SELECT ON TABLE v_combo_buttons TO apache;
-
-
---
--- Name: camps; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE camps FROM PUBLIC;
-REVOKE ALL ON TABLE camps FROM jean;
-GRANT ALL ON TABLE camps TO jean;
-GRANT SELECT ON TABLE camps TO apache;
-
-
---
--- Name: country; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE country FROM PUBLIC;
-REVOKE ALL ON TABLE country FROM jean;
-GRANT ALL ON TABLE country TO jean;
-GRANT SELECT ON TABLE country TO apache;
-
-
---
--- Name: fighter_camps; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fighter_camps FROM PUBLIC;
-REVOKE ALL ON TABLE fighter_camps FROM jean;
-GRANT ALL ON TABLE fighter_camps TO jean;
-GRANT SELECT ON TABLE fighter_camps TO apache;
-
-
---
--- Name: fightercontract; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fightercontract FROM PUBLIC;
-REVOKE ALL ON TABLE fightercontract FROM jean;
-GRANT ALL ON TABLE fightercontract TO jean;
-GRANT SELECT ON TABLE fightercontract TO apache;
-
-
---
--- Name: fightercountry; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fightercountry FROM PUBLIC;
-REVOKE ALL ON TABLE fightercountry FROM jean;
-GRANT ALL ON TABLE fightercountry TO jean;
-GRANT SELECT ON TABLE fightercountry TO apache;
-
-
---
--- Name: fighternickname; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fighternickname FROM PUBLIC;
-REVOKE ALL ON TABLE fighternickname FROM jean;
-GRANT ALL ON TABLE fighternickname TO jean;
-GRANT SELECT ON TABLE fighternickname TO apache;
-
-
---
--- Name: fighterrating; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fighterrating FROM PUBLIC;
-REVOKE ALL ON TABLE fighterrating FROM jean;
-GRANT ALL ON TABLE fighterrating TO jean;
-GRANT SELECT ON TABLE fighterrating TO apache;
-
-
---
--- Name: fighterrecords; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fighterrecords FROM PUBLIC;
-REVOKE ALL ON TABLE fighterrecords FROM jean;
-GRANT ALL ON TABLE fighterrecords TO jean;
-GRANT SELECT ON TABLE fighterrecords TO apache;
-
-
---
--- Name: fighters; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fighters FROM PUBLIC;
-REVOKE ALL ON TABLE fighters FROM jean;
-GRANT ALL ON TABLE fighters TO jean;
-GRANT SELECT ON TABLE fighters TO apache;
-
-
---
--- Name: fightersource; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fightersource FROM PUBLIC;
-REVOKE ALL ON TABLE fightersource FROM jean;
-GRANT ALL ON TABLE fightersource TO jean;
-GRANT SELECT ON TABLE fightersource TO apache;
-
-
---
--- Name: weightclass; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE weightclass FROM PUBLIC;
-REVOKE ALL ON TABLE weightclass FROM jean;
-GRANT ALL ON TABLE weightclass TO jean;
-GRANT SELECT ON TABLE weightclass TO apache;
-
-
---
--- Name: v_fighters; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE v_fighters FROM PUBLIC;
-REVOKE ALL ON TABLE v_fighters FROM jean;
-GRANT ALL ON TABLE v_fighters TO jean;
-GRANT SELECT ON TABLE v_fighters TO apache;
-
-
---
--- Name: buttons_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE buttons_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE buttons_id_seq FROM jean;
-GRANT ALL ON SEQUENCE buttons_id_seq TO jean;
-GRANT SELECT ON SEQUENCE buttons_id_seq TO apache;
-
-
---
--- Name: combo_seq_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE combo_seq_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE combo_seq_seq FROM jean;
-GRANT ALL ON SEQUENCE combo_seq_seq TO jean;
-GRANT SELECT ON SEQUENCE combo_seq_seq TO apache;
-
-
---
--- Name: country_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE country_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE country_id_seq FROM jean;
-GRANT ALL ON SEQUENCE country_id_seq TO jean;
-GRANT SELECT ON SEQUENCE country_id_seq TO apache;
-
-
---
--- Name: fighter_moves; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE fighter_moves FROM PUBLIC;
-REVOKE ALL ON TABLE fighter_moves FROM jean;
-GRANT ALL ON TABLE fighter_moves TO jean;
-GRANT SELECT ON TABLE fighter_moves TO apache;
-
-
---
--- Name: fighters_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE fighters_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE fighters_id_seq FROM jean;
-GRANT ALL ON SEQUENCE fighters_id_seq TO jean;
-GRANT SELECT ON SEQUENCE fighters_id_seq TO apache;
-
-
---
--- Name: fightersource_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE fightersource_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE fightersource_id_seq FROM jean;
-GRANT ALL ON SEQUENCE fightersource_id_seq TO jean;
-GRANT SELECT ON SEQUENCE fightersource_id_seq TO apache;
-
-
---
--- Name: move_move_requirements; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE move_move_requirements FROM PUBLIC;
-REVOKE ALL ON TABLE move_move_requirements FROM jean;
-GRANT ALL ON TABLE move_move_requirements TO jean;
-GRANT SELECT ON TABLE move_move_requirements TO apache;
-
-
---
--- Name: move_skill_requirements; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE move_skill_requirements FROM PUBLIC;
-REVOKE ALL ON TABLE move_skill_requirements FROM jean;
-GRANT ALL ON TABLE move_skill_requirements TO jean;
-GRANT SELECT ON TABLE move_skill_requirements TO apache;
-
-
---
--- Name: moves; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE moves FROM PUBLIC;
-REVOKE ALL ON TABLE moves FROM jean;
-GRANT ALL ON TABLE moves TO jean;
-GRANT SELECT ON TABLE moves TO apache;
-
-
---
--- Name: moves_camps; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE moves_camps FROM PUBLIC;
-REVOKE ALL ON TABLE moves_camps FROM jean;
-GRANT ALL ON TABLE moves_camps TO jean;
-GRANT SELECT ON TABLE moves_camps TO apache;
-
-
---
--- Name: positions; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE positions FROM PUBLIC;
-REVOKE ALL ON TABLE positions FROM jean;
-GRANT ALL ON TABLE positions TO jean;
-GRANT SELECT ON TABLE positions TO apache;
-
-
---
--- Name: positions_moves; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE positions_moves FROM PUBLIC;
-REVOKE ALL ON TABLE positions_moves FROM jean;
-GRANT ALL ON TABLE positions_moves TO jean;
-GRANT SELECT ON TABLE positions_moves TO apache;
-
-
---
--- Name: skills; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE skills FROM PUBLIC;
-REVOKE ALL ON TABLE skills FROM jean;
-GRANT ALL ON TABLE skills TO jean;
-GRANT SELECT ON TABLE skills TO apache;
-
-
---
--- Name: skill_id_seq; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON SEQUENCE skill_id_seq FROM PUBLIC;
-REVOKE ALL ON SEQUENCE skill_id_seq FROM jean;
-GRANT ALL ON SEQUENCE skill_id_seq TO jean;
-GRANT SELECT ON SEQUENCE skill_id_seq TO apache;
-
-
---
--- Name: skillfocii; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE skillfocii FROM PUBLIC;
-REVOKE ALL ON TABLE skillfocii FROM jean;
-GRANT ALL ON TABLE skillfocii TO jean;
-GRANT SELECT ON TABLE skillfocii TO apache;
-
-
---
--- Name: v_combos; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE v_combos FROM PUBLIC;
-REVOKE ALL ON TABLE v_combos FROM jean;
-GRANT ALL ON TABLE v_combos TO jean;
-GRANT SELECT ON TABLE v_combos TO apache;
-
-
---
--- Name: v_combos_aggregate; Type: ACL; Schema: public; Owner: -
---
-
-REVOKE ALL ON TABLE v_combos_aggregate FROM PUBLIC;
-REVOKE ALL ON TABLE v_combos_aggregate FROM jean;
-GRANT ALL ON TABLE v_combos_aggregate TO jean;
-GRANT SELECT ON TABLE v_combos_aggregate TO apache;
 
 
 --
